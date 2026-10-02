@@ -1,18 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { brand } from "@/config/brand";
 import "./globals.css";
 
-const outfit = Outfit({
+// Self-hosted variable fonts (latin subset, which covers Spanish), so builds
+// don't depend on Google Fonts. Both are SIL Open Font License: see ./fonts.
+const outfit = localFont({
+  src: "./fonts/outfit-latin.woff2",
+  weight: "100 900",
   variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const jakarta = Plus_Jakarta_Sans({
+const jakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
+  weight: "200 800",
   variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {

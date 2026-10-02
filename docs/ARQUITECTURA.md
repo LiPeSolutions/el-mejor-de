@@ -38,6 +38,7 @@ el-mejor-de/
 - **Pruebas:** Vitest en cada paquete (`pnpm test`).
 - **CI:** GitHub Actions corre `lint`, `typecheck`, `test` y `build` en cada push y PR.
 - **Marca:** el nombre y los colores provisorios viven en `apps/web/src/config/brand.ts`.
+- **Tipografías:** Outfit y Plus Jakarta Sans van incluidas en `apps/web/src/app/fonts` (licencia libre OFL), así el build no depende de Google Fonts.
 - **Reglas ajustables:** cada juego tiene su objeto `*_RULES` (tiempos, puntajes, umbrales anti-trampa) y la competencia, `COMPETITION_RULES`.
 
 ## 3. Tiempo: días y semanas

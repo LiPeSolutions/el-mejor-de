@@ -68,7 +68,7 @@ export function TodayTile({ game, result, unfinished, compact }: TodayTileProps)
       </span>
       <span className="text-xs leading-[1.15] font-bold">{game.name}</span>
       <span className="text-xs leading-[1.2] font-bold text-(--game-dark)">
-        {unfinished ? "Sin terminar" : `Por jugar · ${game.shortDuration}`}
+        {unfinished ? "Sin terminar" : `Por jugar\u00A0· ${game.shortDuration}`}
       </span>
     </Link>
   );
