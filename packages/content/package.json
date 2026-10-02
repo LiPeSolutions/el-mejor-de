@@ -1,0 +1,25 @@
+{
+  "name": "@repo/content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build:words": "tsx scripts/build-words.ts",
+    "export:trivia": "tsx scripts/export-trivia.ts"
+  },
+  "dependencies": {
+    "@repo/games": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "an-array-of-spanish-words": "2.0.0",
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^5"
+  }
+}

@@ -6,13 +6,14 @@
 
 ## Estado
 
-🛠️ **Etapa 0: cimientos.**
+🛠️ **Etapa 0: cimientos.** Ya se puede jugar.
 
 - ✅ Plan del producto y brief de diseño.
 - ✅ Motor de los 4 minijuegos (generar retos, corregir, puntuar y detectar trampas) y reglas de la competencia, con pruebas automáticas.
-- ✅ Base de la web app (Next.js), con una página provisoria.
-- ⏳ Diseño de pantallas (en Claude Design).
-- ⏳ Base de datos (Supabase), publicación (Vercel) y cuentas.
+- ✅ Diseño de pantallas (Claude Design), guardado en [`docs/diseno/handoff`](docs/diseno/handoff/README.md).
+- ✅ Web app jugable: inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor; lo jugado se guarda en el celu.
+- ⏳ Base de datos (Supabase), cuentas, ubicación, rankings, grupos y corona.
+- ⏳ Publicación en Vercel (falta configurar `CHALLENGE_SECRET`).
 
 ## Documentos
 
@@ -36,3 +37,4 @@ pnpm build      # build de producción
 | `apps/web` | La web app (Next.js + Tailwind). |
 | `packages/games` | Motor de los minijuegos: lógica pura, igual en el servidor y en el navegador. |
 | `packages/shared` | Calendario argentino y reglas de la competencia (puntaje semanal, corona). |
+| `packages/content` | Diccionario de Siete Letras y preguntas de Cinco Preguntas ([revisar preguntas](docs/contenido/preguntas.md)). |

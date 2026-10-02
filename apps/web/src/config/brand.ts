@@ -3,11 +3,14 @@
  * Every user-facing mention of the name reads from here.
  */
 export const brand = {
-  name: 'El Mejor de',
-  tagline: '¿Sos el mejor de tu pueblo? Demostralo.',
+  name: "El Mejor de",
+  tagline: "¿Sos el mejor de tu pueblo? Demostralo.",
   description:
-    'Minijuegos y retos diarios para ser el mejor de tu pueblo, de tu provincia, del país… o del mundo.',
-  /** Placeholder colors until the design system arrives. */
-  themeColor: '#74ACDF',
-  backgroundColor: '#FFFFFF',
+    "Minijuegos y retos diarios para ser el mejor de tu pueblo, de tu provincia, del país… o del mundo.",
+  /** Shown in links and share texts until the final domain exists. */
+  domain: "elmejorde.lipesolutions.com",
+  /** First game day, for "Día 214". Provisional until launch. */
+  firstDay: "2026-10-01",
+  themeColor: "#C3DAF8",
+  backgroundColor: "#E8EAF6",
 } as const;

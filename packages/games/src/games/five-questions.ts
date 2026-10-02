@@ -6,12 +6,15 @@ export const FIVE_QUESTIONS_RULES = {
   /** Difficulty of each question, shown in this order (easy first). */
   difficultyPlan: [1, 1, 2, 2, 3] as const,
   secondsPerQuestion: 15,
-  /** Correct answers within this time get the full speed bonus (time to read). */
-  fullBonusWithinMs: 2_000,
+  /** A correct answer within this many seconds gets full points (time to read)… */
+  fullPointsWithinSeconds: 2,
+  maxPoints: 200,
+  /** …then loses this much per extra second… */
+  pointsLostPerSecond: 10,
+  /** …but a correct answer never scores less than this. */
+  minCorrectPoints: 100,
   /** Allowance for network delay. */
   networkGraceMs: 1_500,
-  basePoints: 100,
-  maxSpeedBonus: 100,
   /** Nobody reads a question and answers it correctly faster than this. */
   minHumanAnswerMs: 400,
 } as const;
@@ -112,11 +115,16 @@ function shuffleWithinDifficulty(questions: TriviaQuestion[], rng: Rng): TriviaQ
   return result;
 }
 
+/** Whole seconds shown to the player ("respondiste en 4 s"); points use the same value. */
+export function answerSeconds(elapsedMs: number): number {
+  return Math.max(0, Math.round(elapsedMs / 1000));
+}
+
+/** Points for a correct answer: 200 within 2 s, 10 fewer per extra second, never under 100. */
 export function fiveQuestionsPoints(elapsedMs: number): number {
-  const { secondsPerQuestion, fullBonusWithinMs, basePoints, maxSpeedBonus } = FIVE_QUESTIONS_RULES;
-  const limitMs = secondsPerQuestion * 1000;
-  const speed = Math.min(1, Math.max(0, (limitMs - elapsedMs) / (limitMs - fullBonusWithinMs)));
-  return basePoints + Math.round(maxSpeedBonus * speed);
+  const { fullPointsWithinSeconds, maxPoints, pointsLostPerSecond, minCorrectPoints } = FIVE_QUESTIONS_RULES;
+  const extraSeconds = Math.max(0, answerSeconds(elapsedMs) - fullPointsWithinSeconds);
+  return Math.max(minCorrectPoints, maxPoints - pointsLostPerSecond * extraSeconds);
 }
 
 /**

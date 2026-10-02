@@ -1,25 +1,166 @@
 @import "tailwindcss";
 
-/* Placeholder tokens until the design system arrives from Claude Design. */
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Design tokens from the Claude Design handoff (docs/diseno/handoff/tokens),
+ * translated to Tailwind 4. Light mode only for now.
+ */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-brand: #4f6bff;
+  --color-brand-100: #e6eaff;
+  --color-brand-600: #3f58e6;
+
+  --color-ink: #23263a;
+  --color-ink-700: #4b5070;
+  --color-ink-500: #6c7191;
+  --color-ink-300: #b8bdd6;
+  --color-ink-200: #d9ddf3;
+
+  --color-sky-100: #c3daf8;
+  --color-sky-200: #dae1f6;
+  --color-sky-300: #e8eaf6;
+
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f2fa;
+  --color-line: #edeff8;
+
+  --color-gold: #ffc53d;
+  --color-gold-soft: #fff3d6;
+  --color-gold-ink: #5a4300;
+  --color-gold-text: #9a6200;
+  --color-gold-dark: #d9971a;
+
+  --color-success: #1fa093;
+  --color-danger: #e2504c;
+  --color-whatsapp: #25d366;
+
+  --color-letras: #ff6b4a;
+  --color-letras-dark: #c94f2e;
+  --color-letras-light: #ffd1c4;
+  --color-preguntas: #8b6cff;
+  --color-preguntas-dark: #6a4fd6;
+  --color-preguntas-light: #e4dbff;
+  --color-reflejos: #2ec4b6;
+  --color-reflejos-dark: #158a7f;
+  --color-reflejos-light: #cff3ee;
+  --color-secuencia: #ffc53d;
+  --color-secuencia-dark: #d9971a;
+  --color-secuencia-light: #fff0c2;
+
+  --radius-hero: 28px;
+  --radius-card: 22px;
+  --radius-tile: 20px;
+  --radius-row: 16px;
+  --radius-key: 14px;
+
+  --shadow-sm: 0 6px 16px rgba(35, 38, 58, 0.06);
+  --shadow-md: 0 8px 20px rgba(35, 38, 58, 0.08);
+  --shadow-lg: 0 10px 30px rgba(35, 38, 58, 0.12);
+  --shadow-btn: 0 12px 24px rgba(79, 107, 255, 0.35);
+  --shadow-btn-gold: 0 12px 24px rgba(255, 197, 61, 0.4);
+  --shadow-hero: 0 16px 32px rgba(79, 107, 255, 0.28);
+
+  --animate-bob: bob 3.2s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-pop: pop 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-rain: rain 4.5s linear infinite;
+  --animate-toast: toast-in 0.16s ease-out both;
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes pop {
+    0% { transform: translateY(-90px) scale(0.5); opacity: 0; }
+    70% { transform: translateY(6px) scale(1.06); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  @keyframes rain {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(900px) rotate(620deg); }
+  }
+  @keyframes toast-in {
+    0% { transform: translate(-50%, 6px); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
   }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/*
+ * Short screens: the design is drawn at 390×844, but in the browser the visible
+ * height of most phones is 650–800 px. `short:` compacts the screens that must
+ * keep their main button in view.
+ */
+@custom-variant short (@media (max-height: 800px));
+
+@utility bg-sky {
+  background-image: linear-gradient(180deg, #c3daf8 0%, #dae1f6 42%, #e8eaf6 100%);
+}
+@utility bg-festejo {
+  background-image: linear-gradient(180deg, #3b4fd8 0%, #4f6bff 55%, #8fa6ff 100%);
+}
+@utility bg-hero-brand {
+  background-image: linear-gradient(165deg, #6280ff 0%, #4f6bff 60%, #4560f0 100%);
+}
+@utility bg-hero-letras {
+  background-image: linear-gradient(165deg, #ff8a6e 0%, #ff6b4a 60%, #f05a3a 100%);
+}
+@utility bg-hero-preguntas {
+  background-image: linear-gradient(165deg, #a48cff 0%, #8b6cff 60%, #7a5bee 100%);
+}
+@utility bg-hero-reflejos {
+  background-image: linear-gradient(165deg, #4fd6c9 0%, #2ec4b6 60%, #22b0a3 100%);
+}
+@utility bg-hero-secuencia {
+  background-image: linear-gradient(165deg, #ffd978 0%, #ffc53d 60%, #f2b52a 100%);
+}
+@utility bg-hero-glow {
+  background-image: radial-gradient(120% 80% at 85% -10%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 60%);
+}
+@utility bg-tile-shine {
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%);
+}
+@utility bg-btn-shine {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background-color: var(--color-sky-300);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  button:disabled {
+    cursor: default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

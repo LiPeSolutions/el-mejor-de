@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createRng } from '../rng';
 import type { GameRngs } from '../types';
 import {
+  answerSeconds,
   createFiveQuestions,
   fiveQuestionsPoints,
   validateTriviaBank,
@@ -70,10 +71,20 @@ describe('generate', () => {
 });
 
 describe('scoring', () => {
-  it('gives 200 for a fast correct answer and 100 for one at the buzzer', () => {
+  it('gives 200 within 2 s, 10 fewer per extra second and never less than 100', () => {
     expect(fiveQuestionsPoints(1_000)).toBe(200);
-    expect(fiveQuestionsPoints(8_500)).toBe(150);
+    expect(fiveQuestionsPoints(2_400)).toBe(200);
+    expect(fiveQuestionsPoints(4_000)).toBe(180); // the design's "+180 · respondiste en 4 s"
+    expect(fiveQuestionsPoints(4_400)).toBe(180);
+    expect(fiveQuestionsPoints(8_500)).toBe(130);
+    expect(fiveQuestionsPoints(12_000)).toBe(100);
     expect(fiveQuestionsPoints(15_000)).toBe(100);
+  });
+
+  it('shows the same whole seconds the points use', () => {
+    expect(answerSeconds(4_400)).toBe(4);
+    expect(answerSeconds(4_600)).toBe(5);
+    expect(answerSeconds(-50)).toBe(0);
   });
 
   it('adds correct answers in time and nothing else', () => {

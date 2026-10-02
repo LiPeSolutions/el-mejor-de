@@ -66,6 +66,26 @@ Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron g
 3. `POST /api/daily/{fecha}/{slot}/finish` → el servidor valida con `packages/games`, calcula el puntaje (0–1.000) y corre los chequeos de plausibilidad.
 4. Si un intento no se termina, al vencer su tiempo máximo se cierra con lo que haya.
 
+### Lo que ya funciona: retos sin base de datos
+
+Mientras no esté Supabase, la API de los retos ya es autoritativa pero **no guarda nada**: todo lo que necesita viaja firmado.
+
+| Endpoint (`POST`) | Qué hace |
+|---|---|
+| `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`). Devuelve un **token firmado** y solo lo necesario para jugar. |
+| `/api/retos/palabra` | Siete Letras: dice si una palabra vale (el diccionario no se manda al celu). |
+| `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. |
+| `/api/retos/respuesta` | Corrige la respuesta, mide el tiempo del lado del servidor y devuelve un **recibo firmado**. |
+| `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. |
+| `/api/retos/terminar` | Recibe el registro del juego, recalcula todo desde la semilla y devuelve el puntaje. |
+
+- **Token del intento:** juego, fecha, slot, jugador y hora de inicio, firmados con HMAC. El servidor regenera el contenido desde la semilla en cada pedido (con un caché en memoria), así que no hace falta guardarlo. Un token vencido (pasado el tiempo máximo del juego) se rechaza.
+- **Jugador:** hasta que haya cuentas, una cookie anónima `emd_uid` (httpOnly, un año) hace de identificador.
+- **Lo que recuerda el celu:** los intentos del día, la racha, la semana y los récords de práctica viven en el `localStorage` del navegador. Si un reto se corta a la mitad, al volver se corrige con lo que se llegó a jugar.
+- **Marcas de plausibilidad:** se registran en los logs del servidor como `suspicious-attempt`.
+- **Límite conocido:** "un solo intento" hoy lo controla el navegador; con otro navegador se puede repetir. No importa mientras no haya ranking: al sumar Supabase, cada intento se guarda en `attempts` y el servidor lo hace cumplir.
+- **Secreto:** la variable `CHALLENGE_SECRET` (32 caracteres o más) deriva las semillas y firma los tokens. En producción es obligatoria (sin ella la API no arranca); en desarrollo y en los previews se usa una de prueba.
+
 **Contrato de cada juego** (`packages/games`):
 
 ```ts

@@ -85,6 +85,11 @@ export function sevenLettersWordPoints(word: string): number {
   return word.length === letterCount ? base + fullWordBonus : base;
 }
 
+/** Score for points so far; the UI uses it for the running score and each word's "+N". */
+export function sevenLettersScore(points: number, targetPoints: number): number {
+  return targetPoints > 0 ? Math.round(1000 * Math.min(1, points / targetPoints)) : 0;
+}
+
 function byLengthThenAlphabet(a: string, b: string): number {
   return b.length - a.length || (a < b ? -1 : a > b ? 1 : 0);
 }
@@ -196,8 +201,7 @@ export function createSevenLetters(
       }
 
       const points = accepted.reduce((sum, entry) => sum + entry.points, 0);
-      const score =
-        solution.targetPoints > 0 ? Math.round(1000 * Math.min(1, points / solution.targetPoints)) : 0;
+      const score = sevenLettersScore(points, solution.targetPoints);
       flags.push(...plausibilityFlags({ accepted }, solution, context.serverElapsedMs));
 
       return {

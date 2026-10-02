@@ -39,6 +39,10 @@ export interface SequenceResult extends GameResult {
   longestSequence: number;
 }
 
+export function sequenceScore(levelReached: number): number {
+  return Math.round(1000 * Math.min(1, Math.max(0, levelReached) / SEQUENCE_RULES.targetLevel));
+}
+
 export function sequenceLengthForLevel(level: number): number {
   return SEQUENCE_RULES.startLength + level - 1;
 }
@@ -96,7 +100,7 @@ export function createSequence(): GameDefinition<SequenceContent, null, Sequence
       }
 
       return {
-        score: Math.round(1000 * Math.min(1, levelReached / rules.targetLevel)),
+        score: sequenceScore(levelReached),
         flags,
         levelReached,
         longestSequence: levelReached > 0 ? content.startLength + levelReached - 1 : 0,
