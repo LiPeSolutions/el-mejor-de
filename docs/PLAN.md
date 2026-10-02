@@ -19,6 +19,7 @@ Lo que la hace distinta:
 
 | Tema | Decisión |
 |---|---|
+| Nombre | **Provisorio: "El Mejor de".** Se busca uno más general, que no encasille en "jugar entre amigos". En el código se cambia en un solo lugar. |
 | Alcance | **Argentina primero.** Todo se prepara para sumar otros países después. |
 | Público | **Todo público.** Implica cuidados extra de seguridad (ver §9). |
 | Tipos de juego | Palabras, trivia, habilidad y reflejos, lógica y memoria. **Truco** en la etapa 2. |
@@ -138,6 +139,19 @@ Cada minijuego dura entre **60 y 90 segundos** y se juega cómodo con una mano e
 | Habilidad | **Reflejos** | Tocá apenas la pantalla cambia de color. Son 5 rondas y cuenta tu promedio. Si tocás antes de tiempo, perdés la ronda. |
 | Memoria | **Secuencia** | Repetí secuencias de colores cada vez más largas (tipo Simón dice). Cuanto más lejos llegás, más puntos. |
 
+### Cómo se puntúa *(propuesta, a calibrar con la beta)*
+
+Cada reto da de 0 a 1.000 puntos:
+
+| Juego | Puntos |
+|---|---|
+| Siete Letras | Cada palabra suma según su largo (3 letras: 1 punto … 7 letras: 8 puntos + 10 de premio). Los 1.000 se alcanzan con un 35% de los puntos posibles de esas letras, así un día con letras difíciles no castiga. |
+| Cinco Preguntas | Hasta 200 por pregunta: 100 por acertar y hasta 100 más por rapidez (completos si respondés en menos de 2 segundos). |
+| Reflejos | Hasta 200 por ronda: completos con 170 ms o menos, nada con 550 ms o más. Tocar antes de tiempo da 0 en esa ronda. |
+| Secuencia | Llegar al nivel 12 (14 colores seguidos) vale 1.000; cada nivel menos resta proporcionalmente. |
+
+Para que nadie se pase las respuestas, en Cinco Preguntas todos ven las mismas preguntas, pero cada uno ve las opciones en otro orden. En Reflejos y Secuencia cada jugador tiene su propia versión, de la misma dificultad.
+
 ### Ideas para después
 
 - **Más o menos:** "¿Chivilcoy tiene más o menos habitantes que Junín?" Usa datos del censo, así que es bien local.
@@ -239,12 +253,14 @@ Cada etapa termina con algo que se puede jugar y probar.
 
 Para las próximas charlas:
 
-1. **Dominio:** ¿cuál es? Hay que configurarlo en Vercel.
-2. **Identidad visual:** colores, logo y estilo. ¿Canchero y con humor? ¿Una mascota?
-3. **El título y el género:** ¿la corona dice "El Mejor de…" para todos, o cada uno elige entre "El Mejor" y "La Mejor"?
-4. **Nombres** de los minijuegos.
-5. **Reglas finas de la corona:** ¿5 mejores días de 7? ¿Mínimo de 3 días para coronarse? ¿Desempates?
-6. **Premios reales** para las coronas (con sponsors): ¿sí o no? Si es que sí, hay que ver la parte legal de los concursos.
-7. **Truco:** ¿siempre a 30, o las mesas privadas pueden elegir a 15?
-8. **Barrios** en ciudades grandes: ¿desde cuándo?
-9. **Edad mínima** y manejo de menores: a validar con un abogado.
+1. **Nombre definitivo:** que funcione para el pueblo, la provincia, el país y los amigos, y que sea apto para todo público.
+2. **Dominio:** ¿cuál es? Hay que configurarlo en Vercel. Depende también del nombre.
+3. **Identidad visual:** colores, logo y estilo. ¿Canchero y con humor? ¿Una mascota?
+4. **El título y el género:** ¿la corona dice "El Mejor de…" para todos, o cada uno elige entre "El Mejor" y "La Mejor"?
+5. **Nombres** de los minijuegos.
+6. **Reglas finas de la corona:** ¿5 mejores días de 7? ¿Mínimo de 3 días para coronarse? ¿Desempates?
+7. **Puntajes de cada juego** (§7): revisarlos con datos reales de la beta.
+8. **Premios reales** para las coronas (con sponsors): ¿sí o no? Si es que sí, hay que ver la parte legal de los concursos.
+9. **Truco:** ¿siempre a 30, o las mesas privadas pueden elegir a 15?
+10. **Barrios** en ciudades grandes: ¿desde cuándo?
+11. **Edad mínima** y manejo de menores: a validar con un abogado.

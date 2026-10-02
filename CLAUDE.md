@@ -8,3 +8,4 @@ Web app (PWA, sin descarga) de minijuegos y retos diarios con rankings y coronas
 - **Decisiones nuevas:** reflejalas en `docs/PLAN.md` (tabla de decisiones y preguntas abiertas) o en `docs/ARQUITECTURA.md`.
 - **Idioma:** documentación, textos de la app y mensajes de commit en español rioplatense (vos, jugá, tocá). Código (identificadores y comentarios) en inglés.
 - **Principio rector:** la corona no se compra ni se truca. Nada pago da ventaja competitiva y los puntajes se validan en el servidor.
+- **Comandos:** `pnpm check` (lint + tipos + pruebas) y `pnpm build` desde la raíz; corrélos antes de cada push. La web vive en `apps/web` (Next.js 16: leé `apps/web/AGENTS.md`).

@@ -18,23 +18,27 @@
 | Tests | **Vitest** (lógica) + **Playwright** (punta a punta) | La lógica de juegos y puntajes tiene que estar muy bien testeada. |
 | Tiempo real (etapa 2) | A definir: **Colyseus** en Fly.io/Railway o **Cloudflare Durable Objects** | Para el truco: servidor autoritativo con estado oculto por jugador. |
 
-## 2. Estructura del repositorio *(propuesta)*
+## 2. Estructura del repositorio
 
-Monorepo con **pnpm workspaces**:
+Monorepo con **pnpm workspaces**. Los paquetes internos se llaman `@repo/*` (independiente de la marca) y exportan TypeScript directo: Next.js (Turbopack) los compila sin un build propio.
 
 ```
 el-mejor-de/
 ├── apps/
-│   └── web/            # Next.js: pantallas, API (route handlers) y crons
+│   └── web/            # Next.js 16: pantallas, API (route handlers) y crons
 ├── packages/
-│   ├── games/          # Lógica pura de los minijuegos: generar, validar y puntuar (cliente y servidor)
-│   ├── shared/         # Tipos, constantes y utilidades de fechas (zona horaria argentina)
+│   ├── games/          # @repo/games: lógica pura de los minijuegos (cliente y servidor)
+│   │                   #   y @repo/games/server: semillas secretas (solo servidor)
+│   ├── shared/         # @repo/shared: calendario argentino y reglas de la competencia
 │   └── truco/          # (etapa 2) Motor de reglas del truco
-├── supabase/
-│   ├── migrations/     # Esquema SQL versionado
-│   └── seed/           # Lugares, preguntas de trivia y diccionario
+├── supabase/           # (próximo) Migraciones SQL y datos iniciales
 └── docs/
 ```
+
+- **Pruebas:** Vitest en cada paquete (`pnpm test`).
+- **CI:** GitHub Actions corre `lint`, `typecheck`, `test` y `build` en cada push y PR.
+- **Marca:** el nombre y los colores provisorios viven en `apps/web/src/config/brand.ts`.
+- **Reglas ajustables:** cada juego tiene su objeto `*_RULES` (tiempos, puntajes, umbrales anti-trampa) y la competencia, `COMPETITION_RULES`.
 
 ## 3. Tiempo: días y semanas
 
@@ -45,7 +49,12 @@ el-mejor-de/
 
 ## 4. Retos diarios: flujo autoritativo
 
-**Semillas secretas.** Cada reto se genera a partir de `HMAC(secreto, fecha + slot)`. Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron genera los retos del día siguiente y los guarda en `daily_challenges`; la solución nunca sale del servidor.
+**Semillas secretas.** Cada reto usa dos generadores de azar derivados con HMAC-SHA256 de un secreto del servidor (`dailyRngs` en `@repo/games/server`):
+
+- **`shared`** = `HMAC(secreto, fecha, slot)`: igual para todos. Elige las letras, las preguntas, etc.
+- **`player`** = `HMAC(secreto, fecha, slot, usuario)`: único por jugador. Ordena las opciones y genera las versiones propias (esperas de Reflejos, secuencia de Secuencia).
+
+Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron genera los retos del día siguiente y guarda el contenido en `daily_challenges` (así un cambio de diccionario o de preguntas no altera un día ya publicado); la solución nunca sale del servidor.
 
 **Jugar un reto:**
 
@@ -60,17 +69,21 @@ el-mejor-de/
 **Contrato de cada juego** (`packages/games`):
 
 ```ts
-interface GameDefinition<Content, Solution, PlayerLog, Result> {
-  slug: string;
+interface GameDefinition<Content, Solution, Log, Result extends { score: number; flags: Flag[] }> {
+  id: GameId;                    // 'seven-letters' | 'five-questions' | 'reflexes' | 'sequence'
   category: 'words' | 'trivia' | 'skill' | 'logic';
-  generate(seed: string, difficulty: number): { content: Content; solution: Solution };
-  validate(content: Content, solution: Solution, log: PlayerLog): Result;
-  score(result: Result): number;        // 0..1000
-  plausibility(log: PlayerLog): Flag[]; // marcas para revisión
+  maxDurationMs: number;         // después de esto el servidor cierra el intento
+  generate(rngs: { shared: Rng; player: Rng }): { content: Content; solution: Solution };
+  evaluate(content: Content, solution: Solution, log: Log, ctx?: { serverElapsedMs?: number }): Result;
 }
 ```
 
-La misma lógica corre en el cliente (juego libre, con semillas al azar) y en el servidor (retos diarios, con la semilla secreta).
+- `content` es lo que el jugador puede ver (Cinco Preguntas y Secuencia lo revelan de a partes); `solution` nunca sale del servidor.
+- `evaluate` corrige, puntúa (0–1.000) y devuelve **marcas** (`flags`) de plausibilidad: `severity: 'high'` significa que el puntaje no cuenta hasta revisarlo.
+- Los juegos que necesitan datos se crean con ellos: `createSevenLetters(diccionario)` y `createFiveQuestions(bancoDePreguntas)`.
+- La misma lógica corre en el cliente (juego libre, con `practiceRngs()`) y en el servidor (retos diarios, con `dailyRngs()`).
+- `dailyLineup(fecha)` arma los 3 retos del día: rota el juego que descansa.
+- La API valida la forma de cada registro (esquema) antes de pasárselo al motor.
 
 ### Agujeros conocidos y cómo los cerramos
 
