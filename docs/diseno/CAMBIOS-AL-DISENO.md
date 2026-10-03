@@ -44,6 +44,7 @@ El handoff original está en [`handoff/`](handoff/README.md). Al implementarlo, 
 | Pantallas bajas | Diseñado a 390 × 844 | En pantallas de menos de 800 px de alto (el navegador del celu) el personaje del inicio se achica y la racha y la semana quedan debajo del botón principal | Que "Jugar" siempre se vea sin bajar |
 | Etiqueta del resultado de práctica | "Práctica · Siete Letras · no cuenta para la corona" | "Práctica · Diez Letras" | No entraba en una línea en celulares angostos |
 | Ícono de la app | No está diseñado | El logo: corona dorada sobre azul | Para instalarla en la pantalla de inicio |
+| Sonido | No está diseñado (solo el golpe de las luces de Largada) | Efectos en los cuatro juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona. Un parlante al lado de la cruz en la cabecera de cada juego, y "Sonido" en el perfil, en "En este celu" | Decisión de producto (3/10/2026) |
 
 ## Largada
 

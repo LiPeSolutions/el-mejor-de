@@ -36,7 +36,8 @@
 - **Largada** reemplaza a Reflejos: una largada de autos contra los tiempos de hoy de tu grupo, con podio, foto de llegada para compartir por WhatsApp y la franja de la corona.
   - Ya está en la práctica. En el reto del día rige desde el 4/10, y el primer día con reto de reflejos es el **lunes 5/10**. El 3/10 sigue el Reflejos de antes.
   - **Bots** (Rayo, Chispa, Turbo y Tortuga): en la práctica completan la pista; en el reto del día corren solo si no hay nadie más.
-- **Pruebas:** 274 automáticas, todas pasan.
+- **Sonido:** efectos en los cuatro juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
+- **Pruebas:** 297 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
@@ -54,6 +55,29 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 (noche) — Sonido
+
+- **Pedido de la responsable del producto:** sumarle música y sonidos a la app y a los juegos.
+- **Decisiones (consultadas):**
+  - Los efectos se **arman con código**, sin archivos ni licencias. Desde la sesión no se puede entrar a las bibliotecas de sonidos.
+  - **Música:** solo cortinas cortas (al cerrar el día, al batir un récord y al ganar la corona), sin música de fondo.
+  - Arranca **prendido** para todos, respetando el modo silencio del iPhone.
+  - **En Secuencia cada color tiene su nota, también en el reto del día**, aunque quien juega con sonido recuerde más fácil.
+  - **La señal de Largada sigue en silencio:** con un sonido, quien tiene el volumen prendido reaccionaría unos 40 ms antes (80 puntos).
+  - Quedó en [PLAN §2 y §6](PLAN.md#2-decisiones-tomadas).
+- **Qué se hizo:**
+  - **Los sonidos** (`lib/synth.ts`):
+    - Diez Letras: letras que suben de nota, borrar, mezclar, palabra que vale (más notas si es larga), la de 10 letras, repetida, no vale, el reloj y el fin del tiempo.
+    - Cinco Preguntas: llega la pregunta, correcta (con una nota más si fue rápida), incorrecta y el reloj.
+    - Secuencia: una nota por color, nivel superado y "te equivocaste".
+    - Largada: las luces, los autos que largan después de tu toque y el puesto.
+    - Los resultados: el puntaje que cuenta y cómo termina.
+    - Las cortinas: récord, día cerrado y corona.
+  - **El parlante** (`lib/sound.ts`): se abre con el primer toque, no satura aunque suenen varios juntos y no corta la música del celu. Hay un botón con un parlante al lado de la cruz en cada juego, y "Sonido" en el perfil ("En este celu").
+  - **Página para escucharlos** antes de publicar: un artifact con todos los sonidos, juego por juego.
+- **Pruebas:** 297 automáticas (23 nuevas: cada sonido arranca cuando debe, dura lo que dice y no rompe el audio del navegador). En el navegador se comprobó que cada sonido sale en su momento, que la señal de Largada no suena, que el parlante los apaga y se recuerda, y el nivel de cada uno, sin saturar.
+- **Visto al probar:** "Mezclar" y "Llega la pregunta" casi no se oían, y la cortina de "Cerraste el día" duraba más de lo que decía. Las tres cosas se corrigieron.
 
 ### 3/10/2026 (noche) — Bots en Largada
 

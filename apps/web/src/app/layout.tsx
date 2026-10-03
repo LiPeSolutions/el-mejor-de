@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { AccountSync } from "@/components/account/AccountSync";
+import { SoundUnlock } from "@/components/ui/Sound";
 import { brand } from "@/config/brand";
 import "./globals.css";
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         <AccountSync />
+        <SoundUnlock />
       </body>
     </html>
   );

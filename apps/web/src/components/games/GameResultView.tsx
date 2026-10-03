@@ -2,7 +2,7 @@
 
 import { SEQUENCE_RULES } from "@repo/games";
 import { Check, ChevronRight, Gamepad2, RotateCcw, Sparkles, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,7 @@ import { Screen } from "@/components/ui/Screen";
 import type { ChallengeResult } from "@/lib/challenge-types";
 import { formatNumber } from "@/lib/format";
 import { gameStyle, type GameTheme } from "@/lib/games";
+import { playSound, playSoundLater } from "@/lib/sound";
 
 interface DailyProps {
   practice: false;
@@ -191,8 +192,20 @@ function Detail({ result }: { result: ChallengeResult }) {
   }
 }
 
+/** The score lands with its sound; a new practice record gets its little tune after it. */
+export function useResultSound(score: number, record: boolean): void {
+  const sounded = useRef(false);
+  useEffect(() => {
+    if (sounded.current) return;
+    sounded.current = true;
+    playSound("reveal", score);
+    if (record) playSoundLater(1300, "record");
+  }, [score, record]);
+}
+
 export function GameResultView(props: Props) {
   const { game, result } = props;
+  useResultSound(result.score, props.practice && props.isRecord);
   return (
     <Screen clouds={CLOUDS} style={gameStyle(game)}>
       <div className="flex justify-center px-5">

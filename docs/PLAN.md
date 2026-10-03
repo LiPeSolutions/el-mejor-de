@@ -31,6 +31,7 @@ Lo que la hace distinta:
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
 | Puntajes | **Los del plan** (§7), no los del diseño. Diez Letras pasó a **puntos fijos por largo** (3/10/2026). |
 | Largada | Reemplaza a **Reflejos**: una largada de autos contra los tiempos de hoy de tu grupo, con 3 largadas y el puntaje según tu promedio. La espera es **distinta para cada jugador**, cada auto tiene **el color del personaje** y se corre contra **el último grupo que abriste**, que se puede cambiar (3/10/2026; construida, en el reto del día desde el 4/10; ver §7). |
+| Sonido | **Efectos y cortinas cortas hechos con código** (sin archivos ni licencias): al tocar, acertar, equivocarse, en los últimos segundos y en Largada; una melodía de 1 a 3 segundos al cerrar el día, al batir un récord y al ganar la corona. **Sin música de fondo.** Arranca **prendido**, respeta el modo silencio del iPhone, no corta la música del celu y se apaga con el parlante de los juegos o en el perfil. En Secuencia cada color tiene su nota, en la práctica y en el reto (3/10/2026). |
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
@@ -137,7 +138,8 @@ Si la corona se puede trucar, deja de valer. Por eso hay varias capas:
 3. **Detección de imposibles.** Por ejemplo, reflejos más rápidos de lo humanamente posible o un salto enorme de nivel de un día para otro. Esos puntajes se marcan para revisión.
 4. **Ubicación verificada** en los momentos clave (ver §5), cruzada con la ubicación aproximada de la conexión a internet.
 5. **Una persona, una cuenta.** Como crear una cuenta es fácil (apodo y contraseña), hay límites de cuentas por celu y por conexión, cada reto se juega una vez por cuenta, el ranking del lugar pide GPS y las coronas grandes se revisan.
-6. **Reportes y revisión.** Cualquiera puede reportar algo raro. Las coronas de provincia y de país por ahora se entregan solas; revisarlas a mano antes de entregarlas llega con el panel de administración. *(Propuesta.)*
+6. **El sonido no da ventaja.** Nada que suene dice algo que la pantalla no muestre: la señal de Largada es solo visual, porque con un sonido se reacciona unos 40 ms antes. La excepción decidida son las notas de Secuencia (3/10/2026).
+7. **Reportes y revisión.** Cualquiera puede reportar algo raro. Las coronas de provincia y de país por ahora se entregan solas; revisarlas a mano antes de entregarlas llega con el panel de administración. *(Propuesta.)*
 
 ## 7. Minijuegos
 

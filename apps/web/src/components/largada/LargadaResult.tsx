@@ -17,6 +17,7 @@ import { useAccount } from "@/lib/account";
 import type { PublicAccount } from "@/lib/account-types";
 import { largadaApi } from "@/lib/api";
 import type { ChallengeResult } from "@/lib/challenge-types";
+import { useResultSound } from "@/components/games/GameResultView";
 import { rememberHolders } from "@/lib/crown-watch";
 import { formatNumber } from "@/lib/format";
 import { gameStyle, type GameTheme } from "@/lib/games";
@@ -26,6 +27,7 @@ import { bestStart, ordinal, photoCaption, startsOf } from "@/lib/largada";
 import { lastLargadaRace } from "@/lib/largada-session";
 import type { LargadaGridResponse, LargadaStart } from "@/lib/largada-types";
 import { lastGroupId } from "@/lib/last-group";
+import { playSoundLater } from "@/lib/sound";
 import { useRequest } from "@/lib/use-request";
 import { Helmet } from "./Car";
 import { raceField, type BotRule, type Racer } from "./field";
@@ -269,6 +271,7 @@ function Starts({ starts, best, against, hint }: { starts: readonly LargadaStart
 
 export function LargadaResult(props: Props) {
   const { game, result } = props;
+  useResultSound(result.score, props.practice && props.isRecord);
   const account = useAccount();
   const userId = account?.id ?? null;
   const article: Article = account?.article ?? "el";
@@ -308,6 +311,14 @@ export function LargadaResult(props: Props) {
           detail: `Vas ${ordinal(1, article)} en la semana${data.meWeek.lead ? ` por ${formatNumber(data.meWeek.lead)}` : ""} · ${addDays(data.week.start, 6) === date ? "se define hoy" : "se define el domingo"}`,
         }
       : null;
+  // The crown's fanfare, when the gold strip comes in.
+  const crowned = strip !== null;
+  const fanfare = useRef(false);
+  useEffect(() => {
+    if (!crowned || fanfare.current) return;
+    fanfare.current = true;
+    playSoundLater(1300, "crown");
+  }, [crowned]);
   const told = strip && data?.group && account ? `${data.week.start}:${data.group.id}:${data.group.name}` : null;
   useEffect(() => {
     if (!told || !account) return;

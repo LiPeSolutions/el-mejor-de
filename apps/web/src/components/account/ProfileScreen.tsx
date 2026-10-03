@@ -10,6 +10,7 @@ import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
 import { Chip, Label } from "@/components/ui/Chip";
 import { Screen } from "@/components/ui/Screen";
+import { SoundSetting } from "@/components/ui/Sound";
 import { useAccount } from "@/lib/account";
 import { accountErrorText } from "@/lib/account-copy";
 import type { PublicAccount } from "@/lib/account-types";
@@ -165,6 +166,13 @@ function SignedIn({ account, stats }: { account: PublicAccount; stats: Stats }) 
               <div className="mt-1 font-display text-lg leading-none font-extrabold tabular-nums">{recordLabel(game, stats.records[game.id])}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="px-5 pt-5">
+        <Label>En este celu</Label>
+        <div className="mt-2">
+          <SoundSetting />
         </div>
       </section>
 

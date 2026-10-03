@@ -2,7 +2,7 @@
 
 import { ChevronRight, House, Lock, MapPin, ShieldCheck, UserPlus } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Countdown, ShareDayButton } from "@/components/home/parts";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Button } from "@/components/ui/Button";
@@ -20,7 +20,25 @@ import { placePath } from "@/lib/paths";
 import type { TodayStandingsResponse } from "@/lib/place-types";
 import { loadDay } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
+import { playSoundLater, soundReady } from "@/lib/sound";
 import { useRequest } from "@/lib/use-request";
+
+const DAY_TUNE_KEY = "emd:sonido-dia";
+
+/** The day's three challenges done: its tune, once a day. */
+function DayDoneSound({ date }: { date: string }) {
+  useEffect(() => {
+    if (!soundReady()) return;
+    try {
+      if (window.localStorage.getItem(DAY_TUNE_KEY) === date) return;
+      window.localStorage.setItem(DAY_TUNE_KEY, date);
+    } catch {
+      return;
+    }
+    playSoundLater(400, "dayDone");
+  }, [date]);
+  return null;
+}
 
 /** End of the day's run (designs 12 and 13). */
 export function DaySummary({ today }: { today: TodayInfo }) {
@@ -33,6 +51,7 @@ export function DaySummary({ today }: { today: TodayInfo }) {
       <header className="px-5">
         <Logo />
       </header>
+      {slots.every((slot) => slot.result) && <DayDoneSound date={today.date} />}
 
       <div className="px-6 pt-[18px]">
         <Label className="text-[13px]">{today.dayNumber > 0 ? `Día ${today.dayNumber} · tu resumen` : "Tu resumen"}</Label>

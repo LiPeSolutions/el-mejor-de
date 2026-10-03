@@ -5,18 +5,22 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Chip";
 import { IconButton } from "@/components/ui/IconButton";
+import { SoundToggle } from "@/components/ui/Sound";
 import { Toast, type ToastTone } from "@/components/ui/Toast";
 import { formatNumber } from "@/lib/format";
 
-/** Close button · game title · right element (clock, level…). */
+/** Close button and the speaker · game title · right element (clock, level…). */
 export function GameHeader({ title, right, onClose, dark = false }: { title: ReactNode; right?: ReactNode; onClose: () => void; dark?: boolean }) {
   return (
-    <div className="flex items-center justify-between px-5">
-      <IconButton label="Salir" onClick={onClose} tone={dark ? "light" : "white"}>
-        <X className="size-[18px]" strokeWidth={2.6} />
-      </IconButton>
-      <div className="text-[13px] font-extrabold uppercase tracking-[.06em] text-(--game-title)">{title}</div>
-      <div className="flex min-w-[38px] justify-end">{right}</div>
+    <div className="flex items-center justify-between gap-2 px-5">
+      <div className="flex gap-2">
+        <IconButton label="Salir" onClick={onClose} tone={dark ? "light" : "white"}>
+          <X className="size-[18px]" strokeWidth={2.6} />
+        </IconButton>
+        <SoundToggle tone={dark ? "light" : "white"} />
+      </div>
+      <div className="text-center text-[13px] font-extrabold uppercase tracking-[.06em] text-(--game-title)">{title}</div>
+      <div className="flex min-w-[84px] justify-end">{right}</div>
     </div>
   );
 }

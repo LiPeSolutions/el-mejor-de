@@ -2,7 +2,7 @@
 
 import { Calendar, Crown, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GroupsMessage } from "@/components/groups/parts";
 import { Personaje } from "@/components/personaje/Personaje";
 import { avatarLook } from "@/components/personaje/avatar";
@@ -15,6 +15,7 @@ import { groupsApi, levelSlug } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import type { CrownView } from "@/lib/group-types";
 import { shareOrCopy } from "@/lib/share";
+import { playSoundLater } from "@/lib/sound";
 import { useRequest } from "@/lib/use-request";
 
 /** Confetti pieces: position, color, size and timing, fixed so every render matches. */
@@ -84,6 +85,14 @@ function Celebration({ crown, more, replay, onDone }: { crown: CrownView; more: 
   useEffect(() => {
     if (!crown.seen) void groupsApi.crownSeen(crown.id).catch(() => undefined);
   }, [crown.id, crown.seen]);
+
+  // Its fanfare, once per crown shown.
+  const fanfare = useRef<string | null>(null);
+  useEffect(() => {
+    if (fanfare.current === crown.id) return;
+    fanfare.current = crown.id;
+    playSoundLater(300, "crown");
+  }, [crown.id]);
 
   const share = async () => {
     const text = `👑 Soy ${lead} ${name} · Semana ${crown.weekNumber} · ${formatNumber(crown.score)} puntos en ${brand.name}. ¿Me la sacás?`;

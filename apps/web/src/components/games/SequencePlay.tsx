@@ -7,6 +7,7 @@ import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { api } from "@/lib/api";
 import type { StartView } from "@/lib/challenge-types";
+import { playSound } from "@/lib/sound";
 import { GameHeader, ScoreRow } from "./chrome";
 
 type View = Extract<StartView, { game: "sequence" }>;
@@ -65,6 +66,8 @@ export function SequencePlay({ view, token, record, onProgress, onFinish, onExit
       later(() => {
         setActive(pad);
         setShown(i + 1);
+        // Each pad sings its own note, like a Simon.
+        playSound("pad", pad, 0.38);
       }, 500 + i * view.showMsPerItem);
       later(() => setActive(null), 500 + i * view.showMsPerItem + 400);
     });
@@ -108,6 +111,7 @@ export function SequencePlay({ view, token, record, onProgress, onFinish, onExit
     const nextInputs = [...inputs, pad];
     const durationMs = Math.round(pressedAt - inputStart.current);
     if (pad !== sequence[nextInputs.length - 1]) {
+      playSound("fail");
       levels.current = [...levels.current, { inputs: nextInputs, durationMs }];
       onProgress({ levels: levels.current });
       setInputs(nextInputs);
@@ -115,10 +119,12 @@ export function SequencePlay({ view, token, record, onProgress, onFinish, onExit
       later(end, 1600);
       return;
     }
+    playSound("pad", pad, 0.16);
     if (nextInputs.length < sequence.length) {
       setInputs(nextInputs);
       return;
     }
+    later(() => playSound(level >= maxLevel ? "record" : "levelUp"), 200);
     levels.current = [...levels.current, { inputs: nextInputs, durationMs }];
     onProgress({ levels: levels.current });
     setInputs(nextInputs);

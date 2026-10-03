@@ -7,6 +7,7 @@ import { Screen } from "@/components/ui/Screen";
 import { api } from "@/lib/api";
 import type { AnswerResponse, QuestionResponse, StartView } from "@/lib/challenge-types";
 import { formatNumber } from "@/lib/format";
+import { playSound } from "@/lib/sound";
 import { FloatingToast, GameHeader, useToast } from "./chrome";
 
 type View = Extract<StartView, { game: "five-questions" }>;
@@ -64,6 +65,7 @@ export function FiveQuestionsPlay({ view, token, onProgress, onFinish, onExit }:
   const shownAt = useRef(0);
   const finished = useRef(false);
   const locked = useRef(false);
+  const lastTick = useRef(0);
 
   const end = () => {
     if (finished.current) return;
@@ -79,6 +81,8 @@ export function FiveQuestionsPlay({ view, token, onProgress, onFinish, onExit }:
         setIndex(next);
         shownAt.current = performance.now();
         locked.current = false;
+        lastTick.current = 0;
+        playSound("question");
         setLeft(limitMs);
         setPhase("answering");
       },
@@ -111,10 +115,13 @@ export function FiveQuestionsPlay({ view, token, onProgress, onFinish, onExit }:
       setOutcomes((current) => [...current, response.correct]);
       const right = question.options[response.correctChoice];
       if (response.correct) {
+        playSound("correct", response.points >= 190);
         showToast({ tone: "success", icon: <Check className="size-3.5" strokeWidth={3} />, text: `¡Correcta! +${response.points} · respondiste en ${response.seconds} s` });
       } else if (choice === null) {
+        playSound("timeUp");
         showToast({ tone: "danger", icon: <Hourglass className="size-3.5" strokeWidth={3} />, text: `Se terminó el tiempo · era ${right}` });
       } else {
+        playSound("wrong");
         showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: `No era · la correcta: ${right}` });
       }
     } catch {
@@ -130,6 +137,12 @@ export function FiveQuestionsPlay({ view, token, onProgress, onFinish, onExit }:
   const onTick = useEffectEvent(() => {
     const remaining = limitMs - (performance.now() - shownAt.current);
     setLeft(remaining);
+    // The clock ticks in the last 5 seconds.
+    const seconds = Math.ceil(remaining / 1000);
+    if (remaining > 0 && seconds <= 5 && seconds !== lastTick.current) {
+      lastTick.current = seconds;
+      playSound("tick", seconds % 2 === 0);
+    }
     if (remaining <= 0) void submit(null);
   });
 

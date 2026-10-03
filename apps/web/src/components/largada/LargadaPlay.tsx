@@ -9,9 +9,10 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Screen } from "@/components/ui/Screen";
 import type { StartView } from "@/lib/challenge-types";
 import { useMediaQuery } from "@/lib/hooks";
-import { RACE, departures, inSentence, noseAt, ordinal, raceEndMs, startSummary } from "@/lib/largada";
+import { SoundToggle } from "@/components/ui/Sound";
+import { RACE, departures, inSentence, noseAt, ordinal, placements, raceEndMs, startSummary } from "@/lib/largada";
 import type { LargadaStart } from "@/lib/largada-types";
-import { knock, vibrate } from "@/lib/sound";
+import { playSound, vibrate } from "@/lib/sound";
 import { CAR } from "./Car";
 import type { Racer } from "./field";
 import { Track, carScaleFor, laneHeightFor, type ChipSpec, type ChipTone, type TrackLane } from "./Track";
@@ -89,7 +90,7 @@ export function LargadaPlay({ view, field, article, onProgress, onFinish, onExit
     for (let light = 1; light <= 5; light++) {
       later(() => {
         setLights(light);
-        knock();
+        playSound("knock");
         vibrate(15);
       }, FIRST_LIGHT_MS + (light - 1) * view.lightMs);
     }
@@ -116,6 +117,8 @@ export function LargadaPlay({ view, field, article, onProgress, onFinish, onExit
     results.current = [...results.current, start];
     setMine(results.current);
     onProgress({ rounds: results.current });
+    // After the tap, so the sound never tells when the lights went out.
+    playSound(start.falseStart ? "error" : start.reactionMs === null ? "timeUp" : "launch");
     if (start.falseStart) showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: "Te adelantaste · largada perdida" });
     else if (start.reactionMs === null) showToast({ tone: "danger", icon: <Hourglass className="size-3.5" strokeWidth={3} />, text: "Muy lento · largada perdida" });
     else if (hits.length > 0 && start.reactionMs < Math.min(...hits)) {
@@ -158,6 +161,7 @@ export function LargadaPlay({ view, field, article, onProgress, onFinish, onExit
     const now = startsFor(round);
     const last = now.length - 1;
     const mineNow = now[last]!;
+    if (mineNow.reactionMs !== null) playSound("place", placements(now, view.maxReactionMs)[last]!);
     const tied = mineNow.reactionMs !== null ? now.findIndex((one, i) => i < last && !one.falseStart && one.reactionMs === mineNow.reactionMs) : -1;
     if (tied !== -1) {
       const place = startSummary(now.map((one, i) => ({ ...one, name: racerAt(i), me: i === last })), view.maxReactionMs, article).place;
@@ -313,11 +317,14 @@ export function LargadaPlay({ view, field, article, onProgress, onFinish, onExit
     <Screen backdrop={onSignal ? "reflejos" : "sky"} style={phase === "lights" ? { backgroundImage: skyFor(lights) } : undefined} className="pb-[calc(env(safe-area-inset-bottom)+16px)]">
       <div className="flex flex-1 touch-manipulation flex-col select-none" onPointerDown={onPress}>
         <div className="flex items-center justify-between px-5" data-no-tap>
-          <IconButton label="Salir" onClick={onExit} tone={onSignal ? "glass" : "white"}>
-            <X className="size-[18px]" strokeWidth={2.6} />
-          </IconButton>
+          <div className="flex gap-2">
+            <IconButton label="Salir" onClick={onExit} tone={onSignal ? "glass" : "white"}>
+              <X className="size-[18px]" strokeWidth={2.6} />
+            </IconButton>
+            <SoundToggle tone={onSignal ? "glass" : "white"} />
+          </div>
           <div className={cx("text-[13px] font-extrabold tracking-[.06em] uppercase", onSignal || phase === "lights" ? "text-ink" : "text-reflejos-dark")}>Largada</div>
-          <span aria-hidden className="size-[38px]" />
+          <span aria-hidden className="w-[84px]" />
         </div>
 
         <div className={cx("relative flex flex-col items-center justify-center text-center", short ? "h-[96px]" : "h-[124px]")} aria-live="assertive">

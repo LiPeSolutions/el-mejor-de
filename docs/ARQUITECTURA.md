@@ -167,6 +167,17 @@ El juego de reflejos desde el 4/10/2026 (decisiones en [PLAN §7](PLAN.md#largad
 - **Sonido y vibración:** un golpe seco por luz con Web Audio, que se habilita al tocar "Empezar"; en el iPhone respeta el modo silencio (`audioSession` "ambient"). Vibra donde se puede (en Android sí, en el iPhone no).
 - **Récords de práctica:** el de Reflejos se guarda marcado como de Largada; el del juego anterior ya no se muestra.
 
+### Sonido
+
+Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLAN §2](PLAN.md#2-decisiones-tomadas)).
+
+- **Los sonidos** (`apps/web/src/lib/synth.ts`): cada uno se dibuja sobre cualquier contexto de audio (el parlante, o uno sin parlante para escucharlos o medirlos) desde un momento dado, y dice cuánto dura. Son osciladores con envolventes y ruido filtrado: letras que suben por una escala pentatónica, campanitas para acertar, un "bonk" para el error, el tic del reloj, las notas de Secuencia (un acorde de La mayor, como el Simón), el golpe de las luces y el motor de Largada, y las cortinas (día cerrado, récord, corona).
+- **El parlante** (`apps/web/src/lib/sound.ts`): un solo `AudioContext` para toda la app, con un limitador para que los sonidos encimados no saturen. Los navegadores solo dejan sonar después de un toque: `SoundUnlock` (en el layout) lo abre en el primero y lo reabre si el celu lo pausó. En el iPhone usa la sesión de audio "ambient": respeta la tecla de silencio y no corta la música que esté sonando.
+- **Prendido o apagado:** arranca prendido; apagarlo queda en el celu (`emd:sonido`). Se cambia con el parlante de la cabecera de los juegos (`SoundToggle`) o en el perfil (`SoundSetting`).
+- **Cuándo suena:** cada juego llama a `playSound` en el momento justo (al tocar, al corregir, en los últimos segundos). Los resultados cuentan el puntaje con un sonido (`useResultSound`); el récord, la corona y el día cerrado (una vez por día, `emd:sonido-dia`) tienen su cortina.
+- **Juego limpio:** nada que suene da información que la pantalla no muestre. La señal de Largada no suena: el motor arranca después del toque.
+- **Pruebas:** `synth.test.ts` revisa con un contexto de mentira que cada sonido arranque cuando debe, dure lo que dice y no rompa Web Audio (una rampa exponencial a cero da error). Cómo suenan se escucha en la página de sonidos.
+
 ### Contrato de cada juego
 
 Cada juego de `packages/games` cumple esta interfaz:

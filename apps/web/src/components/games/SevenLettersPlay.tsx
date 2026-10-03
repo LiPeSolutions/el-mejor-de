@@ -10,6 +10,7 @@ import { ApiError, api } from "@/lib/api";
 import type { StartView } from "@/lib/challenge-types";
 import { formatClock } from "@/lib/format";
 import { GAMES } from "@/lib/games";
+import { playSound } from "@/lib/sound";
 import { FloatingToast, GameHeader, ScoreRow, useToast } from "./chrome";
 
 type View = Extract<StartView, { game: "seven-letters" }>;
@@ -84,6 +85,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const sentWords = useRef(new Set<string>());
   const submissions = useRef<SevenLettersLog["submissions"]>([]);
   const finishedRef = useRef(false);
+  const lastTick = useRef(0);
 
   const finish = () => {
     if (finishedRef.current) return;
@@ -94,7 +96,16 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const onTick = useEffectEvent(() => {
     const remaining = view.durationMs - (performance.now() - startRef.current);
     setLeft(remaining);
-    if (remaining <= 0) finish();
+    // The clock ticks in the last 10 seconds.
+    const seconds = Math.ceil(remaining / 1000);
+    if (remaining > 0 && seconds <= 10 && seconds !== lastTick.current) {
+      lastTick.current = seconds;
+      playSound("tick", seconds % 2 === 0);
+    }
+    if (remaining <= 0) {
+      if (!finishedRef.current) playSound("timeUp");
+      finish();
+    }
   });
 
   useEffect(() => {
@@ -105,9 +116,17 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
 
   const word = selected.map((id) => tiles.find((tile) => tile.id === id)?.letter ?? "").join("");
 
-  const tap = (id: number) => setSelected((current) => (current.includes(id) ? current : [...current, id]));
-  const erase = () => setSelected((current) => current.slice(0, -1));
+  const tap = (id: number) => {
+    // A step up the scale for each letter of the word.
+    if (!selected.includes(id)) playSound("letter", selected.length);
+    setSelected((current) => (current.includes(id) ? current : [...current, id]));
+  };
+  const erase = () => {
+    if (selected.length > 0) playSound("erase");
+    setSelected((current) => current.slice(0, -1));
+  };
   const mix = () => {
+    playSound("shuffle");
     setSelected([]);
     setTiles((current) => shuffled(current));
   };
@@ -119,13 +138,18 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const check = async (word: string, attempt = 0): Promise<void> => {
     try {
       const response = await api.checkWord(token, word);
-      if (response.status !== "valid") return mark(word, { status: "invalid" });
+      if (response.status !== "valid") {
+        playSound("error");
+        return mark(word, { status: "invalid" });
+      }
       pointsRef.current += response.points;
       const next = sevenLettersScore(pointsRef.current, view.targetPoints);
       const delta = next - scoreRef.current;
       scoreRef.current = next;
       setScore(next);
       mark(word, { status: "valid", delta });
+      if (response.word.length === letterCount) playSound("jackpot");
+      else playSound("word", response.word.length);
       if (response.word.length === letterCount) {
         showToast({ tone: "success", icon: <Sparkles className="size-3.5" strokeWidth={2.6} />, text: `¡${response.word}! La de ${letterCount} letras +${delta}` });
       }
@@ -142,11 +166,13 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const send = () => {
     if (finishedRef.current || word.length === 0) return;
     if (word.length < view.minWordLength) {
+      playSound("nope");
       showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: `Tiene que tener ${view.minWordLength} letras o más` });
       return;
     }
     setSelected([]);
     if (sentWords.current.has(word)) {
+      playSound("nope");
       showToast({ tone: "gold", icon: <RotateCcw className="size-3.5" strokeWidth={3} />, text: `${word} ya la mandaste` });
       return;
     }
