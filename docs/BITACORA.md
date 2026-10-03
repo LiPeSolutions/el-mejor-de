@@ -8,12 +8,21 @@
 1. Leé esta bitácora, después [PLAN.md](PLAN.md) y [ARQUITECTURA.md](ARQUITECTURA.md).
 2. Comandos desde la raíz: `pnpm install`, `pnpm dev`, `pnpm check` (lint + tipos + pruebas) y `pnpm build`.
 3. Rama de trabajo: `claude/adoring-bardeen-19q4va`. Es la única del repositorio y Vercel la usa como producción: **cada push se publica solo**.
+4. **Probar con base en local** (cuentas y "un solo intento"): sin `DATABASE_URL` la app anda, pero no guarda nada y las cuentas responden 503.
+   - Levantá un Postgres en memoria con un script de Node fuera del repo. Usa `@electric-sql/pglite` y `@electric-sql/pglite-socket`: crea los roles `anon` y `authenticated`, aplica en orden `supabase/migrations/*.sql` y escucha en `127.0.0.1:5433`.
+   - Después, `DATABASE_URL=postgres://app_server@127.0.0.1:5433/postgres pnpm dev`.
+5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`).
 
 ## Estado actual (3/10/2026, noche)
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
+- **Diez Letras** reemplaza a Siete Letras:
+  - 10 letras en botones grandes y puntos fijos por largo.
+  - Las palabras se mandan sin esperar la verificación.
+  - Ya está en la práctica. En el reto del día rige desde el 4/10; el 3/10 y los días anteriores siguen con 7 letras.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
+- **Pruebas:** 155 automáticas, todas pasan, y CI en verde.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** ubicación con GPS, rankings, corona, grupos y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)). Ranking y Grupos muestran "Muy pronto".
 
@@ -43,6 +52,11 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 - **Diccionario:** de 3 a 10 letras (365.648 palabras) y 172 palabras escondidas de 10 letras elegidas a mano (animales, comidas, escuela, oficios, lugares del país…).
 - **Desde cuándo:** el reto del día usa Diez Letras desde el **4/10/2026**. Los días anteriores siguen con Siete Letras, para que un reto no cambie después de empezado. Se comprobó que los retos de 7 letras salen idénticos al código anterior. La práctica ya usa Diez Letras.
 - **Rendimiento:** con un diccionario cuatro veces más grande, las búsquedas usan máscaras de letras, y el reto del día se arma una sola vez por día y no una por jugador.
+- **Pruebas:**
+  - 155 automáticas.
+  - Las nuevas comprueban el cambio de reglas por fecha y los puntos por largo.
+  - Recorridos en celulares simulados de 390 y 360 px: botones de 64 × 64 y 58 × 64, y el resultado con las 10 letras sin desbordar.
+- **Visto al probar:** el diccionario acepta palabras poco conocidas y conjugaciones, como ADRAN o AES (ya pasaba con Siete Letras). Quedó como pregunta abierta.
 
 ### 3/10/2026 — Siete Letras sin esperar la verificación
 
@@ -114,7 +128,10 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 
 En orden sugerido (lo acordado: "cuentas y rankings").
 
-1. **Probar las cuentas en el celu** (responsable del producto): crear la cuenta, salir y volver a entrar.
+1. **Probar en el celu** (responsable del producto). Crear la cuenta y jugar con ella ya lo probó.
+   - Diez Letras: ya está en la práctica, y en el reto del día desde el 4/10.
+   - Salir y volver a entrar a la cuenta.
+   - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
 2. **Lugar y GPS** (pantallas 19 a 23), como "Paso 2 de 2" de la cuenta. El buscador de localidades ya existe (`searchLocalities` en `packages/db`), y la verificación usa un radio de 12 km alrededor del centro de la localidad.
 3. **Rankings** del día y de la semana (pantallas 24 y 25) y **corona semanal** (28 a 30 y 40).
 4. **Grupos privados** (31 a 34).
@@ -122,7 +139,10 @@ En orden sugerido (lo acordado: "cuentas y rankings").
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
-6. **Revisar** las 106 preguntas de trivia y la lista de palabras prohibidas en apodos (pendiente de la responsable del producto).
+6. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
+   - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos.
+   - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
+   - Qué hacer con las contraseñas olvidadas sin Google.
 7. **Antes de abrir al público:**
    - Términos y privacidad.
    - Consulta legal sobre menores.
@@ -133,7 +153,11 @@ En orden sugerido (lo acordado: "cuentas y rankings").
 
 Para no tropezar dos veces:
 
-- **Red de la sesión en la nube:** no llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar), y la app publicada se revisa con las herramientas de Vercel.
+- **Red de la sesión en la nube:**
+  - No llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar).
+  - La app publicada se revisa con las herramientas de Vercel, que no abren el dominio propio: hay que usar `el-mejor-de-web.vercel.app`.
+  - Las consultas DNS por HTTPS están bloqueadas. Para ver si un registro ya propagó sirve `getent hosts game.lipesolutions.com`.
+- **Playwright en la sesión en la nube:** Chromium ya está instalado. Se usa con `require("/opt/node-tools/node_modules/playwright")` y `--no-sandbox`. Los radios ocultos (`sr-only`) se tocan por su `label`.
 - **Supabase desde Claude (MCP):**
   - Los comandos que borran (`drop`, `truncate`, `delete`) esperan la confirmación del dueño y se cortan a los 60 s. Conviene hacerlos desde el SQL Editor.
   - Cualquier pedido de más de 60 s también se corta: hay que partirlo en pasos.
@@ -145,3 +169,8 @@ Para no tropezar dos veces:
 - **Vercel:** un cambio en las variables de entorno necesita volver a publicar.
 - **Migraciones con `drop`:** por el MCP quedan esperando la confirmación del dueño y se cortan. Conviene ponerlas en una migración aparte, para que lo demás se aplique igual, y correr el `drop` desde el SQL Editor.
 - **React y `useSyncExternalStore`:** la cuenta guardada en el navegador se lee con un hook que devuelve `undefined` hasta montar, así las pantallas no parpadean entre "sin cuenta" y "con cuenta".
+- **Toques rápidos en el celu:**
+  - `click` llega al levantar el dedo y se pierde cuando los toques se pisan. Los botones de los juegos actúan en `pointerdown` (con `preventDefault`) y dejan `click` solo para el teclado (`event.detail === 0`).
+  - `touch-manipulation` saca el zoom por doble toque.
+- **Cambiar reglas o puntajes de un juego:** los retos del día se regeneran desde la semilla. Cambiar las reglas sin más cambiaría retos ya jugados, así que van por fecha (ver "Reglas por fecha" en [ARQUITECTURA, "Contrato de cada juego"](ARQUITECTURA.md#contrato-de-cada-juego)). Las pruebas que dependen de las reglas viejas las pasan explícitas.
+- **Vitest en `apps/web`:** la configuración es `vitest.config.mts`, porque con `.ts` avisa por ESM. Además reemplaza `server-only` por un módulo vacío, porque fuera de Next.js tira error.

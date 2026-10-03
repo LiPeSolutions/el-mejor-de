@@ -269,3 +269,4 @@ Para las próximas charlas:
 10. **Modo oscuro:** el diseño todavía no lo incluye.
 11. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
 12. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?
+13. **Diccionario de Diez Letras:** hoy acepta palabras poco conocidas y conjugaciones, como "ADRAN" o "AES". ¿Valen solo las palabras conocidas? Habría que filtrar el diccionario por frecuencia de uso.

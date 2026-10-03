@@ -124,7 +124,9 @@ Apodo y contraseña, sin email (decisión de producto del 3/10/2026). El código
 - **Sin base de datos** (local y CI) las cuentas no funcionan: los endpoints responden `503 accounts-unavailable`.
 - **Pruebas:** reglas y consultas con Vitest sobre PGlite (`packages/shared`, `packages/db` y `apps/web/src/server/accounts.test.ts`).
 
-**Contrato de cada juego** (`packages/games`):
+### Contrato de cada juego
+
+Cada juego de `packages/games` cumple esta interfaz:
 
 ```ts
 interface GameDefinition<Content, Solution, Log, Result extends { score: number; flags: Flag[] }> {
