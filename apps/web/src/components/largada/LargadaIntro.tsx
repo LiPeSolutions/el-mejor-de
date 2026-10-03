@@ -42,7 +42,7 @@ const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1
 interface BoxProps {
   number: number | null;
   name: string;
-  /** Above the name: "El mejor de" for the ghost. */
+  /** Above the name: "El mejor de" for the ghost, "bot" for a bot. */
   caption?: string;
   avatar: Racer["avatar"];
   crown?: boolean;
@@ -56,12 +56,12 @@ function Box({ number, name, caption, avatar, crown, me, waiting, lower }: BoxPr
   return (
     <li
       className={cx(
-        "flex h-[54px] min-w-0 items-center gap-2 rounded-t-[12px] border-x-2 border-t-2 px-2.5",
+        "flex h-[54px] min-w-0 items-center gap-1.5 rounded-t-[12px] border-x-2 border-t-2 px-2 min-[380px]:gap-2 min-[380px]:px-2.5",
         waiting ? "border-dashed border-white/30" : me ? "border-[#8FA2FF] bg-brand/30" : "border-white/45",
         lower && "mt-5",
       )}
     >
-      <span className={cx("w-3 shrink-0 self-start pt-1.5 font-display text-[13px] font-extrabold", waiting ? "text-white/40" : "text-white/70")}>{number ?? ""}</span>
+      <span className={cx("w-2.5 shrink-0 self-start pt-1.5 font-display text-[13px] font-extrabold min-[380px]:w-3", waiting ? "text-white/40" : "text-white/70")}>{number ?? ""}</span>
       <span className={cx("shrink-0", waiting && "opacity-50")}>
         <Helmet avatar={avatar} width={32} />
       </span>
@@ -84,7 +84,7 @@ function Grid({ grid, field, onGroup }: { grid: LargadaGridResponse | null | und
     ...field.map((racer) => {
       // "El mejor de" over "Chivilcoy", so the place fits.
       const ghost = racer.ghost ? /^((?:El|La) mejor de) (.+)$/.exec(racer.name) : null;
-      return { key: racer.key, number: racer.number, name: ghost?.[2] ?? racer.name, caption: ghost?.[1], avatar: racer.avatar, crown: racer.crown, me: racer.me, waiting: false };
+      return { key: racer.key, number: racer.number, name: ghost?.[2] ?? racer.name, caption: ghost?.[1] ?? (racer.bot ? "bot" : undefined), avatar: racer.avatar, crown: racer.crown, me: racer.me, waiting: false };
     }),
     ...waiting.map((member, i) => ({ key: member.userId, number: field.length + i + 1, name: member.username, avatar: member.avatar, crown: false, me: false, waiting: true })),
   ];
@@ -143,12 +143,15 @@ function Grid({ grid, field, onGroup }: { grid: LargadaGridResponse | null | und
 
 export function LargadaIntro({ game, practice, position, closeHref, starting, error, onStart, grid, field, onGroup, signInHint }: Props) {
   const rivals = field.filter((racer) => !racer.me);
-  const versus =
-    rivals.length === 0
-      ? "Hoy largás vos primero: corrés contra el reloj."
-      : rivals[0]?.ghost
-        ? `Hoy corrés contra ${lowerFirst(rivals[0].name)}.`
-        : "Hoy corrés contra los tiempos que hizo tu grupo.";
+  const ghost = rivals.find((racer) => racer.ghost);
+  const bots = rivals.some((racer) => racer.bot) ? " y los bots" : "";
+  const versus = rivals.some((racer) => !racer.ghost && !racer.bot)
+    ? `Hoy corrés contra los tiempos que hizo tu grupo${bots}.`
+    : ghost
+      ? `Hoy corrés contra ${lowerFirst(ghost.name)}${bots}.`
+      : bots
+        ? "Hoy corrés contra los bots."
+        : "Hoy largás vos primero: corrés contra el reloj.";
   return (
     <Screen clouds={["-left-10 bottom-[90px] w-[220px] opacity-95"]} style={gameStyle(game)}>
       <div className="flex items-center justify-between px-5">

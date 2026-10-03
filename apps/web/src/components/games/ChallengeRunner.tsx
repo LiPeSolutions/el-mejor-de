@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { LargadaIntro } from "@/components/largada/LargadaIntro";
 import { LargadaPlay } from "@/components/largada/LargadaPlay";
-import { raceField, type Racer } from "@/components/largada/field";
+import { raceField, type BotRule, type Racer } from "@/components/largada/field";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { lastUsername, loadAccount } from "@/lib/account";
@@ -91,7 +91,9 @@ function Runner(props: Props) {
   const grid = useRequest(largada && stage === "intro" ? `largada:${groupId ?? ""}` : null, () => loadGrid(groupId));
   const gridValue = grid.data ?? (grid.error ? null : undefined);
   const me = { userId: account?.id ?? null, avatar: account?.avatar ?? DEFAULT_AVATAR, article: account?.article ?? "el" };
-  const field = largada ? raceField(gridValue ?? null, me) : [];
+  // Bots fill the track in practice; in the daily challenge they come only if nobody else would race.
+  const botMode: BotRule["mode"] = daily ? "alone" : "fill";
+  const field = largada ? raceField(gridValue ?? null, me, { mode: botMode, seed: "parrilla" }) : [];
   /** The cars of this race, fixed when it starts. */
   const [racing, setRacing] = useState<Racer[] | null>(null);
   const chooseGroup = (id: string) => {
@@ -136,9 +138,9 @@ function Runner(props: Props) {
   }, []);
 
   const begin = async () => {
-    // Largada races the cars of the grid as it is now; and browsers play sound only after a tap: this one.
-    const race = largada ? { grid: gridValue ?? null, field: raceField(gridValue ?? null, { userId: account?.id ?? null, avatar: account?.avatar ?? DEFAULT_AVATAR, article: account?.article ?? "el" }) } : null;
-    if (race) unlockSound();
+    // Largada races the grid as it is now; and browsers play sound only after a tap: this one.
+    const gridNow = gridValue ?? null;
+    if (largada) unlockSound();
     setStarting(true);
     setError(null);
     try {
@@ -147,9 +149,12 @@ function Runner(props: Props) {
       if (props.mode === "daily") {
         saveAttempt(response.date, { slot: props.slot, game: game.id, status: "started", token: response.token, startedAt: startedAt.current });
       }
-      if (race) {
-        setRacing(race.field);
-        saveLargadaRace(props.mode, { date: response.date, userId: account?.id ?? null, field: race.field, group: race.grid?.group ?? null, crown: race.grid?.crown ?? null });
+      if (largada) {
+        // The bots' times: the same all day for the daily challenge (so another phone draws the same photo), new each practice.
+        const seed = response.mode === "daily" ? `${response.date}:${account?.id ?? "anon"}` : response.token;
+        const cars = raceField(gridNow, { userId: account?.id ?? null, avatar: account?.avatar ?? DEFAULT_AVATAR, article: account?.article ?? "el" }, { mode: botMode, seed });
+        setRacing(cars);
+        saveLargadaRace(props.mode, { date: response.date, userId: account?.id ?? null, field: cars, group: gridNow?.group ?? null, crown: gridNow?.crown ?? null });
       }
       setStart(response);
       setStage("playing");
@@ -233,7 +238,7 @@ function Runner(props: Props) {
     <div style={gameStyle(game)}>
       {view.game === "seven-letters" && <SevenLettersPlay view={view} token={start.token} {...common} />}
       {view.game === "five-questions" && <FiveQuestionsPlay view={view} token={start.token} {...common} />}
-      {view.game === "reflexes" && view.version === "largada" && <LargadaPlay view={view} field={racing ?? raceField(null, me)} article={account?.article ?? "el"} {...common} />}
+      {view.game === "reflexes" && view.version === "largada" && <LargadaPlay view={view} field={racing ?? raceField(null, me, { mode: botMode, seed: start.token })} article={account?.article ?? "el"} {...common} />}
       {view.game === "reflexes" && view.version !== "largada" && <ReflexesPlay view={view} {...common} />}
       {view.game === "sequence" && <SequencePlay view={view} token={start.token} record={practiceRecords().sequence?.best ?? null} {...common} />}
       <ExitDialog open={exitOpen} practice={!daily} onStay={() => setExitOpen(false)} onLeave={leave} />

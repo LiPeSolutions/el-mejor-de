@@ -28,7 +28,7 @@ import type { LargadaGridResponse, LargadaStart } from "@/lib/largada-types";
 import { lastGroupId } from "@/lib/last-group";
 import { useRequest } from "@/lib/use-request";
 import { Helmet } from "./Car";
-import { raceField, type Racer } from "./field";
+import { raceField, type BotRule, type Racer } from "./field";
 import { FinishPhoto, polaroidPng } from "./FinishPhoto";
 
 /*
@@ -73,10 +73,10 @@ interface Standing {
 }
 
 /** Without the race saved (another phone): the rivals of today's grid who had raced before the player. */
-function fieldFromGrid(grid: LargadaGridResponse, me: { userId: string | null; avatar: Avatar; article: Article }): Racer[] {
+function fieldFromGrid(grid: LargadaGridResponse, me: { userId: string | null; avatar: Avatar; article: Article }, bots: BotRule): Racer[] {
   const mine = grid.me?.at ?? Number.MAX_SAFE_INTEGER;
   const lanes = grid.lanes.filter((id) => (grid.rivals.find((rival) => rival.userId === id)?.at ?? mine) < mine);
-  return raceField({ ...grid, lanes }, me);
+  return raceField({ ...grid, lanes }, me, bots);
 }
 
 /** Today's Largada in the group: by score, then the better average, then who raced first. */
@@ -285,7 +285,9 @@ export function LargadaResult(props: Props) {
 
   const mine = startsOf(result);
   const me = { userId, avatar: account?.avatar ?? DEFAULT_AVATAR, article };
-  const field = race?.field ?? (grid.data ? fieldFromGrid(grid.data, me) : grid.error ? raceField(null, me) : null);
+  // The daily bots' times depend only on the day and the player, as when racing.
+  const bots: BotRule = props.practice ? { mode: "fill", seed: "practica" } : { mode: "alone", seed: `${props.date}:${userId ?? "anon"}` };
+  const field = race?.field ?? (grid.data ? fieldFromGrid(grid.data, me, bots) : grid.error ? raceField(null, me, bots) : null);
   const rivals = field?.filter((racer) => !racer.me) ?? [];
   const bestIndex = bestStart(mine, mine.map((_, i) => rivals.map((racer) => racer.starts[i] ?? NO_START)), MAX_MS) ?? 0;
   const lanes = field?.map((racer) => ({ racer, start: racer.me ? (mine[bestIndex] ?? NO_START) : (racer.starts[bestIndex] ?? NO_START) })) ?? null;
@@ -358,6 +360,9 @@ export function LargadaResult(props: Props) {
     card = rows.length > 1 ? <GroupPodium rows={rows} waiting={data.waiting} groupName={group.name} /> : <FirstOfGroup account={account!} waiting={data.waiting} groupName={group.name} />;
   } else {
     const ghost = rivals.find((racer) => racer.ghost);
+    const bots = rivals.some((racer) => racer.bot);
+    const versus = rivals.some((racer) => !racer.ghost && !racer.bot) ? "tu grupo" : ghost ? `${ghost.name.charAt(0).toLowerCase()}${ghost.name.slice(1)}` : null;
+    const against = versus ? `contra ${versus}${bots ? " y los bots" : ""}` : bots ? "contra los bots" : undefined;
     const hint = props.practice ? undefined : (
       <>
         <Users className="mt-0.5 size-4 shrink-0 text-reflejos-dark" strokeWidth={2.4} />
@@ -369,7 +374,7 @@ export function LargadaResult(props: Props) {
         </span>
       </>
     );
-    card = <Starts starts={mine} best={result.bestMs} against={ghost ? `contra ${ghost.name.charAt(0).toLowerCase()}${ghost.name.slice(1)}` : undefined} hint={hint} />;
+    card = <Starts starts={mine} best={result.bestMs} against={against} hint={hint} />;
   }
 
   return (

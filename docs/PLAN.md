@@ -173,6 +173,10 @@ La responsable del producto la diseñó con Claude Design. El diseño completo, 
 - **Puntaje:** sale del promedio: 1.000 con 200 ms o menos, 2 puntos menos por cada milisegundo más y 0 con 700 ms o más. Adelantarse cuenta como 450 ms, y no tocar, como 700 ms.
 - **Rivales:** los del grupo que ya jugaron ese día, cada uno con sus tiempos reales, en hasta 5 carriles contándote a vos. Se corre contra **el último grupo que abriste**, y antes de empezar se puede elegir otro.
 - **Sin grupo o si nadie jugó todavía:** contra el mejor de ese día de tu localidad, o del país si no tenés lugar, como un auto fantasma gris.
+- **Bots** *(decidido el 3/10/2026)*: cuatro personajes con su propio nivel. **Rayo** es muy rápido, **Chispa** y **Turbo** van parejos, y **Tortuga** es lento y a veces se adelanta.
+  - En la **práctica** siempre completan la pista: primero los del grupo que corrieron hoy (o el fantasma) y después los bots, hasta 5 autos.
+  - En el **reto del día** aparecen solo si te toca correr solo.
+  - No cambian el puntaje, que sale de tus tiempos, y no están en el podio del grupo.
 - **Esperas distintas para cada jugador**, como en Reflejos: si fueran iguales, quien ya jugó podría avisarle a otro cuándo se apagan las luces. Los tiempos se comparan igual, porque se miden desde que se apagan.
 - **Autos:** cada uno con el color de su personaje.
 - **Desde cuándo:** en el reto del día desde el **4/10/2026** (el primer día con reto de reflejos es el lunes 5/10). Los días anteriores siguen con Reflejos, para que un reto no cambie después de empezado. La práctica ya es Largada, y su récord arranca de cero porque el de antes era de otro juego.

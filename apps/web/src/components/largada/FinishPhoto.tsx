@@ -73,9 +73,9 @@ export const FinishPhoto = forwardRef<SVGSVGElement, Props>(function FinishPhoto
     const behind = jumped ? 0 : time(start) - best;
     const missed = !jumped && start.reactionMs === null;
     const nose = jumped ? -70 + carW : 226 - backFor(behind);
-    // The winner's name, when it fits right of the finish; the car tells who it is otherwise.
+    // The winner's name, when it fits between its nose and the edge; the car tells who it is otherwise.
     const first = `${ordinal(1, racer.article)} ${racer.name}`;
-    const label = jumped ? "Se adelantó" : missed ? "No largó" : behind === 0 ? (textWidth(first, 17, 800) + 22 <= W - 236 ? first : ordinal(1, racer.article)) : `+${behind} ms`;
+    const label = jumped ? "Se adelantó" : missed ? "No largó" : behind === 0 ? (textWidth(first, 17, 800) + 22 <= W - 230 ? first : ordinal(1, racer.article)) : `+${behind} ms`;
     return (
       <g key={racer.key}>
         {racer.me && <rect x="0" y={top} width={W} height={LANE} fill="rgba(79,107,255,.22)" />}

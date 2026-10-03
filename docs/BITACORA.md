@@ -35,7 +35,8 @@
   - La primera corona de los lugares también se entrega el **lunes 12/10**.
 - **Largada** reemplaza a Reflejos: una largada de autos contra los tiempos de hoy de tu grupo, con podio, foto de llegada para compartir por WhatsApp y la franja de la corona.
   - Ya está en la práctica. En el reto del día rige desde el 4/10, y el primer día con reto de reflejos es el **lunes 5/10**. El 3/10 sigue el Reflejos de antes.
-- **Pruebas:** 268 automáticas, todas pasan.
+  - **Bots** (Rayo, Chispa, Turbo y Tortuga): en la práctica completan la pista; en el reto del día corren solo si no hay nadie más.
+- **Pruebas:** 274 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
@@ -53,6 +54,20 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 (noche) — Bots en Largada
+
+- **Pedido de la responsable del producto:** que en la práctica de Largada aparezcan bots, para no correr en solitario.
+- **Decisiones (consultadas):**
+  - En la práctica, los bots **siempre completan la pista**: primero los del grupo que corrieron hoy (o el fantasma) y después los bots, hasta 5 autos.
+  - Cada bot tiene **su nivel**: Rayo es muy rápido (unos 212 ms), Chispa y Turbo van parejos (unos 245 y 260), y Tortuga es lento (unos 305) y a veces se adelanta.
+  - En el **reto del día** también, pero solo si te toca correr solo. No cambian el puntaje ni aparecen en el podio del grupo.
+  - Quedó en [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidida-y-construida-el-3102026).
+- **Qué se hizo:**
+  - Los bots tienen su personaje y su auto (Rayo dorado, Chispa coral, Turbo azul y Tortuga verde). En la parrilla llevan "bot" arriba del nombre.
+  - Sus tiempos salen de una semilla. En la práctica cambian en cada partida; en el reto del día dependen del día y del jugador, así la foto de llegada sale igual en otro celu.
+- **Pruebas:** 274 automáticas (6 nuevas: quién entra según el lugar libre, que la misma semilla da la misma carrera y que cada bot mantiene su nivel). Probado en local sin cuenta, en un grupo con una sola amiga que corrió (ella más tres bots) y en el reto del día sin nadie, en 390 y 360 px.
+- **Visto al probar:** en la foto, "1º Rayo" no entraba y quedaba solo "1º"; y en celulares angostos "Tortuga" se cortaba en la parrilla. Los dos, corregidos.
 
 ### 3/10/2026 (noche) — Largada
 
