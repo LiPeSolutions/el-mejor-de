@@ -11,7 +11,7 @@
 
 ## Estado actual (3/10/2026, noche)
 
-- **App publicada** en https://game.lipesolutions.com (cuando esté el registro en Namecheap; mientras, https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
+- **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
@@ -28,7 +28,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
 | Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
 | Contenido | Diccionario de Siete Letras y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
-| Dominio | `game.lipesolutions.com`, agregado al proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**: falta el registro CNAME `game` → `cname.vercel-dns.com` (lo carga la responsable del producto). |
+| Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
 
@@ -38,7 +38,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
   - La dirección es `game.lipesolutions.com`, porque "El Mejor de" puede no ser el nombre definitivo.
   - Cuentas con **apodo y contraseña**, "tipo invitado", más fáciles y sin email. Después se va a poder vincular Google para no perder la cuenta.
   - Las jugadas raras de Reflejos y Secuencia del 3/10 fueron pruebas suyas: no había error.
-- **Dominio:** agregado al proyecto de Vercel. Falta el registro en Namecheap (ver "Dónde está cada cosa").
+- **Dominio:** agregado al proyecto de Vercel, y la responsable del producto cargó el registro CNAME en Namecheap.
 - **Cuentas propias en la base**, en vez de Supabase Auth: con apodo y contraseña no aporta, y así no hay nada que configurar en su panel.
   - Tablas `game.users`, `game.sessions` y `game.auth_events`.
   - Contraseñas con scrypt y sesión en una cookie httpOnly de 90 días.
@@ -63,7 +63,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
   - Recorridos en celulares simulados de 390 y 360 px.
 - **Migraciones:**
   - `20261003050012_accounts`: aplicada.
-  - `20261003050100_attempts_device_rule`: borra el índice viejo de "uno por navegador". Por la confirmación que pide Supabase al borrar, hay que correrla a mano en el SQL Editor (ver Pendientes).
+  - `20261003050100_attempts_device_rule`: borra el índice viejo de "uno por navegador". Supabase pide confirmación al borrar, así que la responsable del producto la corrió en el SQL Editor y después se anotó en el historial de migraciones.
 
 ### 3/10/2026 — Publicación y base de datos
 
@@ -95,9 +95,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 
 En orden sugerido (lo acordado: "cuentas y rankings").
 
-1. **Para cerrar las cuentas** (tareas de la responsable del producto):
-   - En Namecheap, el registro CNAME `game` → `cname.vercel-dns.com`.
-   - En el SQL Editor de Supabase, correr `drop index game.attempts_one_per_device;` (la migración `20261003050100`). Después, Claude la anota en el historial de migraciones.
+1. **Probar las cuentas en el celu** (responsable del producto): crear la cuenta, salir y volver a entrar.
 2. **Lugar y GPS** (pantallas 19 a 23), como "Paso 2 de 2" de la cuenta. El buscador de localidades ya existe (`searchLocalities` en `packages/db`), y la verificación usa un radio de 12 km alrededor del centro de la localidad.
 3. **Rankings** del día y de la semana (pantallas 24 y 25) y **corona semanal** (28 a 30 y 40).
 4. **Grupos privados** (31 a 34).
