@@ -14,7 +14,8 @@
 - ✅ Web app jugable y publicada en Vercel ([game.lipesolutions.com](https://game.lipesolutions.com)): inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor.
 - ✅ Base de datos en Supabase (São Paulo), conectada a la app: un solo intento por reto controlado por el servidor, y los lugares oficiales de Argentina cargados (provincias, departamentos y 4.037 localidades).
 - ✅ Cuentas con apodo y contraseña (sin email): personaje, El / La Mejor y perfil. Lo jugado ese día pasa a la cuenta.
-- ⏳ Ubicación con GPS, rankings, grupos, corona y vincular con Google.
+- ✅ Grupos privados con su ranking del día y de la semana, invitación por link o código, y corona semanal en vivo (festejo y palmarés).
+- ⏳ Ubicación con GPS, rankings por lugar y vincular con Google.
 
 ## Documentos
 

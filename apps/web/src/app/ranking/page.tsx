@@ -8,10 +8,11 @@ export default function RankingPage() {
   return (
     <ComingSoon
       title="Ranking"
+      toGroups
       character={<Personaje sp="pelusa" size={120} acc={["corona"]} c={{ main: "#FF7AA2", light: "#FFD6E3", dark: "#D9557F" }} anim="float" />}
     >
-      Acá vas a ver quién es el mejor de tu pueblo, tu provincia, el país y el mundo, y quién se lleva la corona de la semana. Llega junto con las
-      cuentas.
+      Acá vas a ver quién es el mejor de tu pueblo, tu provincia, el país y el mundo. Mientras tanto, armá un grupo con los tuyos: tiene su propio
+      ranking y su corona.
     </ComingSoon>
   );
 }

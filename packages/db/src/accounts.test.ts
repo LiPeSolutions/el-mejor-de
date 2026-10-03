@@ -22,7 +22,7 @@ beforeAll(async () => {
   db = await testDatabase();
 });
 beforeEach(async () => {
-  await db.query('truncate game.attempts, game.sessions, game.auth_events, game.users');
+  await db.query('truncate game.attempts, game.sessions, game.auth_events, game.users cascade');
 });
 afterAll(async () => {
   await db.close();

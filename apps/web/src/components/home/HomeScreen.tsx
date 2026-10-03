@@ -12,6 +12,7 @@ import { Logo } from "@/components/ui/Logo";
 import { Screen } from "@/components/ui/Screen";
 import { useAccount } from "@/lib/account";
 import type { PublicAccount } from "@/lib/account-types";
+import { useNewCrowns } from "@/lib/crowns";
 import { daySlots, pendingSlots, type DaySlot } from "@/lib/day";
 import { useClientValue } from "@/lib/hooks";
 import { currentStreak, hasAnyHistory, loadDay, weekSummary } from "@/lib/storage";
@@ -28,6 +29,8 @@ interface HomeState {
 /** Inicio: first visit, today's challenges still to play, or the day already done. */
 export function HomeScreen({ today }: { today: TodayInfo }) {
   const account = useAccount();
+  // On Mondays, whoever won a crown goes to the celebration.
+  useNewCrowns(account?.id);
   const state = useClientValue<HomeState>(
     () => ({
       slots: daySlots(today, loadDay(today.date)),

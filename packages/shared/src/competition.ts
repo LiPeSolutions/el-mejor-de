@@ -1,14 +1,14 @@
+import type { GameDate } from './time';
+
 /**
- * Daily and weekly competition rules. Values marked "(propuesta)" in
- * docs/PLAN.md live here, so changing a rule is a one-line edit.
+ * Daily and weekly competition rules (docs/PLAN.md §4). Changing a rule is a
+ * one-line edit here.
  */
 export const COMPETITION_RULES = {
   maxChallengeScore: 1000,
   challengesPerDay: 3,
   /** The weekly score sums the best N days, so two days can be skipped. */
   weeklyBestDays: 5,
-  /** Minimum days played in the week to win a crown. */
-  crownMinDaysPlayed: 3,
 } as const;
 
 export function clampChallengeScore(score: number): number {
@@ -31,53 +31,83 @@ export function weeklyScore(dailyTotals: readonly number[]): number {
     .reduce((sum, total) => sum + total, 0);
 }
 
-export interface WeeklyStanding {
-  userId: string;
-  /** One total per day played this week. */
-  dailyTotals: readonly number[];
-  /** Epoch ms when the player's last scored challenge finished. Earlier wins ties. */
-  lastScoredAt: number;
-}
-
-export interface RankedStanding extends WeeklyStanding {
-  /** 1-based position after tie-breaks (strict order, no shared positions). */
-  position: number;
+/** A finished daily challenge, as rankings see it. */
+export interface ScoredChallenge {
+  date: GameDate;
   score: number;
-  bestDay: number;
-  daysPlayed: number;
-  crownEligible: boolean;
+  /** Epoch ms when it was graded. */
+  at: number;
 }
 
-/** Tie-breaks: weekly score, then best single day, then who got there first. */
-function compareStandings(
-  a: Omit<RankedStanding, 'position'>,
-  b: Omit<RankedStanding, 'position'>,
-): number {
+export interface Standing {
+  userId: string;
+  score: number;
+  /** Days with at least one finished challenge. */
+  daysPlayed: number;
+  bestDay: number;
+  /**
+   * Epoch ms when the player reached `score`: on a tie, whoever got there
+   * first stays ahead. Null without points.
+   */
+  reachedAt: number | null;
+}
+
+/**
+ * Replays the challenges in the order they were graded, so a tie can go to
+ * whoever got there first. `total` turns the totals per day into the score.
+ */
+function standingFrom(userId: string, challenges: readonly ScoredChallenge[], total: (dailyTotals: number[]) => number): Standing {
+  const byDay = new Map<GameDate, number[]>();
+  let score = 0;
+  let reachedAt: number | null = null;
+  for (const challenge of [...challenges].sort((a, b) => a.at - b.at)) {
+    const day = byDay.get(challenge.date) ?? [];
+    day.push(challenge.score);
+    byDay.set(challenge.date, day);
+    const next = total([...byDay.values()].map(dailyTotal));
+    if (next > score) {
+      score = next;
+      reachedAt = challenge.at;
+    }
+  }
+  const totals = [...byDay.values()].map(dailyTotal);
+  return { userId, score, daysPlayed: byDay.size, bestDay: Math.max(0, ...totals), reachedAt };
+}
+
+/** A player's week so far, from their finished challenges of that week. */
+export function weeklyStanding(userId: string, challenges: readonly ScoredChallenge[]): Standing {
+  return standingFrom(userId, challenges, weeklyScore);
+}
+
+/** A player's day, from their finished challenges of that day. */
+export function dailyStanding(userId: string, challenges: readonly ScoredChallenge[]): Standing {
+  return standingFrom(userId, challenges, (totals) => totals.reduce((sum, total) => sum + total, 0));
+}
+
+export interface RankedStanding extends Standing {
+  /** 1-based position: strict order, no shared positions. */
+  position: number;
+}
+
+/** Points first; on a tie, whoever reached that score first. */
+function compareStandings(a: Standing, b: Standing): number {
   return (
     b.score - a.score ||
-    b.bestDay - a.bestDay ||
-    a.lastScoredAt - b.lastScoredAt ||
+    (a.reachedAt ?? Infinity) - (b.reachedAt ?? Infinity) ||
     (a.userId < b.userId ? -1 : a.userId > b.userId ? 1 : 0)
   );
 }
 
-export function rankWeekly(standings: readonly WeeklyStanding[]): RankedStanding[] {
-  return standings
-    .map((standing) => ({
-      ...standing,
-      score: weeklyScore(standing.dailyTotals),
-      bestDay: Math.max(0, ...standing.dailyTotals),
-      daysPlayed: standing.dailyTotals.length,
-      crownEligible: standing.dailyTotals.length >= COMPETITION_RULES.crownMinDaysPlayed,
-    }))
-    .sort(compareStandings)
-    .map((standing, index) => ({ ...standing, position: index + 1 }));
+export function rankStandings(standings: readonly Standing[]): RankedStanding[] {
+  return [...standings].sort(compareStandings).map((standing, index) => ({ ...standing, position: index + 1 }));
 }
 
 /**
- * The crown goes to the best eligible player. Callers pass only standings
- * whose location is verified for the place being crowned.
+ * Who has the crown: the leader, while the week is on and once it closes.
+ * There's no minimum of days, and to take the crown you have to beat the
+ * holder, not tie. Nobody has it until someone scores.
  */
-export function crownWinner(standings: readonly WeeklyStanding[]): RankedStanding | null {
-  return rankWeekly(standings).find((s) => s.crownEligible && s.score > 0) ?? null;
+export function crownHolder(standings: readonly Standing[]): RankedStanding | null {
+  const leader = rankStandings(standings)[0];
+  return leader && leader.score > 0 ? leader : null;
 }

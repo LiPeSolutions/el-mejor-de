@@ -95,7 +95,8 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 
 ### La base de datos
 
-- **Esquema `game`**, que la API de datos de Supabase no publica: el navegador nunca lee ni escribe tablas directamente. El servidor entra con su propio rol, `app_server`, que solo puede leer lugares y leer, crear y actualizar intentos (no borrar). Además, todas las tablas tienen Row Level Security con permisos solo para ese rol.
+- **Esquema `game`**, que la API de datos de Supabase no publica: el navegador nunca lee ni escribe tablas directamente. El servidor entra con su propio rol, `app_server`, que solo puede leer lugares y leer, crear y actualizar el resto (intentos, cuentas, grupos, coronas): no puede borrar. Además, todas las tablas tienen Row Level Security con permisos solo para ese rol.
+- **Hora:** las filas que dependen del momento (unirse a un grupo, salir, crear una invitación) se escriben con la hora del servidor web, no con `now()` de la base, así las reglas usan un solo reloj y se pueden probar con fechas simuladas.
 - **Conexión:** `DATABASE_URL` apunta al pooler de transacciones de Supabase (puerto 6543) con el rol `app_server`; el cliente es postgres.js sin prepared statements. La contraseña del rol se define fuera del repo.
 - **Región:** las funciones de Vercel corren en São Paulo (`gru1`, en `apps/web/vercel.json`), igual que la base: es lo más cerca de Argentina.
 - **Lugares:** `supabase/scripts/import-places.sql` carga provincias, departamentos y localidades desde Georef. Corre adentro de la base (extensión `http`) y se puede repetir para actualizar.
@@ -123,6 +124,33 @@ Apodo y contraseña, sin email (decisión de producto del 3/10/2026). El código
 - **En el navegador:** una copia de la cuenta en `localStorage` (`emd:cuenta`) para dibujar las pantallas al instante, y los días guardados por cuenta (`emd:<cuenta>:dia:<fecha>`), para que en un celu compartido no se mezclen.
 - **Sin base de datos** (local y CI) las cuentas no funcionan: los endpoints responden `503 accounts-unavailable`.
 - **Pruebas:** reglas y consultas con Vitest sobre PGlite (`packages/shared`, `packages/db` y `apps/web/src/server/accounts.test.ts`).
+
+### Grupos y corona semanal
+
+Grupos privados con su ranking y su corona (decisiones del 3/10/2026 en [PLAN §8](PLAN.md#grupos-decidido-el-3102026)). El código está en `apps/web/src/server/groups.ts` (reglas), `packages/db/src/groups.ts` (consultas), `packages/shared/src/groups.ts` (nombre, emblemas, colores y códigos) y `packages/shared/src/competition.ts` (ranking y corona).
+
+| Endpoint | Qué hace |
+|---|---|
+| `GET /api/grupos` | Mis grupos, con quién va primero en cada uno, mi puesto y la diferencia. |
+| `POST /api/grupos` | Crea un grupo (nombre, emblema y color) con su invitación de 7 días. |
+| `GET /api/grupos/{id}` | El grupo con su ranking del día y de la semana, la invitación y la última corona. Solo para miembros (a los demás, `404`). |
+| `POST /api/grupos/{id}` | Quien lo administra cambia el nombre, el emblema o el color. |
+| `POST /api/grupos/{id}/invitacion` | Invitación nueva: el código anterior deja de andar. Con la actual vigente, solo quien lo administra; vencida, cualquier miembro. |
+| `POST /api/grupos/{id}/salir` · `/sacar` | Irse del grupo, o sacar a un miembro (solo quien lo administra). |
+| `GET` · `POST /api/invitaciones/{código}` | Lo que muestra la página `/g/{código}` (anda sin cuenta) y sumarse con el código. |
+| `GET /api/coronas` · `POST /api/coronas/vista` | Mis coronas (decide antes las semanas cerradas que deben mis grupos) y marcar un festejo como visto. |
+
+- **Tablas:** `game.groups` (con la invitación actual: `invite_code` como "LABURO-7K2Q" e `invite_key` para compararlo como sea que se escriba), `game.group_members` (irse o ser sacado pone `left_at`, porque el rol del servidor no borra), `game.crowns` (una por grupo y semana; sirve también para los lugares) y `game.group_code_failures` (códigos equivocados).
+- **Códigos:** la palabra más larga del nombre (hasta 8 letras) y 4 caracteres de un alfabeto sin 0/O ni 1/I/L. Un código equivocado se anota: 10 por cuenta y 30 por conexión por hora, después espera.
+- **Límites:** 50 miembros por grupo, 20 grupos por persona y 5 grupos nuevos por día. Quien fue sacado no vuelve con la invitación de ese momento: hace falta una más nueva.
+- **Ranking:** cuentan los retos del día terminados, de toda la semana aunque te sumes el jueves. La semana suma los 5 mejores días. Con los mismos puntos va primero quien llegó antes a ese puntaje (se recorre en el orden en que se corrigieron los retos). Quien todavía no jugó va al final, sin puesto.
+- **Corona en vivo:** la tiene quien va primero (`crownHolder`); para sacársela hay que superarlo, no igualarlo. No hay mínimo de días.
+- **Cierre sin cron:** una semana se decide la primera vez que alguien mira el grupo (o sus coronas) después del lunes a las 00:10: un reto dura como mucho 7 minutos, así que a esa hora ya están todos los puntajes del domingo. Se toman los miembros que había al cierre, se graba la corona una sola vez (índice único por grupo y semana) y `crowned_through` evita mirar de nuevo. La primera semana con corona es la del 5/10/2026 (`FIRST_CROWN_WEEK`).
+- **Festejo:** el inicio pregunta por coronas cada 15 minutos como mucho y, si hay una sin ver, abre `/corona`. Al verla se marca vista; desde el palmarés del perfil se puede volver a ver.
+- **"Te sacaron la corona":** el navegador recuerda quién la tenía la última vez que miró cada grupo (`emd:coronas-vistas`) y lo avisa una vez.
+- **Sumarse sin cuenta:** "Crear mi cuenta y sumarme" deja anotado el código en `sessionStorage`; al volver con la cuenta creada, la página `/g/{código}` se suma sola. Solo un toque en esa página lo anota, así un link no puede sumar a nadie sin querer.
+- **Vista previa del link:** genérica ("Te invitaron a un grupo"), sin el nombre del grupo, que solo se ve en la página.
+- **Pruebas:** reglas y consultas con Vitest sobre PGlite (`packages/shared`, `packages/db` y `apps/web/src/server/groups.test.ts`).
 
 ### Contrato de cada juego
 
@@ -162,7 +190,14 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 **Datos.** Provincias, departamentos/partidos, municipios y localidades de Argentina desde las fuentes oficiales de [datos.gob.ar](https://datos.gob.ar) (API Georef / INDEC), importados a PostGIS: polígonos para provincias, departamentos y municipios, y punto (centroide) para las localidades. *(Verificar licencia y atribución.)*
 
 **Tabla `game.places`** (ya creada), con una jerarquía genérica para poder sumar otros países:
-`id, kind (country | province | department | locality), parent_id, name, search_name, lat, lon, radius_km`. Los ids son los de Georef con el país adelante (`ar-06224010` es Chivilcoy). Para la primera versión alcanza con el centro de cada localidad y un radio (*R* = 12 km por defecto); los polígonos y los barrios llegan después.
+`id, kind (country | province | department | locality), parent_id, name, search_name, lat, lon, radius_km`. Los ids son los de Georef con el país adelante (`ar-06224010` es Chivilcoy). Para la primera versión alcanza con el centro de cada localidad y un radio (*R* = 12 km por defecto); los polígonos llegan después.
+
+**Cómo se elige** (decidido el 3/10/2026, a construir):
+
+- **Con el GPS, en un toque:** el servidor busca las localidades más cercanas al punto y el jugador elige la suya, que ya queda verificada. Si no, la busca a mano (provincia y localidad) y la verifica después.
+- **El campo:** sin polígonos, vale estar cerca de cualquier localidad del mismo departamento o que la localidad más cercana sea de ese departamento.
+- **Ciudad de Buenos Aires:** se compite por barrio (Georef trae los 48 barrios como localidades, más una "Ciudad de Buenos Aires" genérica que no se ofrece). Con 12 km todos los barrios quedan cerca, así que ahí vale estar en el barrio o en uno de los vecinos (los centros más cercanos).
+- **Sin verificar:** jugás igual y los puntajes se guardan, pero no entrás al ranking del lugar; al verificar entra lo de esa semana.
 
 **Verificación:**
 
@@ -179,10 +214,10 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 ## 6. Rankings y coronas
 
-- `attempts` → `daily_scores` (total del día por usuario) → `weekly_scores` (suma de los 5 mejores días y días jugados). Se actualizan al terminar cada intento.
-- Las posiciones salen de consultas con `rank() over (partition by place_id order by score desc)` sobre tablas indexadas. Al principio alcanza con Postgres; si crece, se suma un caché con sorted sets (Redis).
-- **Cierre semanal:** un cron de Vercel corre el lunes a las 00:05, hora argentina: calcula los ganadores de cada lugar y nivel, aplica desempates y mínimos, y escribe en `crowns`. Las coronas de provincia y país quedan en revisión hasta que se aprueban en el panel. *(Propuesta.)*
-- Los grupos y los amigos usan los mismos `weekly_scores`, filtrados por membresía.
+- **Los grupos ya andan** (ver §4, "Grupos y corona semanal"): calculan el ranking en el momento, desde `attempts`, porque son de hasta 50 personas. Las mismas reglas (`packages/shared/src/competition.ts`) van a servir para los lugares.
+- **Para los lugares**, que pueden tener miles de jugadores: `attempts` → `daily_scores` (total del día por usuario) → `weekly_scores` (suma de los 5 mejores días, días jugados y cuándo se llegó al puntaje). Se actualizan al terminar cada intento.
+- Las posiciones salen de consultas con `rank() over (partition by place_id order by score desc, reached_at)` sobre tablas indexadas. Al principio alcanza con Postgres; si crece, se suma un caché con sorted sets (Redis).
+- **Corona en vivo y cierre:** como en los grupos, la tiene quien va primero y se decide al cerrar la semana (lunes 00:10). Para los lugares el cierre puede seguir siendo "al mirar" o pasar a un cron si hay muchos lugares. Las coronas de provincia y país quedan en revisión hasta que se aprueban en el panel. *(Propuesta.)*
 
 ## 7. Modelo de datos (boceto)
 
@@ -196,9 +231,10 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | `daily_challenges` | Los retos de cada día: fecha, slot, juego, referencia de la semilla y dificultad. |
 | `attempts` | **(Creada.)** Cada intento: navegador, cuenta, fecha y slot, juego, inicio, fin, puntaje, resultado, marcas, progreso del servidor y lugar del momento. |
 | `daily_scores` / `weekly_scores` | Totales por día y por semana. |
-| `crowns` | Coronas ganadas: usuario, lugar, nivel, semana, puntaje y estado. |
+| `crowns` | **(Creada.)** Coronas de cada semana: de un grupo (o, más adelante, de un lugar), ganador, puntaje, días jugados, cuántos jugaron, segundo, nombre del grupo ese día y si ya vio el festejo. |
 | `practice_records` | Récords personales del juego libre. |
-| `groups` / `group_members` | Grupos privados, sus miembros y el código de invitación. |
+| `groups` / `group_members` | **(Creadas.)** Grupos privados (nombre, emblema, color, quien lo administra e invitación actual) y sus miembros (con cuándo entraron, salieron o los sacaron). |
+| `group_code_failures` | **(Creada.)** Códigos de invitación equivocados, para los límites. |
 | `friendships` | Amistades y solicitudes (etapa 1.5). |
 | `duels` | Desafíos 1 vs 1 (etapa 1.5). |
 | `reports` / `score_flags` | Reportes de usuarios y marcas automáticas para revisión. |

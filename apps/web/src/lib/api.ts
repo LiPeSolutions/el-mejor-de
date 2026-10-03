@@ -1,4 +1,4 @@
-import type { Article, Avatar } from "@repo/shared";
+import type { Article, Avatar, GroupColor, GroupEmblem } from "@repo/shared";
 import type { AccountResponse, AvailabilityResponse } from "./account-types";
 import type {
   AnswerResponse,
@@ -9,6 +9,14 @@ import type {
   WordCheckResponse,
 } from "./challenge-types";
 import type { GameSlug } from "./games";
+import type {
+  CrownsResponse,
+  GroupCreatedResponse,
+  GroupDetailResponse,
+  GroupsResponse,
+  InvitePreview,
+  JoinResponse,
+} from "./group-types";
 
 export class ApiError extends Error {
   constructor(
@@ -53,4 +61,27 @@ export const accountApi = {
   signOut: () => send<AccountResponse>("/api/cuenta/salir", {}),
   availability: (username: string) => send<AvailabilityResponse>(`/api/cuenta/apodo?nombre=${encodeURIComponent(username)}`),
   updateProfile: (changes: { avatar?: Avatar; article?: Article }) => send<AccountResponse>("/api/cuenta/perfil", changes),
+};
+
+export interface GroupFields {
+  name: string;
+  emblem: GroupEmblem;
+  color: GroupColor;
+}
+
+const group = (id: string, action = "") => `/api/grupos/${encodeURIComponent(id)}${action}`;
+const invitation = (code: string) => `/api/invitaciones/${encodeURIComponent(code.trim())}`;
+
+export const groupsApi = {
+  list: () => send<GroupsResponse>("/api/grupos"),
+  create: (fields: GroupFields) => send<GroupCreatedResponse>("/api/grupos", fields),
+  detail: (id: string) => send<GroupDetailResponse>(group(id)),
+  edit: (id: string, fields: Partial<GroupFields>) => send<GroupCreatedResponse>(group(id), fields),
+  renewInvite: (id: string) => send<GroupCreatedResponse>(group(id, "/invitacion"), {}),
+  leave: (id: string) => send<{ ok: true }>(group(id, "/salir"), {}),
+  remove: (id: string, userId: string) => send<{ ok: true }>(group(id, "/sacar"), { userId }),
+  preview: (code: string) => send<InvitePreview>(invitation(code)),
+  join: (code: string) => send<JoinResponse>(invitation(code), {}),
+  crowns: () => send<CrownsResponse>("/api/coronas"),
+  crownSeen: (id: string) => send<{ ok: true }>("/api/coronas/vista", { id }),
 };

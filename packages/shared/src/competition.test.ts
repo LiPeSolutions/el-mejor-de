@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { crownWinner, dailyTotal, rankWeekly, weeklyScore } from './competition';
+import { crownHolder, dailyStanding, dailyTotal, rankStandings, weeklyScore, weeklyStanding, type ScoredChallenge } from './competition';
 
 describe('dailyTotal', () => {
   it('adds the three challenge scores', () => {
@@ -23,37 +23,87 @@ describe('weeklyScore', () => {
   });
 });
 
-describe('rankWeekly', () => {
-  it('orders by score, then best day, then who got there first', () => {
-    const ranked = rankWeekly([
-      { userId: 'tincho', dailyTotals: [2000, 2000, 2000], lastScoredAt: 100 },
-      { userId: 'laflor', dailyTotals: [2500, 1500, 2000], lastScoredAt: 300 },
-      { userId: 'colo', dailyTotals: [2500, 2000, 1500], lastScoredAt: 200 },
-      { userId: 'pato', dailyTotals: [3000, 3000, 3000], lastScoredAt: 999 },
+/**
+ * One day per total, from Monday 5/10/2026 on. Each total is split into
+ * challenges of up to 1.000, and day i is graded at `at + i`.
+ */
+function days(totals: number[], at = 1000): ScoredChallenge[] {
+  return totals.flatMap((total, i) => {
+    const date = `2026-10-${String(5 + i).padStart(2, '0')}`;
+    const scores = [Math.min(total, 1000), Math.min(Math.max(total - 1000, 0), 1000), Math.max(total - 2000, 0)];
+    return scores.slice(0, total > 2000 ? 3 : total > 1000 ? 2 : 1).map((score, k) => ({ date, score, at: at + i + k / 10 }));
+  });
+}
+
+describe('weeklyStanding', () => {
+  it('sums the best five days and remembers when it got there', () => {
+    const standing = weeklyStanding('tincho', days([900, 800, 700, 600, 500, 400, 950]));
+    expect(standing).toMatchObject({ score: 950 + 900 + 800 + 700 + 600, daysPlayed: 7, bestDay: 950, reachedAt: 1006 });
+    expect(weeklyStanding('colo', days([2900, 2500]))).toMatchObject({ score: 5400, daysPlayed: 2, bestDay: 2900, reachedAt: 1001.2 });
+  });
+
+  it("doesn't move the time when a day doesn't improve the week", () => {
+    // The sixth day (100) is below the five counted, so the score stays the same.
+    const standing = weeklyStanding('tincho', days([900, 800, 700, 600, 500, 100]));
+    expect(standing).toMatchObject({ score: 3500, daysPlayed: 6, reachedAt: 1004 });
+  });
+
+  it('adds up the challenges of one day', () => {
+    const standing = weeklyStanding('tincho', [
+      { date: '2026-10-05', score: 500, at: 10 },
+      { date: '2026-10-05', score: 0, at: 20 },
+      { date: '2026-10-05', score: 300, at: 30 },
     ]);
-    expect(ranked.map((s) => s.userId)).toEqual(['pato', 'colo', 'laflor', 'tincho']);
-    expect(ranked.map((s) => s.position)).toEqual([1, 2, 3, 4]);
-    expect(ranked[0]).toMatchObject({ score: 9000, bestDay: 3000, daysPlayed: 3 });
+    expect(standing).toMatchObject({ score: 800, daysPlayed: 1, bestDay: 800, reachedAt: 30 });
+  });
+
+  it('has no time without points', () => {
+    expect(weeklyStanding('nuevo', [])).toMatchObject({ score: 0, daysPlayed: 0, reachedAt: null });
+    expect(weeklyStanding('cero', days([0]))).toMatchObject({ score: 0, daysPlayed: 1, reachedAt: null });
   });
 });
 
-describe('crownWinner', () => {
-  it('skips players with too few days', () => {
-    const winner = crownWinner([
-      { userId: 'dosdias', dailyTotals: [3000, 3000], lastScoredAt: 1 },
-      { userId: 'constante', dailyTotals: [1500, 1500, 1500], lastScoredAt: 2 },
+describe('dailyStanding', () => {
+  it("is the day's total", () => {
+    const standing = dailyStanding('tincho', [
+      { date: '2026-10-05', score: 700, at: 10 },
+      { date: '2026-10-05', score: 900, at: 20 },
     ]);
-    expect(winner?.userId).toBe('constante');
+    expect(standing).toMatchObject({ score: 1600, daysPlayed: 1, reachedAt: 20 });
+  });
+});
+
+describe('rankStandings and crownHolder', () => {
+  it('orders by points, then by who reached them first', () => {
+    const ranked = rankStandings([
+      weeklyStanding('tincho', days([2000, 2000], 100)),
+      weeklyStanding('laflor', days([3000, 1000], 50)),
+      weeklyStanding('pato', days([3000, 3000], 999)),
+      weeklyStanding('nadie', []),
+    ]);
+    expect(ranked.map((s) => s.userId)).toEqual(['pato', 'laflor', 'tincho', 'nadie']);
+    expect(ranked.map((s) => s.position)).toEqual([1, 2, 3, 4]);
   });
 
-  it('crowns a lone eligible player', () => {
-    expect(crownWinner([{ userId: 'unico', dailyTotals: [10, 10, 10], lastScoredAt: 1 }])?.userId).toBe(
-      'unico',
-    );
+  it('passes the crown to whoever has more points', () => {
+    // Wednesday: Juli leads. Thursday: Tincho passes her.
+    const juli = weeklyStanding('juli', days([2500, 2500, 2500], 1000));
+    expect(crownHolder([juli, weeklyStanding('tincho', days([2000, 2000, 2000], 2000))])?.userId).toBe('juli');
+    expect(crownHolder([juli, weeklyStanding('tincho', days([2000, 2000, 2000, 2900], 2000))])?.userId).toBe('tincho');
   });
 
-  it('returns null when nobody qualifies', () => {
-    expect(crownWinner([{ userId: 'nuevo', dailyTotals: [2800], lastScoredAt: 1 }])).toBeNull();
-    expect(crownWinner([])).toBeNull();
+  it('keeps the crown on a tie: you have to beat the holder', () => {
+    const holder = weeklyStanding('juli', days([2000], 100));
+    const tied = weeklyStanding('tincho', days([2000], 500));
+    expect(crownHolder([tied, holder])?.userId).toBe('juli');
+  });
+
+  it('crowns a lone player, with no minimum of days', () => {
+    expect(crownHolder([weeklyStanding('unico', days([10]))])?.userId).toBe('unico');
+  });
+
+  it('gives no crown without points', () => {
+    expect(crownHolder([weeklyStanding('cero', days([0]))])).toBeNull();
+    expect(crownHolder([])).toBeNull();
   });
 });

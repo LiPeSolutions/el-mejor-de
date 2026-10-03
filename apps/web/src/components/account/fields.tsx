@@ -19,10 +19,25 @@ interface TextFieldProps {
   maxLength?: number;
   trailing?: ReactNode;
   autoFocus?: boolean;
+  /** "none" for apodos and passwords; "sentences" for names with spaces. */
+  autoCapitalize?: "none" | "sentences" | "words";
 }
 
 /** White 50 px field with an uppercase label (design 18). */
-export function TextField({ label, value, onChange, status, hint, error, type = "text", autoComplete, maxLength, trailing, autoFocus }: TextFieldProps) {
+export function TextField({
+  label,
+  value,
+  onChange,
+  status,
+  hint,
+  error,
+  type = "text",
+  autoComplete,
+  maxLength,
+  trailing,
+  autoFocus,
+  autoCapitalize = "none",
+}: TextFieldProps) {
   const id = useId();
   const helpId = `${id}-help`;
   return (
@@ -42,7 +57,7 @@ export function TextField({ label, value, onChange, status, hint, error, type = 
           value={value}
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
-          autoCapitalize="none"
+          autoCapitalize={autoCapitalize}
           autoCorrect="off"
           spellCheck={false}
           maxLength={maxLength}
@@ -93,6 +108,7 @@ export function Choices<T extends string | null>({
   render,
   className,
   cellClassName,
+  rowClassName = "flex gap-1.5",
 }: {
   label: string;
   options: readonly T[];
@@ -101,12 +117,14 @@ export function Choices<T extends string | null>({
   render: (option: T, selected: boolean) => { content: ReactNode; label: string; caption?: string };
   className?: string;
   cellClassName?: string;
+  /** How the cells are laid out: one row by default. */
+  rowClassName?: string;
 }) {
   return (
     // Margin, not padding: a fieldset puts its padding below the legend.
     <fieldset className={cx("mt-3.5 px-5", className)}>
       <legend className="text-[11px] font-bold uppercase tracking-[.06em] text-ink-500">{label}</legend>
-      <div className="mt-2 flex gap-1.5">
+      <div className={cx("mt-2", rowClassName)}>
         {options.map((option) => {
           const selected = option === value;
           const { content, label: name, caption } = render(option, selected);

@@ -95,15 +95,31 @@ function readings(username: string): { whole: string[]; parts: string[] } {
 }
 
 export function isUsernameBlocked(username: string): boolean {
-  const { whole, parts } = readings(username);
   const plain = usernameKey(username).replace(/[._]/g, '');
   if (RESERVED.includes(plain) || RESERVED_PREFIXES.some((prefix) => plain.startsWith(prefix))) return true;
+  return hasBlockedWords(username);
+}
+
+/** Whether one word (or an apodo) has a blocked word, in any of its readings. */
+function hasBlockedWords(text: string): boolean {
+  const { whole, parts } = readings(text);
   return whole.some(
     (form) =>
       BLOCKED_ANYWHERE.some((word) => form.includes(word)) ||
       BLOCKED_WORDS.includes(form) ||
       (!EDGE_EXCEPTIONS.includes(form) && BLOCKED_EDGES.some((word) => form.startsWith(word) || form.endsWith(word))),
   ) || parts.some((part) => BLOCKED_WORDS.includes(part));
+}
+
+/**
+ * For names with spaces, like a group's: each word is read like an apodo,
+ * and the worst words are also looked for with the words run together
+ * ("hijo de p…").
+ */
+export function isPhraseBlocked(text: string): boolean {
+  const words = text.split(new RegExp(`[^${LETTERS}0-9]+`)).filter(Boolean);
+  if (words.some(hasBlockedWords)) return true;
+  return readings(words.join('')).whole.some((form) => BLOCKED_ANYWHERE.some((word) => form.includes(word)));
 }
 
 export type PasswordProblem = 'too-short' | 'too-long' | 'too-common' | 'same-as-username';

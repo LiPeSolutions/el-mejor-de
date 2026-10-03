@@ -18,3 +18,9 @@ export function formatClock(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(total / 60)}:${pad(total % 60)}`;
 }
+
+/** "12/10" for a YYYY-MM-DD date. */
+export function formatDayMonth(date: string): string {
+  const [, month, day] = date.split("-");
+  return `${Number(day)}/${Number(month)}`;
+}

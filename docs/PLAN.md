@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 3 de octubre de 2026 (Diez Letras con puntos fijos; cuentas con apodo y contraseña; dirección `game.lipesolutions.com`).
+> Última actualización: 3 de octubre de 2026 (grupos y corona en vivo; cómo se elige y se verifica el lugar; Diez Letras con puntos fijos; cuentas con apodo y contraseña; dirección `game.lipesolutions.com`).
 
 ## 1. La idea
 
@@ -27,12 +27,12 @@ Lo que la hace distinta:
 | Tipos de juego | Palabras, trivia, habilidad y reflejos, lógica y memoria. **Truco** en la etapa 2. |
 | Reto diario | **Varios retos cortos por día** (3), iguales para todos, **1 intento** cada uno. Se suman en un puntaje del día. |
 | Juego libre | **Práctica sin límite + récords personales.** No cuenta para las coronas. |
-| Corona | **Semanal.** El #1 de cada lugar es "El Mejor de…" esa semana. Cuenta la suma de los **5 mejores días**. |
+| Corona | **Semanal y en vivo.** Durante la semana la corona la tiene quien va primero, y si alguien lo pasa en puntos, se la saca. El domingo a la medianoche queda definitiva: el #1 de cada lugar y de cada grupo es "El Mejor de…" esa semana. Cuenta la suma de los **5 mejores días**, **sin mínimo de días**; si empatan, la conserva quien llegó primero a ese puntaje (3/10/2026). |
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
 | Puntajes | **Los del plan** (§7), no los del diseño. Diez Letras pasó a **puntos fijos por largo** (3/10/2026). |
-| Ubicación | Se elige y **se verifica con GPS** al registrarse, y **se vuelve a verificar** al hacer un récord o subir en el ranking. |
+| Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano, y **se vuelve a verificar** antes de la corona. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
-| Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. |
+| Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
 | Truco | Online contra gente y mesas privadas. **Sin flor.** 1 vs 1, 2 vs 2 y 3 vs 3. |
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
 | Monetización | **Más adelante.** Idea inicial: comprar vidas. |
@@ -94,11 +94,14 @@ Más adelante podemos sumar **partidos/departamentos** y **barrios** en ciudades
 
 ### Corona semanal
 
-- La semana cierra el domingo a la medianoche y el lunes a la mañana se anuncian las coronas: **"El Mejor de Chivilcoy – Semana 40"**.
-- Para coronarse hay que haber jugado **al menos 3 días** esa semana. *(Propuesta.)*
-- Desempate: gana quien tenga el mejor día individual; si siguen empatados, quien llegó primero a ese puntaje. *(Propuesta.)*
+Decidido el 3/10/2026, para los lugares y los grupos:
+
+- **La corona está en juego toda la semana.** La tiene quien va primero: si el miércoles la tiene uno y el jueves otro lo pasa en puntos, la corona pasa al que más tiene.
+- La semana cierra el domingo a la medianoche. Quien tiene la corona en ese momento se la queda, y el lunes a la mañana se anuncia: **"El Mejor de Chivilcoy – Semana 40"**.
+- **Sin mínimo de días:** gana quien más sumó con sus 5 mejores días, aunque haya jugado uno solo.
+- **Empate:** la conserva quien llegó primero a ese puntaje. Para sacarle la corona a alguien hay que superarlo, no igualarlo.
 - Si sos **el único jugador** de tu localidad, te coronás igual, pero la app te lo hace notar con humor y te invita a traer competencia: *"Sos El Mejor de Tapalqué… porque sos el único. ¿Te animás a invitar a alguien?"*
-- Antes de entregar una corona se confirma la ubicación (ver §5).
+- Antes de entregar una corona de un lugar se confirma la ubicación (ver §5). Los grupos no piden GPS.
 
 ### Palmarés
 
@@ -108,13 +111,18 @@ Cada perfil muestra su historial: *"Fue El Mejor de Rosario 7 semanas · 2 veces
 
 La gracia es competir con tu lugar, así que la ubicación tiene que ser real.
 
-1. **Al registrarte:** elegís tu provincia y tu localidad, y se verifica con el GPS del celu (con tu permiso) que estés ahí.
+1. **Al registrarte** (decidido el 3/10/2026):
+   - **Con el GPS, en un toque:** tocás "Usar mi ubicación", te mostramos las localidades cercanas y elegís la tuya, que ya queda verificada.
+   - **A mano:** si no querés usar el GPS, buscás tu provincia y tu localidad, y la verificás después.
+   - **Sin verificar** jugás igual y tus puntajes se guardan, pero no entrás al ranking de tu localidad. Cuando verificás, entra todo lo de esa semana.
+   - Si vivís en el campo, lejos del pueblo, vale estar dentro del mismo partido.
+   - En la **Ciudad de Buenos Aires** se compite **por barrio** ("El Mejor de Palermo"), y la ciudad entera es el nivel de arriba, como una provincia. Los datos oficiales ya traen los 48 barrios.
 2. **En los momentos clave se vuelve a verificar.** Para no pedir el GPS a cada rato, se pide *(propuesta)*:
    - cuando entrás al **podio (top 3)** de tu localidad, provincia o país;
    - cuando hacés un **récord** muy por encima de tu nivel habitual;
    - **antes de entregar una corona**.
 3. **Si no estás en tu zona** en ese momento (por ejemplo, porque estás de viaje), el puntaje queda **"pendiente"** y tenés **72 horas** para verificarlo desde tu localidad. Si no lo verificás, no cuenta para los rankings por lugar (sí para tus grupos y amigos). *(Propuesta.)*
-4. **Mudanzas:** podés cambiar de localidad **una vez cada 30 días**, con verificación. *(Propuesta.)*
+4. **Mudanzas:** mientras tu localidad no esté verificada, la podés cambiar cuando quieras (por si te equivocaste). Ya verificada, **una vez cada 30 días**. *(Propuesta.)*
 5. **Privacidad:** tu ubicación exacta nunca se muestra ni se guarda. Solo queda registrado el resultado ("verificado en Chivilcoy el 2/10") y en la app solo se ve el nombre de tu localidad.
 
 > El GPS del navegador se puede falsear con algunas apps, así que no es la única barrera: se combina con otras señales (ver §6).
@@ -168,12 +176,22 @@ Para que nadie se pase las respuestas, en Cinco Preguntas todos ven las mismas p
 
 | Función | Qué hace | ¿Cuándo? |
 |---|---|---|
-| Grupos privados | Rankings propios ("El Mejor de la oficina", "de la familia") con link de invitación por WhatsApp y su propia corona semanal. | MVP |
+| Grupos privados | Rankings propios ("El Mejor de la oficina", "de la familia") con link de invitación por WhatsApp y su propia corona semanal, en vivo. | MVP |
 | Compartir resultados | Imagen y texto con emojis para WhatsApp o historias, con un link que se ve lindo al compartirlo. | MVP |
 | Lista de amigos | Agregar amigos, ver sus resultados y un ranking entre ustedes. | Etapa 1.5 |
 | Desafíos 1 vs 1 | Retar a alguien a un minijuego: los dos juegan el mismo reto y gana el mejor puntaje. Cada uno juega cuando puede, dentro de las 24 horas. | Etapa 1.5 |
 
-Los grupos y el compartir van primero porque son los que más gente nueva traen. *(Propuesta.)*
+Los grupos y el compartir van primero porque son los que más gente nueva traen.
+
+### Grupos *(decidido el 3/10/2026)*
+
+- **Crear:** nombre (con el mismo filtro de palabras que los apodos), emblema y color. Hasta **50 miembros**.
+- **Invitar:** cualquier miembro comparte el link o el código por WhatsApp. El link vence a los **7 días** y se puede renovar.
+- **Sumarse:** hace falta cuenta. Si abrís el link sin cuenta, la creás y quedás en el grupo.
+- **Ranking:** Hoy y Semana, con los retos del día (la práctica no cuenta). Cuenta tu semana entera, aunque te sumes el jueves.
+- **Corona del grupo:** en vivo, con las mismas reglas que la de los lugares (§4). La primera semana con corona es la del 5 al 11/10/2026: se entrega el lunes 12/10.
+- **Administración:** quien lo crea lo administra: cambia el nombre o el emblema, renueva el link y puede sacar a alguien. Cualquiera puede irse del grupo.
+- **Sin GPS:** los grupos no piden ubicación.
 
 ## 9. Seguridad (todo público)
 
@@ -259,14 +277,13 @@ Para las próximas charlas:
 
 1. **Nombre definitivo:** que funcione para el pueblo, la provincia, el país y los amigos, y que sea apto para todo público. Con el nombre se compra el dominio.
 2. **Nombres** de los minijuegos.
-3. **Reglas finas de la corona:** ¿mínimo de 3 días para coronarse? ¿Desempates?
-4. **Puntajes de cada juego** (§7): revisarlos con datos reales de la beta.
-5. **Preguntas de trivia:** revisar el banco inicial (`docs/contenido/preguntas.md`).
-6. **Premios reales** para las coronas (con sponsors): ¿sí o no? Si es que sí, hay que ver la parte legal de los concursos.
-7. **Truco:** ¿siempre a 30, o las mesas privadas pueden elegir a 15?
-8. **Barrios** en ciudades grandes: ¿desde cuándo?
-9. **Edad mínima** y manejo de menores: a validar con un abogado.
-10. **Modo oscuro:** el diseño todavía no lo incluye.
-11. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
-12. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?
-13. **Diccionario de Diez Letras:** hoy acepta palabras poco conocidas y conjugaciones, como "ADRAN" o "AES". ¿Valen solo las palabras conocidas? Habría que filtrar el diccionario por frecuencia de uso.
+3. **Puntajes de cada juego** (§7): revisarlos con datos reales de la beta.
+4. **Preguntas de trivia:** revisar el banco inicial (`docs/contenido/preguntas.md`).
+5. **Premios reales** para las coronas (con sponsors): ¿sí o no? Si es que sí, hay que ver la parte legal de los concursos.
+6. **Truco:** ¿siempre a 30, o las mesas privadas pueden elegir a 15?
+7. **Barrios** en otras ciudades grandes (Córdoba, Rosario…): ¿desde cuándo? En la Ciudad de Buenos Aires ya se compite por barrio.
+8. **Edad mínima** y manejo de menores: a validar con un abogado.
+9. **Modo oscuro:** el diseño todavía no lo incluye.
+10. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
+11. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?
+12. **Diccionario de Diez Letras:** hoy acepta palabras poco conocidas y conjugaciones, como "ADRAN" o "AES". ¿Valen solo las palabras conocidas? Habría que filtrar el diccionario por frecuencia de uso.

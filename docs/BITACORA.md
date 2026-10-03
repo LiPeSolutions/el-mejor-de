@@ -10,21 +10,26 @@
 3. Rama de trabajo: `claude/adoring-bardeen-19q4va`. Es la única del repositorio y Vercel la usa como producción: **cada push se publica solo**.
 4. **Probar con base en local** (cuentas y "un solo intento"): sin `DATABASE_URL` la app anda, pero no guarda nada y las cuentas responden 503.
    - Levantá un Postgres en memoria con un script de Node fuera del repo. Usa `@electric-sql/pglite` y `@electric-sql/pglite-socket`: crea los roles `anon` y `authenticated`, aplica en orden `supabase/migrations/*.sql` y escucha en `127.0.0.1:5433`.
-   - Después, `DATABASE_URL=postgres://app_server@127.0.0.1:5433/postgres pnpm dev`.
+   - Después, `DATABASE_URL=postgres://app_server@127.0.0.1:5433/postgres DATABASE_POOL_MAX=1 pnpm dev`, y abrir **`localhost`** (no `127.0.0.1`: Next.js bloquea ahí sus scripts de desarrollo).
+   - Si las pruebas crean muchas cuentas, el límite de cuentas por conexión salta: en esa base local se borra `game.auth_events`.
 5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`).
 
-## Estado actual (3/10/2026, noche)
+## Estado actual (3/10/2026, tarde)
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
+- **Grupos privados** con su ranking del día y de la semana y su **corona en vivo**:
+  - Crear un grupo, invitar por WhatsApp o con el código, sumarse (también creando la cuenta desde el link), sacar a alguien e irse.
+  - La corona la tiene quien va primero, y pasa a quien lo supera, con aviso.
+  - La primera corona se entrega el **lunes 12/10** (semana del 5 al 11/10), con festejo y palmarés en el perfil.
 - **Diez Letras** reemplaza a Siete Letras:
   - 10 letras en botones grandes y puntos fijos por largo.
   - Las palabras se mandan sin esperar la verificación.
   - Ya está en la práctica. En el reto del día rige desde el 4/10; el 3/10 y los días anteriores siguen con 7 letras.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
-- **Pruebas:** 155 automáticas, todas pasan, y CI en verde.
+- **Pruebas:** 207 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** ubicación con GPS, rankings, corona, grupos y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)). Ranking y Grupos muestran "Muy pronto".
+- **Falta:** tu lugar con GPS (ya decidido cómo), rankings por lugar y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)). Ranking muestra "Muy pronto" y lleva a los grupos.
 
 ## Dónde está cada cosa
 
@@ -40,6 +45,27 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 (tarde) — Grupos y corona en vivo
+
+- **Decisiones de la responsable del producto:**
+  - Los **grupos van primero**, antes que el lugar y el ranking.
+  - **Corona en vivo:** durante la semana la corona la tiene quien más puntos tiene; si el jueves otro lo pasa, la corona pasa a él. Sin mínimo de días; en un empate la conserva quien llegó primero. Vale para los grupos y, después, para los lugares.
+  - Corona de los grupos desde la primera semana: la del 5 al 11/10, que se entrega el lunes 12/10.
+  - Para cuando llegue **Tu lugar**: los puntajes sin verificar entran al ranking del lugar recién al verificar (lo de esa semana); la localidad se elige con el GPS en un toque (las cercanas) o a mano; en la Ciudad de Buenos Aires se compite por barrio.
+  - Todo quedó en [PLAN.md](PLAN.md) (§2, §4, §5 y §8).
+- **Grupos** (pantallas 31 a 34):
+  - Crear con nombre, emblema y color; hasta 50 miembros.
+  - Invitar con link o código ("LABURO-7K2Q") que vence a los 7 días.
+  - Ranking Hoy y Semana con podio, y "Miembros y ajustes" para sacar a alguien, irse o editar el grupo.
+  - Página de invitación `/g/código`: "Crear mi cuenta y sumarme" vuelve con la cuenta creada y se suma sola.
+- **Corona:** en vivo en el podio, en "Mis grupos" (borde dorado y corona) y con avisos "te sacó la corona" / "le sacaste la corona". Se decide al cerrar la semana (lunes 00:10), la primera vez que alguien mira, sin tareas programadas. Festejo el lunes (pantallas 28 y 29) y palmarés en el perfil.
+- **Base de datos:** migración `20261003160200_groups` aplicada en Supabase (tablas `groups`, `group_members`, `crowns` y `group_code_failures`). Los avisos de seguridad de Supabase quedaron limpios.
+- **Pruebas:**
+  - 207 automáticas (52 nuevas): reglas de la corona en vivo, nombres de grupo, invitaciones, límites, quién puede hacer qué y el cierre de la semana con fechas simuladas.
+  - Prueba de punta a punta de la API contra una base local: 30 controles.
+  - Recorridos en celulares simulados de 390 y 360 px, también con la corona en vivo y el festejo.
+- **Visto al probar:** en el festejo, los botones sobre las nubes no se leían; ahora van sobre una franja blanca.
 
 ### 3/10/2026 — Diez Letras
 
@@ -126,21 +152,22 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 
 ## Pendientes y próximos pasos
 
-En orden sugerido (lo acordado: "cuentas y rankings").
+En orden sugerido.
 
-1. **Probar en el celu** (responsable del producto). Crear la cuenta y jugar con ella ya lo probó.
-   - Diez Letras: ya está en la práctica, y en el reto del día desde el 4/10.
+1. **Probar en el celu** (responsable del producto):
+   - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
+   - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
    - Salir y volver a entrar a la cuenta.
    - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
-2. **Lugar y GPS** (pantallas 19 a 23), como "Paso 2 de 2" de la cuenta. El buscador de localidades ya existe (`searchLocalities` en `packages/db`), y la verificación usa un radio de 12 km alrededor del centro de la localidad.
-3. **Rankings** del día y de la semana (pantallas 24 y 25) y **corona semanal** (28 a 30 y 40).
-4. **Grupos privados** (31 a 34).
+2. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
+3. **Tu lugar con GPS** (pantallas 19 a 23), como "Paso 2 de 2" de la cuenta. Ya está decidido cómo (ver la entrada del 3/10, tarde, y [PLAN §5](PLAN.md#5-ubicación-y-verificación)). El buscador de localidades ya existe (`searchLocalities` en `packages/db`).
+4. **Rankings por lugar** del día y de la semana (pantallas 24 y 25), con la corona en vivo de cada localidad, provincia y país.
 5. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
 6. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
-   - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos.
+   - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
 7. **Antes de abrir al público:**
@@ -174,3 +201,7 @@ Para no tropezar dos veces:
   - `touch-manipulation` saca el zoom por doble toque.
 - **Cambiar reglas o puntajes de un juego:** los retos del día se regeneran desde la semilla. Cambiar las reglas sin más cambiaría retos ya jugados, así que van por fecha (ver "Reglas por fecha" en [ARQUITECTURA, "Contrato de cada juego"](ARQUITECTURA.md#contrato-de-cada-juego)). Las pruebas que dependen de las reglas viejas las pasan explícitas.
 - **Vitest en `apps/web`:** la configuración es `vitest.config.mts`, porque con `.ts` avisa por ESM. Además reemplaza `server-only` por un módulo vacío, porque fuera de Next.js tira error.
+- **Base local con PGlite:** atiende todas las conexiones con un solo motor y mezcla las consultas que llegan juntas por conexiones distintas ("bind message supplies 1 parameters…"). Con `DATABASE_POOL_MAX=1` el servidor usa una sola conexión. En Supabase no pasa.
+- **Reloj único:** las filas que dependen del momento (entrar a un grupo, salir, invitaciones, códigos fallidos) se graban con la hora del servidor web y no con `now()` de la base. Así las pruebas pueden simular fechas, como el cierre de una semana.
+- **React en desarrollo corre cada efecto dos veces.** Algo que se hace una sola vez (sumarse al volver de crear la cuenta) borra su marca al empezar y no depende de que el efecto siga vivo para terminar.
+- **Formato del código:** el proyecto no usa Prettier (las líneas son largas, a mano); no correrlo sobre los archivos.

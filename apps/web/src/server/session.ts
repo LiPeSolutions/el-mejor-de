@@ -57,3 +57,15 @@ export async function requestContext(request: Request): Promise<RequestContext> 
   const now = Date.now();
   return { deviceId: await deviceId(), ipHash: clientIpHash(request), now, today: toGameDate(new Date(now)) };
 }
+
+/** The signed-in account, or 401: for the requests that need one. */
+export async function requireUser(): Promise<User> {
+  const user = await currentUser();
+  if (!user) throw new HttpError(401, "signed-out");
+  return user;
+}
+
+/** The connection and the moment, for the groups' rules. */
+export function groupContext(request: Request): { now: number; ipHash: string | null } {
+  return { now: Date.now(), ipHash: clientIpHash(request) };
+}

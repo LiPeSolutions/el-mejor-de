@@ -11,8 +11,11 @@ let client: postgres.Sql | null | undefined;
 export function database(): Queryable | null {
   if (client === undefined) {
     const url = process.env.DATABASE_URL;
-    // The transaction pooler doesn't support prepared statements.
-    client = url ? postgres(url, { prepare: false, max: 5, idle_timeout: 20, connect_timeout: 10 }) : null;
+    // The transaction pooler doesn't support prepared statements. The local
+    // test database (PGlite) mixes up queries from parallel connections, so
+    // there DATABASE_POOL_MAX=1.
+    const max = Number(process.env.DATABASE_POOL_MAX) || 5;
+    client = url ? postgres(url, { prepare: false, max, idle_timeout: 20, connect_timeout: 10 }) : null;
   }
   const sql = client;
   if (!sql) return null;

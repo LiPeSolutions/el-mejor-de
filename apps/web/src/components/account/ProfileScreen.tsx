@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, LogOut, Pencil } from "lucide-react";
+import { ChevronRight, Crown, LogOut, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
@@ -13,12 +13,15 @@ import { Screen } from "@/components/ui/Screen";
 import { useAccount } from "@/lib/account";
 import { accountErrorText } from "@/lib/account-copy";
 import type { PublicAccount } from "@/lib/account-types";
+import { groupsApi } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import { GAME_LIST, gameStyle } from "@/lib/games";
 import { useClientValue } from "@/lib/hooks";
 import { signOut } from "@/lib/session";
 import { currentStreak, playedDaysSummary, practiceRecords, weekSummary, type PracticeRecord } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
+import { useRequest } from "@/lib/use-request";
+import type { CrownView } from "@/lib/group-types";
 import type { GameId } from "@repo/games";
 
 const CLOUDS = ["-right-[60px] top-[110px] w-[180px] opacity-95", "-left-[50px] bottom-[170px] w-[220px] opacity-95"];
@@ -51,7 +54,46 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
   );
 }
 
+/** Palmarés: one gold card per crown, newest first. A tap shows the celebration again. */
+function Palmares({ crowns, crown }: { crowns: CrownView[] | undefined; crown: string }) {
+  if (crowns && crowns.length > 0) {
+    return (
+      <ul className="-mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1">
+        {crowns.map((one) => (
+          <li key={one.id} className="w-[118px] shrink-0">
+            <Link href={`/corona?id=${one.id}`} className="block h-full rounded-[18px] bg-gold px-3 py-2.5 shadow-btn-gold transition active:scale-[.98]">
+              <div className="flex items-center gap-1 text-[10px] font-extrabold tracking-[.04em] uppercase">
+                <Crown className="size-3 shrink-0 fill-current" strokeWidth={2.2} />
+                <span className="truncate">{one.title}</span>
+              </div>
+              <div className="mt-1 font-display text-lg leading-[1.05] font-extrabold">Semana {one.weekNumber}</div>
+              <div className="mt-0.5 text-[11px] font-bold text-gold-ink tabular-nums">{formatNumber(one.score)} pts</div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <div className="mt-2 flex items-center gap-3 rounded-card bg-gold-soft px-4 py-3.5">
+      <span className="grid size-10 shrink-0 place-items-center rounded-key bg-gold">
+        <Crown className="size-5 fill-current" strokeWidth={2.2} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[13px] leading-[1.4] font-semibold text-gold-ink">
+          Todavía no tenés coronas. Cada lunes, quien más sumó en cada grupo pasa a ser {crown} de ese grupo.
+        </p>
+        <Link href="/grupos" className="mt-1 inline-flex items-center gap-0.5 text-[13px] font-extrabold text-brand">
+          Ir a mis grupos
+          <ChevronRight className="size-3.5" strokeWidth={2.8} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function SignedIn({ account, stats }: { account: PublicAccount; stats: Stats }) {
+  const crowns = useRequest(`coronas:${account.id}`, () => groupsApi.crowns());
   const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const crown = account.article === "la" ? "La Mejor" : "El Mejor";
@@ -96,15 +138,11 @@ function SignedIn({ account, stats }: { account: PublicAccount; stats: Stats }) 
       </div>
 
       <section className="px-5 pt-5">
-        <Label>Palmarés</Label>
-        <div className="mt-2 flex items-center gap-3 rounded-card bg-gold-soft px-4 py-3.5">
-          <span className="grid size-10 shrink-0 place-items-center rounded-key bg-gold">
-            <Crown className="size-5 fill-current" strokeWidth={2.2} />
-          </span>
-          <p className="text-[13px] leading-[1.4] font-semibold text-gold-ink">
-            Todavía no tenés coronas. Cuando lleguen los rankings, cada lunes vas a poder ser {crown} de tu pueblo.
-          </p>
-        </div>
+        <Label>
+          Palmarés
+          {crowns.data && crowns.data.crowns.length > 0 && ` · ${crowns.data.crowns.length} ${crowns.data.crowns.length === 1 ? "corona" : "coronas"}`}
+        </Label>
+        <Palmares crowns={crowns.data?.crowns} crown={crown} />
       </section>
 
       <section className="px-5 pt-5">
