@@ -192,7 +192,8 @@ Las tablas viven en el esquema `game` (ver §4, "La base de datos"). **Row Level
 
 ## 10. Entornos y despliegue
 
-- **Supabase:** organización propia, "El Mejor de" (separada de otros proyectos), con un proyecto en São Paulo. Plan gratuito para empezar y Pro para el lanzamiento. Migraciones versionadas en `supabase/migrations`.
+- **Supabase:** organización propia, "El Mejor de" (separada de otros proyectos), con el proyecto `qosoxpsjltmghadfkzph` en São Paulo (`sa-east-1`). Plan gratuito para empezar y Pro para el lanzamiento. Se creó con la Data API apagada y RLS automático. Migraciones versionadas en `supabase/migrations`.
+- **Conexión de la app:** pooler de transacciones `aws-0-sa-east-1.pooler.supabase.com:6543`, usuario `app_server.qosoxpsjltmghadfkzph`, con TLS (`sslmode=require`). La URL completa vive solo en Vercel (`DATABASE_URL`, producción).
 - **Vercel:** proyecto `el-mejor-de-web` (Root Directory `apps/web`), que publica cada push a la rama principal. Mientras no esté el dominio propio, la dirección es `el-mejor-de-web.vercel.app`.
 - **Variables de entorno:** `CHALLENGE_SECRET` y `DATABASE_URL` (ver `apps/web/.env.example`).
 - **Secretos:** solo en variables de entorno de Vercel y Supabase; nunca en el repo.

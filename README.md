@@ -12,8 +12,7 @@
 - ✅ Motor de los 4 minijuegos (generar retos, corregir, puntuar y detectar trampas) y reglas de la competencia, con pruebas automáticas.
 - ✅ Diseño de pantallas (Claude Design), guardado en [`docs/diseno/handoff`](docs/diseno/handoff/README.md).
 - ✅ Web app jugable y publicada en Vercel: inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor.
-- ✅ Base de datos diseñada y probada: un solo intento por reto controlado por el servidor, y la lista oficial de lugares lista para cargar.
-- ⏳ Crear el proyecto de Supabase y conectarlo.
+- ✅ Base de datos en Supabase (São Paulo), conectada a la app: un solo intento por reto controlado por el servidor, y los lugares oficiales de Argentina cargados (provincias, departamentos y 4.037 localidades).
 - ⏳ Cuentas, ubicación con GPS, rankings, grupos y corona.
 
 ## Documentos
