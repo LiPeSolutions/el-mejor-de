@@ -7,7 +7,7 @@ export const brand = {
   tagline: "¿Sos el mejor de tu pueblo? Demostralo.",
   description:
     "Minijuegos y retos diarios para ser el mejor de tu pueblo, de tu provincia, del país… o del mundo.",
-  /** Shown in links and share texts until the final domain exists. */
+  /** Planned domain (not live yet). Share links use the address the app runs on. */
   domain: "elmejorde.lipesolutions.com",
   /** First game day, for "Día 214". Provisional until launch. */
   firstDay: "2026-10-01",

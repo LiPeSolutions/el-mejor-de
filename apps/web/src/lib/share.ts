@@ -15,9 +15,12 @@ export function dayShareText(dayNumber: number, results: Array<{ game: string; s
   return `👑 Hice ${formatNumber(total)} en ${brand.name} · Día ${dayNumber}\n${games}\n¿Me ganás?`;
 }
 
-/** Native share sheet when available; otherwise copies to the clipboard. */
+/**
+ * Native share sheet when available; otherwise copies to the clipboard.
+ * The link is the address the app is running on, so it works before the final domain exists.
+ */
 export async function shareOrCopy(text: string): Promise<"shared" | "copied" | "cancelled" | "failed"> {
-  const url = `https://${brand.domain}`;
+  const url = window.location.origin;
   try {
     if (navigator.share) {
       await navigator.share({ title: brand.name, text, url });
