@@ -54,7 +54,8 @@ function LetterTiles({ word, gold }: { word: string; gold?: boolean }) {
         <div
           key={i}
           className={cx(
-            "grid h-11 w-[38px] place-items-center rounded-[10px] font-display text-xl font-extrabold",
+            "grid h-11 max-w-[38px] min-w-0 flex-1 place-items-center rounded-[10px] font-display font-extrabold",
+            word.length > 8 ? "text-lg" : "text-xl",
             gold ? "bg-gold text-ink" : "bg-letras text-white",
           )}
         >
@@ -69,6 +70,8 @@ function Detail({ result }: { result: ChallengeResult }) {
   switch (result.game) {
     case "seven-letters": {
       const fullWord = result.fullWords[0];
+      // Ten letters since 4/10/2026; earlier results had seven.
+      const fullLength = fullWord?.length ?? 10;
       const shown = result.words.slice(0, 8);
       return (
         <Card>
@@ -83,11 +86,11 @@ function Detail({ result }: { result: ChallengeResult }) {
                   key={entry.word}
                   className={cx(
                     "flex items-baseline gap-[5px] rounded-full px-2.5 py-1.5 text-xs font-extrabold",
-                    entry.word.length === 7 ? "bg-gold-soft" : "bg-surface-2",
+                    entry.word.length === fullLength ? "bg-gold-soft" : "bg-surface-2",
                   )}
                 >
                   {entry.word}
-                  <span className={entry.word.length === 7 ? "font-bold text-gold-text" : "font-semibold text-ink-500"}>+{entry.delta}</span>
+                  <span className={entry.word.length === fullLength ? "font-bold text-gold-text" : "font-semibold text-ink-500"}>+{entry.delta}</span>
                 </li>
               ))}
               {result.words.length > shown.length && (
@@ -99,7 +102,7 @@ function Detail({ result }: { result: ChallengeResult }) {
             <>
               <Divider />
               <div className="text-[13px] font-semibold text-ink-500">
-                {result.foundFullWord ? "¡Sacaste la de 7 letras!" : "Te faltó la de 7 letras:"}
+                {result.foundFullWord ? `¡Sacaste la de ${fullLength} letras!` : `Te faltó la de ${fullLength} letras:`}
               </div>
               <LetterTiles word={fullWord} gold={result.foundFullWord} />
             </>

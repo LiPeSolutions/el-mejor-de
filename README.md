@@ -39,6 +39,6 @@ pnpm build      # build de producción
 | `apps/web` | La web app (Next.js + Tailwind). |
 | `packages/games` | Motor de los minijuegos: lógica pura, igual en el servidor y en el navegador. |
 | `packages/shared` | Calendario argentino y reglas de la competencia (puntaje semanal, corona). |
-| `packages/content` | Diccionario de Siete Letras y preguntas de Cinco Preguntas ([revisar preguntas](docs/contenido/preguntas.md)). |
+| `packages/content` | Diccionario de Diez Letras y preguntas de Cinco Preguntas ([revisar preguntas](docs/contenido/preguntas.md)). |
 | `packages/db` | Consultas a la base de datos, con pruebas sobre Postgres en memoria. |
 | `supabase` | Migraciones de la base de datos y la carga de lugares de Georef. |

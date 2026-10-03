@@ -1,26 +1,35 @@
 import {
   FIVE_QUESTIONS_RULES,
   SEVEN_LETTERS_RULES,
+  TEN_LETTERS_RULES,
   canSpell,
   countLetters,
   createFiveQuestions,
   createRng,
   createSevenLetters,
+  letterMask,
   normalizeWord,
   validateTriviaBank,
+  type LetterGameRules,
 } from '@repo/games';
 import { describe, expect, it } from 'vitest';
-import { BASE_WORDS, TRIVIA_QUESTIONS, getSevenLettersDictionary, isBlockedWord } from './index';
+import { BASE_WORDS, BASE_WORDS_10, TRIVIA_QUESTIONS, getSevenLettersDictionary, isBlockedWord } from './index';
 
 const rngs = (seed: string) => ({ shared: createRng(seed), player: createRng(`${seed}:p`) });
 
-describe('Siete Letras dictionary', () => {
+describe('letters dictionary (Siete Letras and Diez Letras)', () => {
   const dictionary = getSevenLettersDictionary();
+  const masks = dictionary.words.map(letterMask);
+  const spellable = (base: string) => {
+    const letters = countLetters(base);
+    const outside = ~letterMask(base);
+    return dictionary.words.filter((word, i) => (masks[i]! & outside) === 0 && canSpell(word, letters)).length;
+  };
 
-  it('is large and only has 3 to 7 normalized letters', () => {
-    expect(dictionary.words.length).toBeGreaterThan(50_000);
-    for (const word of dictionary.words.slice(0, 2000)) {
-      expect(word).toMatch(/^[A-ZÑ]{3,7}$/);
+  it('is large and only has 3 to 10 normalized letters', () => {
+    expect(dictionary.words.length).toBeGreaterThan(300_000);
+    for (const word of [...dictionary.words.slice(0, 1000), ...dictionary.words.slice(-1000)]) {
+      expect(word).toMatch(/^[A-ZÑ]{3,10}$/);
     }
   });
 
@@ -39,28 +48,32 @@ describe('Siete Letras dictionary', () => {
     }
   });
 
-  it('accepts every curated base word, each with enough shorter words', () => {
-    const words = dictionary.words;
+  const lists: Array<[string, readonly string[], LetterGameRules]> = [
+    ['7', BASE_WORDS, SEVEN_LETTERS_RULES],
+    ['10', BASE_WORDS_10, TEN_LETTERS_RULES],
+  ];
+
+  it.each(lists)('accepts every curated %s-letter base word, each with enough shorter words', (_, list, rules) => {
     const tooFew: string[] = [];
-    for (const raw of BASE_WORDS) {
+    for (const raw of list) {
       const base = normalizeWord(raw);
       expect(base, raw).not.toBeNull();
-      expect(base!.length, raw).toBe(SEVEN_LETTERS_RULES.letterCount);
+      expect(base!.length, raw).toBe(rules.letterCount);
       expect(dictionary.baseWords, raw).toContain(base);
-      const letters = countLetters(base!);
-      const count = words.filter((word) => canSpell(word, letters)).length;
-      if (count < SEVEN_LETTERS_RULES.minWordsPerSet) tooFew.push(`${raw} (${count})`);
+      const count = spellable(base!);
+      if (count < rules.minWordsPerSet) tooFew.push(`${raw} (${count})`);
     }
     expect(tooFew).toEqual([]);
+    expect(new Set(list).size, 'no repeated words').toBe(list.length);
   });
 
-  it('builds daily letter sets', () => {
-    const game = createSevenLetters(dictionary);
+  it.each(lists)('builds daily %s-letter sets', (_, __, rules) => {
+    const game = createSevenLetters(dictionary, rules);
     for (const day of ['2026-10-02', '2026-10-03', '2026-10-04']) {
       const { content, solution } = game.generate(rngs(day));
-      expect(content.letters).toHaveLength(7);
+      expect(content.letters).toHaveLength(rules.letterCount);
       expect(solution.fullWords.length).toBeGreaterThan(0);
-      expect(solution.words.length).toBeGreaterThanOrEqual(SEVEN_LETTERS_RULES.minWordsPerSet);
+      expect(solution.words.length).toBeGreaterThanOrEqual(rules.minWordsPerSet);
     }
   });
 });

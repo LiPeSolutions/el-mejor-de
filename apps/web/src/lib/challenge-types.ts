@@ -21,6 +21,8 @@ export interface StartResponse {
 export interface WordCheckResponse {
   word: string;
   status: "valid" | "invalid" | "too-short";
+  /** What the word adds before scaling to the score (0 unless valid). */
+  points: number;
 }
 
 export interface QuestionResponse {

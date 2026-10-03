@@ -43,3 +43,15 @@ export function canSpell(word: string, available: LetterCounts): boolean {
   }
   return true;
 }
+
+const LETTER_BITS = new Map([...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'].map((letter, i) => [letter, 1 << i]));
+
+/**
+ * One bit per letter the word uses (27 letters with Ñ). A word can only be
+ * spelled with letters whose mask covers its own: a cheap filter before canSpell.
+ */
+export function letterMask(word: string): number {
+  let mask = 0;
+  for (const letter of word) mask |= LETTER_BITS.get(letter) ?? 1 << 27;
+  return mask;
+}

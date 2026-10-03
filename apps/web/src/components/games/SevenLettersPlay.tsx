@@ -1,14 +1,15 @@
 "use client";
 
-import { sevenLettersScore, sevenLettersWordPoints, type SevenLettersLog } from "@repo/games";
+import { sevenLettersScore, type SevenLettersLog } from "@repo/games";
 import { Clock, Delete, RotateCcw, Send, Shuffle, Sparkles, WifiOff, X } from "lucide-react";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type PointerEvent, type ReactNode, type MouseEvent } from "react";
 import { Label } from "@/components/ui/Chip";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { ApiError, api } from "@/lib/api";
 import type { StartView } from "@/lib/challenge-types";
 import { formatClock } from "@/lib/format";
+import { GAMES } from "@/lib/games";
 import { FloatingToast, GameHeader, ScoreRow, useToast } from "./chrome";
 
 type View = Extract<StartView, { game: "seven-letters" }>;
@@ -29,6 +30,31 @@ interface SentWord {
   delta?: number;
 }
 
+/**
+ * A button that acts as soon as the finger touches it, not when it lifts:
+ * fast typing doesn't lose taps. The keyboard (Enter or Space) still works.
+ */
+function PressButton({ onPress, className, children, ...rest }: { onPress: () => void; className: string; children: ReactNode; disabled?: boolean; "aria-label"?: string }) {
+  return (
+    <button
+      type="button"
+      {...rest}
+      className={className}
+      onPointerDown={(event: PointerEvent) => {
+        if (event.button !== 0) return;
+        event.preventDefault(); // no focus ring or text selection mid-game
+        onPress();
+      }}
+      onClick={(event: MouseEvent) => {
+        // A tap already acted on pointerdown; a keyboard press arrives as a click with no pointer.
+        if (event.detail === 0) onPress();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** Network hiccups get a few more tries; after that the final grading decides. */
 const RETRY_DELAYS_MS = [1_000, 2_000, 4_000];
 
@@ -43,6 +69,9 @@ function shuffled<T>(items: readonly T[]): T[] {
 
 export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: Props) {
   const startRef = useRef(0);
+  const letterCount = view.letters.length;
+  // Ten letters go in two rows of five big keys; days before 4/10/2026 had seven, in one row.
+  const twoRows = letterCount > 7;
   const [tiles, setTiles] = useState(() => view.letters.map((letter, id) => ({ id, letter })));
   const [selected, setSelected] = useState<number[]>([]);
   // Newest first, so the last word sent is always in sight.
@@ -76,10 +105,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
 
   const word = selected.map((id) => tiles.find((tile) => tile.id === id)?.letter ?? "").join("");
 
-  const tap = (id: number) => {
-    if (selected.includes(id)) return;
-    setSelected((current) => [...current, id]);
-  };
+  const tap = (id: number) => setSelected((current) => (current.includes(id) ? current : [...current, id]));
   const erase = () => setSelected((current) => current.slice(0, -1));
   const mix = () => {
     setSelected([]);
@@ -94,14 +120,14 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
     try {
       const response = await api.checkWord(token, word);
       if (response.status !== "valid") return mark(word, { status: "invalid" });
-      pointsRef.current += sevenLettersWordPoints(response.word);
+      pointsRef.current += response.points;
       const next = sevenLettersScore(pointsRef.current, view.targetPoints);
       const delta = next - scoreRef.current;
       scoreRef.current = next;
       setScore(next);
       mark(word, { status: "valid", delta });
-      if (response.word.length === view.letters.length) {
-        showToast({ tone: "success", icon: <Sparkles className="size-3.5" strokeWidth={2.6} />, text: `¡${response.word}! La de 7 letras +${delta}` });
+      if (response.word.length === letterCount) {
+        showToast({ tone: "success", icon: <Sparkles className="size-3.5" strokeWidth={2.6} />, text: `¡${response.word}! La de ${letterCount} letras +${delta}` });
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 410) return finish();
@@ -151,7 +177,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   return (
     <Screen clouds={["-right-[60px] bottom-10 w-[220px] opacity-70"]}>
       <GameHeader
-        title="Siete Letras"
+        title={twoRows ? GAMES["seven-letters"].name : "Siete Letras"}
         onClose={onExit}
         right={
           <div
@@ -179,46 +205,45 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1.5 px-5 pt-4">
+      <div className={cx("grid touch-manipulation px-5 pt-4 select-none", twoRows ? "grid-cols-5 gap-2" : "grid-cols-7 gap-1.5")}>
         {tiles.map((tile) => {
           const used = selected.includes(tile.id);
           return (
-            <button
+            <PressButton
               key={tile.id}
-              type="button"
-              onClick={() => tap(tile.id)}
+              onPress={() => tap(tile.id)}
               disabled={used}
               aria-label={`Letra ${tile.letter}`}
               className={cx(
-                "grid h-14 place-items-center rounded-key font-display text-2xl font-extrabold transition duration-150 active:scale-95",
+                "grid place-items-center rounded-key font-display font-extrabold transition-colors duration-100 active:scale-95",
+                twoRows ? "h-16 text-[28px]" : "h-14 text-2xl",
                 used
                   ? "bg-white text-ink-300 shadow-[inset_0_0_0_2px_#D9DDF3]"
                   : "bg-letras text-white shadow-[0_8px_16px_rgba(255,107,74,.3)]",
               )}
             >
               {tile.letter}
-            </button>
+            </PressButton>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-[1fr_1fr_1.4fr] gap-2 px-5 pt-3">
-        <button type="button" onClick={erase} className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-white text-[13px] font-bold shadow-sm active:scale-[.98]">
+      <div className="grid touch-manipulation grid-cols-[1fr_1fr_1.4fr] gap-2 px-5 pt-3 select-none">
+        <PressButton onPress={erase} className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-white text-[13px] font-bold shadow-sm active:scale-[.98]">
           <Delete className="size-4" strokeWidth={2.4} />
           Borrar
-        </button>
-        <button type="button" onClick={mix} className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-white text-[13px] font-bold shadow-sm active:scale-[.98]">
+        </PressButton>
+        <PressButton onPress={mix} className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-white text-[13px] font-bold shadow-sm active:scale-[.98]">
           <Shuffle className="size-4" strokeWidth={2.4} />
           Mezclar
-        </button>
-        <button
-          type="button"
-          onClick={send}
+        </PressButton>
+        <PressButton
+          onPress={send}
           className="flex h-12 items-center justify-center gap-2 rounded-full bg-letras font-display text-[15px] font-extrabold text-white shadow-[0_10px_20px_rgba(255,107,74,.35)] active:scale-[.98]"
         >
           <Send className="size-4" strokeWidth={2.4} />
           Enviar
-        </button>
+        </PressButton>
       </div>
 
       <div className="px-5 pt-[18px]">
@@ -230,7 +255,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
         </ul>
       </div>
 
-      <p className="mt-auto px-5 pt-4 text-center text-xs font-semibold text-ink-500">La de 7 letras tiene premio</p>
+      <p className="mt-auto px-5 pt-4 text-center text-xs font-semibold text-ink-500">La de {letterCount} letras tiene premio</p>
     </Screen>
   );
 }

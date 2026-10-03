@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveQuestions, type TriviaQuestion } from './games/five-questions';
 import { createReflexes } from './games/reflexes';
-import { createSevenLetters, createSevenLettersDictionary } from './games/seven-letters';
+import { SEVEN_LETTERS_RULES, createSevenLetters, createSevenLettersDictionary } from './games/seven-letters';
 import { practiceRngs } from './index';
 import { dailyRngs, deriveSeed } from './server';
 
@@ -39,7 +39,7 @@ describe('daily attempts', () => {
     const tincho = (slot: number) => dailyRngs(SECRET, '2026-10-02', slot, 'tincho');
     const laflor = (slot: number) => dailyRngs(SECRET, '2026-10-02', slot, 'laflor');
 
-    const sevenLetters = createSevenLetters(dictionary);
+    const sevenLetters = createSevenLetters(dictionary, SEVEN_LETTERS_RULES);
     expect(sevenLetters.generate(tincho(1)).content).toEqual(sevenLetters.generate(laflor(1)).content);
 
     const fiveQuestions = createFiveQuestions(bank);

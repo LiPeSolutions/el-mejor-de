@@ -40,10 +40,11 @@ export const GAMES: Record<GameId, GameTheme> = {
   "seven-letters": {
     id: "seven-letters",
     slug: "letras",
-    name: "Siete Letras",
-    lines: ["Siete", "Letras"],
+    // "Siete Letras" until 3/10/2026; the id stays "seven-letters".
+    name: "Diez Letras",
+    lines: ["Diez", "Letras"],
     kicker: "Palabras",
-    howTo: "Con 7 letras, armá todas las palabras que puedas. Las largas valen más y la de 7 letras tiene premio.",
+    howTo: "Con 10 letras, armá todas las palabras que puedas. Las largas valen más y la que usa las 10 tiene premio.",
     facts: [
       { Icon: Clock, value: "90 s", label: "de juego" },
       { Icon: Trophy, value: "1.000", label: "puntos máximo" },

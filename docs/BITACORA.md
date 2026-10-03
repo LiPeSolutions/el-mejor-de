@@ -27,10 +27,22 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Publicación | Vercel, equipo `lipe-demos`, proyecto `el-mejor-de-web` (Root Directory `apps/web`, funciones en São Paulo `gru1`). Variables: `CHALLENGE_SECRET` (producción y previews) y `DATABASE_URL` (producción). Los previews no tienen base, así que ahí no hay cuentas. |
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
 | Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
-| Contenido | Diccionario de Siete Letras y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
+| Contenido | Diccionario de Diez Letras (365.648 palabras de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 — Diez Letras
+
+- **Pedido de la responsable del producto:** botones más grandes y que respondan al tipear rápido, 10 letras para que haya más palabras, y más puntos por palabra, porque 1.000 parecía imposible.
+- **Decisiones (consultadas):**
+  - El juego pasa a llamarse **Diez Letras**.
+  - Las letras salen siempre de una palabra escondida que usa las 10, y encontrarla da 300 de premio.
+  - Puntos fijos por largo: 25, 50, 80, 120, 160 y 220 (para 8 letras o más). Tope 1.000.
+- **Botones:** dos filas de 5, de 64 px de alto (antes, 7 en una fila de 45 px de ancho). Responden apenas se apoya el dedo, no al levantarlo, y sin zoom por doble toque. Probado con toques cada 25 ms: no se pierde ninguno.
+- **Diccionario:** de 3 a 10 letras (365.648 palabras) y 172 palabras escondidas de 10 letras elegidas a mano (animales, comidas, escuela, oficios, lugares del país…).
+- **Desde cuándo:** el reto del día usa Diez Letras desde el **4/10/2026**. Los días anteriores siguen con Siete Letras, para que un reto no cambie después de empezado. Se comprobó que los retos de 7 letras salen idénticos al código anterior. La práctica ya usa Diez Letras.
+- **Rendimiento:** con un diccionario cuatro veces más grande, las búsquedas usan máscaras de letras, y el reto del día se arma una sola vez por día y no una por jugador.
 
 ### 3/10/2026 — Siete Letras sin esperar la verificación
 

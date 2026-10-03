@@ -1,11 +1,11 @@
 /**
  * Builds src/words/words.json from the "an-array-of-spanish-words" list (MIT):
- * normalized, 3 to 7 letters, without blocked words. Run: pnpm build:words
+ * normalized, 3 to 10 letters, without blocked words. Run: pnpm build:words
  */
 import { writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { SEVEN_LETTERS_RULES, normalizeWord } from '@repo/games';
+import { MAX_WORD_LENGTH, SEVEN_LETTERS_RULES, normalizeWord } from '@repo/games';
 import { isBlockedWord } from '../src/words/blocklist';
 
 const require = createRequire(import.meta.url);
@@ -16,7 +16,7 @@ const words = new Set<string>();
 let blocked = 0;
 for (const raw of source) {
   const word = normalizeWord(raw);
-  if (!word || word.length < SEVEN_LETTERS_RULES.minWordLength || word.length > SEVEN_LETTERS_RULES.letterCount) {
+  if (!word || word.length < SEVEN_LETTERS_RULES.minWordLength || word.length > MAX_WORD_LENGTH) {
     continue;
   }
   if (isBlockedWord(word)) {

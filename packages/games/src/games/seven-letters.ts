@@ -1,34 +1,71 @@
-import { canSpell, countLetters, normalizeWord } from '../text';
+import { canSpell, countLetters, letterMask, normalizeWord } from '../text';
 import type { Flag, GameDefinition, GameResult } from '../types';
 
-/** "Siete Letras": find as many words as possible with seven letters in 90 seconds. */
-export const SEVEN_LETTERS_RULES = {
+/**
+ * The letters game: find as many words as possible with the day's letters in
+ * 90 seconds. It started as "Siete Letras" (7 letters) and became "Diez
+ * Letras" (10 letters, fixed points) on 4/10/2026; the id stays "seven-letters".
+ */
+export interface LetterGameRules {
+  letterCount: number;
+  minWordLength: number;
+  durationMs: number;
+  /** Allowance for network delay on the last submissions. */
+  lateGraceMs: number;
+  /** A letter set needs at least this many words to be a fair challenge. */
+  minWordsPerSet: number;
+  maxGenerateAttempts: number;
+  maxSubmissions: number;
+  /** Points per word length; longer words get the longest length's points. */
+  pointsByLength: Readonly<Record<number, number>>;
+  /** Extra points for a word that uses every letter. */
+  fullWordBonus: number;
+  /**
+   * What a perfect 1000 takes: a share of the set's points (clamped), or a
+   * fixed number of points, so each word adds its own points to the score.
+   */
+  target:
+    | { kind: 'share'; share: number; minPoints: number; maxPoints: number }
+    | { kind: 'fixed'; points: number };
+  /** Two accepted words closer than this are not humanly possible on a touch screen. */
+  minSubmissionGapMs: number;
+  /** Finding more than this share of a big set in 90 s is suspicious. */
+  suspiciousFoundShare: number;
+}
+
+/** "Siete Letras", until 3/10/2026: seven letters, scored against a share of the day's points. */
+export const SEVEN_LETTERS_RULES: LetterGameRules = {
   letterCount: 7,
   minWordLength: 3,
   durationMs: 90_000,
-  /** Allowance for network delay on the last submissions. */
   lateGraceMs: 2_000,
-  /** A letter set needs at least this many words to be a fair challenge. */
   minWordsPerSet: 12,
   maxGenerateAttempts: 200,
   maxSubmissions: 300,
-  pointsByLength: { 3: 1, 4: 2, 5: 3, 6: 5, 7: 8 } as Readonly<Record<number, number>>,
-  /** Extra points for a word that uses all seven letters. */
+  pointsByLength: { 3: 1, 4: 2, 5: 3, 6: 5, 7: 8 },
   fullWordBonus: 10,
-  /** A perfect 1000 means reaching this share of all available points, clamped. Calibrate with beta data. */
-  targetShare: 0.35,
-  targetMinPoints: 20,
-  targetMaxPoints: 80,
-  /** Two accepted words closer than this are not humanly possible on a touch screen. */
+  target: { kind: 'share', share: 0.35, minPoints: 20, maxPoints: 80 },
   minSubmissionGapMs: 350,
-  /** Finding more than this share of a big set in 90 s is suspicious. */
   suspiciousFoundShare: 0.8,
-} as const;
+};
+
+/** "Diez Letras", from 4/10/2026: ten letters and fixed points per word (docs/PLAN.md §7). Calibrate with beta data. */
+export const TEN_LETTERS_RULES: LetterGameRules = {
+  ...SEVEN_LETTERS_RULES,
+  letterCount: 10,
+  minWordsPerSet: 40,
+  pointsByLength: { 3: 25, 4: 50, 5: 80, 6: 120, 7: 160, 8: 220 },
+  fullWordBonus: 300,
+  target: { kind: 'fixed', points: 1000 },
+};
+
+/** The dictionary keeps words up to this length. */
+export const MAX_WORD_LENGTH = 10;
 
 export interface SevenLettersDictionary {
-  /** Every playable word: normalized, 3 to 7 letters, sorted. */
+  /** Every playable word: normalized, 3 to 10 letters, sorted. */
   readonly words: readonly string[];
-  /** Curated 7-letter words a daily set can be built from (common and family-friendly), sorted. */
+  /** Curated words a daily set can be built from (common and family-friendly), sorted. Their length is the set's. */
   readonly baseWords: readonly string[];
 }
 
@@ -36,16 +73,17 @@ export function createSevenLettersDictionary(
   words: Iterable<string>,
   baseWords?: Iterable<string>,
 ): SevenLettersDictionary {
-  const { letterCount, minWordLength } = SEVEN_LETTERS_RULES;
+  const { minWordLength } = SEVEN_LETTERS_RULES;
   const playable = new Set<string>();
   for (const raw of words) {
     const word = normalizeWord(raw);
-    if (word && word.length >= minWordLength && word.length <= letterCount) playable.add(word);
+    if (word && word.length >= minWordLength && word.length <= MAX_WORD_LENGTH) playable.add(word);
   }
+  // Each game version builds its sets from the base words of its own length.
   const bases = new Set<string>();
   for (const raw of baseWords ?? playable) {
     const word = normalizeWord(raw);
-    if (word && word.length === letterCount && playable.has(word)) bases.add(word);
+    if (word && playable.has(word)) bases.add(word);
   }
   return { words: [...playable].sort(), baseWords: [...bases].sort() };
 }
@@ -79,10 +117,10 @@ export interface SevenLettersResult extends GameResult {
   foundFullWord: boolean;
 }
 
-export function sevenLettersWordPoints(word: string): number {
-  const { pointsByLength, letterCount, fullWordBonus } = SEVEN_LETTERS_RULES;
-  const base = pointsByLength[word.length] ?? 0;
-  return word.length === letterCount ? base + fullWordBonus : base;
+export function sevenLettersWordPoints(word: string, rules: LetterGameRules = TEN_LETTERS_RULES): number {
+  const longest = Math.max(...Object.keys(rules.pointsByLength).map(Number));
+  const base = rules.pointsByLength[Math.min(word.length, longest)] ?? 0;
+  return word.length === rules.letterCount ? base + rules.fullWordBonus : base;
 }
 
 /** Score for points so far; the UI uses it for the running score and each word's "+N". */
@@ -90,16 +128,39 @@ export function sevenLettersScore(points: number, targetPoints: number): number 
   return targetPoints > 0 ? Math.round(1000 * Math.min(1, points / targetPoints)) : 0;
 }
 
+// Each dictionary word's letter mask, computed once per dictionary (the list is large).
+const masksByDictionary = new WeakMap<SevenLettersDictionary, Uint32Array>();
+function wordMasks(dictionary: SevenLettersDictionary): Uint32Array {
+  let masks = masksByDictionary.get(dictionary);
+  if (!masks) {
+    masks = Uint32Array.from(dictionary.words, letterMask);
+    masksByDictionary.set(dictionary, masks);
+  }
+  return masks;
+}
+
+/** Every dictionary word the letters can spell, in dictionary order. */
+function spellableWords(dictionary: SevenLettersDictionary, letters: string): string[] {
+  const masks = wordMasks(dictionary);
+  const available = countLetters(letters);
+  const outside = ~letterMask(letters);
+  const words: string[] = [];
+  dictionary.words.forEach((word, i) => {
+    if (((masks[i] ?? 0) & outside) === 0 && canSpell(word, available)) words.push(word);
+  });
+  return words;
+}
+
 function byLengthThenAlphabet(a: string, b: string): number {
   return b.length - a.length || (a < b ? -1 : a > b ? 1 : 0);
 }
 
 function plausibilityFlags(
+  rules: LetterGameRules,
   result: Pick<SevenLettersResult, 'accepted'>,
   solution: SevenLettersSolution,
   serverElapsedMs: number | undefined,
 ): Flag[] {
-  const rules = SEVEN_LETTERS_RULES;
   const flags: Flag[] = [];
 
   let tooFastGaps = 0;
@@ -131,9 +192,10 @@ function plausibilityFlags(
 
 export function createSevenLetters(
   dictionary: SevenLettersDictionary,
+  rules: LetterGameRules = TEN_LETTERS_RULES,
 ): GameDefinition<SevenLettersContent, SevenLettersSolution, SevenLettersLog, SevenLettersResult> {
-  const rules = SEVEN_LETTERS_RULES;
-  if (dictionary.baseWords.length === 0) throw new Error('The dictionary has no 7-letter base words');
+  const bases = dictionary.baseWords.filter((word) => word.length === rules.letterCount);
+  if (bases.length === 0) throw new Error(`The dictionary has no ${rules.letterCount}-letter base words`);
 
   return {
     id: 'seven-letters',
@@ -144,9 +206,8 @@ export function createSevenLetters(
     // generated content instead of regenerating it after a dictionary update.
     generate({ shared }) {
       for (let attempt = 0; attempt < rules.maxGenerateAttempts; attempt++) {
-        const base = shared.pick(dictionary.baseWords);
-        const available = countLetters(base);
-        const words = dictionary.words.filter((word) => canSpell(word, available));
+        const base = shared.pick(bases);
+        const words = spellableWords(dictionary, base);
         if (words.length < rules.minWordsPerSet) continue;
 
         words.sort(byLengthThenAlphabet);
@@ -155,10 +216,13 @@ export function createSevenLetters(
         let letters = shared.shuffle([...base]);
         for (let i = 0; i < 20 && fullWords.includes(letters.join('')); i++) letters = shared.shuffle(letters);
 
-        const maxPoints = words.reduce((sum, word) => sum + sevenLettersWordPoints(word), 0);
+        const maxPoints = words.reduce((sum, word) => sum + sevenLettersWordPoints(word, rules), 0);
+        const { target } = rules;
         const targetPoints = Math.min(
           maxPoints,
-          Math.max(rules.targetMinPoints, Math.min(rules.targetMaxPoints, Math.round(maxPoints * rules.targetShare))),
+          target.kind === 'fixed'
+            ? target.points
+            : Math.max(target.minPoints, Math.min(target.maxPoints, Math.round(maxPoints * target.share))),
         );
         return {
           content: { letters, durationMs: rules.durationMs, minWordLength: rules.minWordLength },
@@ -196,13 +260,13 @@ export function createSevenLetters(
         else if (!valid.has(word)) reject('invalid');
         else {
           seen.add(word);
-          accepted.push({ word, points: sevenLettersWordPoints(word), atMs });
+          accepted.push({ word, points: sevenLettersWordPoints(word, rules), atMs });
         }
       }
 
       const points = accepted.reduce((sum, entry) => sum + entry.points, 0);
       const score = sevenLettersScore(points, solution.targetPoints);
-      flags.push(...plausibilityFlags({ accepted }, solution, context.serverElapsedMs));
+      flags.push(...plausibilityFlags(rules, { accepted }, solution, context.serverElapsedMs));
 
       return {
         score,

@@ -66,7 +66,7 @@ Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron g
 1. `POST /api/daily/{fecha}/{slot}/start` → el servidor crea el intento en `attempts` (único por usuario + fecha + slot), guarda `started_at` y devuelve **solo lo necesario para jugar**.
 2. Durante el juego, según cada juego:
    - **Cinco Preguntas:** las preguntas se piden de a una (`/next`); el servidor cronometra cada una y corrige.
-   - **Siete Letras:** el cliente valida contra el diccionario para dar feedback inmediato, pero la lista final se valida en el servidor.
+   - **Diez Letras:** cada palabra se verifica en el servidor mientras el jugador sigue (el diccionario no se manda al celu), y la lista final se corrige en el servidor.
    - **Reflejos y Secuencia:** el cliente manda el registro de eventos (toques y tiempos) y el servidor lo valida.
 3. `POST /api/daily/{fecha}/{slot}/finish` → el servidor valida con `packages/games`, calcula el puntaje (0–1.000) y corre los chequeos de plausibilidad.
 4. Si un intento no se termina, al vencer su tiempo máximo se cierra con lo que haya.
@@ -78,7 +78,7 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 | Endpoint (`POST`) | Qué hace |
 |---|---|
 | `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`). Devuelve un **token firmado** y solo lo necesario para jugar. |
-| `/api/retos/palabra` | Siete Letras: dice si una palabra vale (el diccionario no se manda al celu). El celu no espera la respuesta para seguir: la palabra aparece al instante y se marca cuando llega (si falla la conexión, reintenta). El puntaje final sale de todo lo enviado, verificado o no. |
+| `/api/retos/palabra` | Diez Letras: dice si una palabra vale y cuántos puntos da (el diccionario no se manda al celu). El celu no espera la respuesta para seguir: la palabra aparece al instante y se marca cuando llega (si falla la conexión, reintenta). El puntaje final sale de todo lo enviado, verificado o no. |
 | `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. Si se pide de nuevo, conserva la hora de la primera vez. |
 | `/api/retos/respuesta` | Corrige la respuesta, mide el tiempo del lado del servidor y devuelve un **recibo firmado**. |
 | `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. |
@@ -138,7 +138,9 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 - `content` es lo que el jugador puede ver (Cinco Preguntas y Secuencia lo revelan de a partes); `solution` nunca sale del servidor.
 - `evaluate` corrige, puntúa (0–1.000) y devuelve **marcas** (`flags`) de plausibilidad: `severity: 'high'` significa que el puntaje no cuenta hasta revisarlo.
-- Los juegos que necesitan datos se crean con ellos: `createSevenLetters(diccionario)` y `createFiveQuestions(bancoDePreguntas)`.
+- Los juegos que necesitan datos se crean con ellos: `createSevenLetters(diccionario, reglas)` y `createFiveQuestions(bancoDePreguntas)`.
+- **Reglas por fecha:** un reto del día nunca cambia después de publicado. Diez Letras (`TEN_LETTERS_RULES`: 10 letras, puntos fijos) rige desde el 4/10/2026 (`TEN_LETTERS_FROM` en `apps/web/src/server/challenges.ts`). Los días anteriores se regeneran con las reglas de Siete Letras (`SEVEN_LETTERS_RULES`), y la práctica usa siempre las actuales. Así se van a manejar los próximos ajustes de puntajes.
+- **Diccionario de palabras:** 365.648 palabras de 3 a 10 letras (`packages/content`). Para buscar rápido qué palabras se arman con las letras del día, cada palabra tiene una máscara de bits con sus letras.
 - La misma lógica corre en el cliente (juego libre, con `practiceRngs()`) y en el servidor (retos diarios, con `dailyRngs()`).
 - `dailyLineup(fecha)` arma los 3 retos del día: rota el juego que descansa.
 - La API valida la forma de cada registro (esquema) antes de pasárselo al motor.

@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 3 de octubre de 2026 (cuentas con apodo y contraseña, y dirección `game.lipesolutions.com`).
+> Última actualización: 3 de octubre de 2026 (Diez Letras con puntos fijos; cuentas con apodo y contraseña; dirección `game.lipesolutions.com`).
 
 ## 1. La idea
 
@@ -29,7 +29,7 @@ Lo que la hace distinta:
 | Juego libre | **Práctica sin límite + récords personales.** No cuenta para las coronas. |
 | Corona | **Semanal.** El #1 de cada lugar es "El Mejor de…" esa semana. Cuenta la suma de los **5 mejores días**. |
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
-| Puntajes | **Los del plan** (§7), no los del diseño. |
+| Puntajes | **Los del plan** (§7), no los del diseño. Diez Letras pasó a **puntos fijos por largo** (3/10/2026). |
 | Ubicación | Se elige y **se verifica con GPS** al registrarse, y **se vuelve a verificar** al hacer un récord o subir en el ranking. |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. |
@@ -138,7 +138,7 @@ Cada minijuego dura entre **60 y 90 segundos** y se juega cómodo con una mano e
 
 | Categoría | Juego | Cómo se juega |
 |---|---|---|
-| Palabras | **Siete Letras** | Con 7 letras, armá todas las palabras que puedas en 90 segundos. Las palabras largas valen más y la de 7 letras tiene premio. |
+| Palabras | **Diez Letras** (hasta el 3/10/2026, Siete Letras) | Con 10 letras, armá todas las palabras que puedas en 90 segundos. Las letras salen de una palabra escondida que usa las 10: encontrarla tiene premio. |
 | Trivia | **Cinco Preguntas** | 5 preguntas de 15 segundos cada una: Argentina, fútbol, geografía, historia y cultura general. Responder rápido suma más. |
 | Habilidad | **Reflejos** | Tocá apenas la pantalla cambia de color. Son 5 rondas y cuenta tu promedio. Si tocás antes de tiempo, perdés la ronda. |
 | Memoria | **Secuencia** | Repetí secuencias de colores cada vez más largas (tipo Simón dice). Cuanto más lejos llegás, más puntos. |
@@ -149,7 +149,7 @@ Cada reto da de 0 a 1.000 puntos:
 
 | Juego | Puntos |
 |---|---|
-| Siete Letras | Cada palabra suma según su largo (3 letras: 1 punto … 7 letras: 8 puntos + 10 de premio). Los 1.000 se alcanzan con un 35% de los puntos posibles de esas letras, así un día con letras difíciles no castiga. |
+| Diez Letras | Puntos fijos por largo: 3 letras, 25; 4, 50; 5, 80; 6, 120; 7, 160; 8 o más, 220. La que usa las 10 suma 300 de premio. Tope 1.000: una partida normal da unos 500 y una muy buena llega a 1.000. Rige desde el reto del 4/10/2026; antes era Siete Letras, con puntos proporcionales a las letras del día. |
 | Cinco Preguntas | Hasta 200 por pregunta: 200 si acertás en 2 segundos o menos, 10 menos por cada segundo extra y nunca menos de 100 si acertás. |
 | Reflejos | Hasta 200 por ronda: completos con 170 ms o menos, nada con 550 ms o más. Tocar antes de tiempo da 0 en esa ronda. |
 | Secuencia | Llegar al nivel 12 (14 colores seguidos) vale 1.000; cada nivel menos resta proporcionalmente. |

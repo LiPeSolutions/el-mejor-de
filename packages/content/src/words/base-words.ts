@@ -1,7 +1,8 @@
 /**
- * Curated 7-letter words a daily Siete Letras set can be built from: common,
- * family-friendly and, when possible, with a local flavor. Each one must be in
- * the dictionary and have enough shorter words (checked by the tests).
+ * Curated 7-letter words a daily Siete Letras set was built from (until
+ * 3/10/2026): common, family-friendly and, when possible, with a local flavor.
+ * Each one must be in the dictionary and have enough shorter words (checked by
+ * the tests). Changing this list changes those days' letters.
  */
 export const BASE_WORDS: readonly string[] = [
   // Animales
@@ -49,4 +50,48 @@ export const BASE_WORDS: readonly string[] = [
   'volando', 'noventa', 'primero', 'segundo', 'sesenta', 'setenta', 'tercero', 'treinta',
   // Tecnología
   'batería', 'celular', 'consola', 'energía', 'monitor', 'química', 'teclado',
+];
+
+/**
+ * Curated 10-letter words a daily Diez Letras set is built from (from
+ * 4/10/2026): common, family-friendly and with a local flavor. The same checks
+ * as above apply; the letters always spell one of these, the word with the prize.
+ */
+export const BASE_WORDS_10: readonly string[] = [
+  // Animales
+  'cocodrilos', 'golondrina', 'hipopótamo', 'luciérnaga', 'murciélago', 'picaflores',
+  // Comidas y cocina
+  'chocolates', 'chocolatín', 'chupetines', 'condimento', 'magdalenas', 'mandarinas', 'manzanilla',
+  'medialunas', 'berenjenas', 'remolachas', 'zanahorias', 'tallarines', 'parrillada', 'pastelería',
+  'confitería', 'panaderías', 'heladerías', 'carnicería', 'verdulería', 'almacenero',
+  // La casa
+  'aspiradora', 'calefactor', 'dormitorio', 'habitación', 'lavarropas', 'licuadoras', 'microondas',
+  'mosquitero', 'tostadoras', 'ventanales', 'ventilador', 'jardinería', 'jardineros', 'margaritas',
+  // Escuela y juegos
+  'abecedario', 'adivinanza', 'biblioteca', 'cartuchera', 'crucigrama', 'escritorio', 'estudiante',
+  'literatura', 'matemática', 'ortografía', 'pizarrones', 'profesores', 'respuestas', 'sacapuntas',
+  'secundaria', 'soluciones', 'escondidas', 'escondites', 'barriletes', 'juguetería', 'historieta',
+  'personajes', 'detectives', 'misterioso', 'divertidos', 'fantástico', 'gigantesco', 'maravillas',
+  'simpáticos', 'caballeros', 'calendario', 'vacaciones', 'cumpleaños', 'guirnaldas', 'serpentina',
+  // Deportes
+  'campeonato', 'competidor', 'defensores', 'delanteros', 'entrenador', 'futbolista', 'gimnástica',
+  'goleadores', 'olimpíadas', 'triunfador', 'acrobacias', 'trapecista', 'equilibrio',
+  // Oficios y gente
+  'arquitecto', 'astronauta', 'bailarinas', 'carpintero', 'científico', 'dibujantes', 'enfermeras',
+  'escritores', 'espectador', 'ingenieros', 'inventores', 'periodista', 'pescadores', 'trabajador',
+  'agricultor', 'campesinos', 'estanciero', 'milonguero', 'navegantes', 'explorador', 'aventurero',
+  'caminantes', 'ciudadanos', 'habitantes', 'pobladores', 'familiares', 'compañeros', 'mensajeros',
+  // Lugares y país
+  'argentinos', 'cordobeses', 'patagónico', 'provincias', 'territorio', 'cordillera', 'vecindario',
+  'plazoletas', 'hospitales', 'estaciones', 'aeropuerto', 'escenarios', 'tranqueras', 'alambrados',
+  'cabalgatas', 'herraduras', 'chacareras', 'escarapela', 'libertador', 'revolución', 'presidente',
+  'gobernador', 'intendente', 'festivales', 'carnavales',
+  // Cosas y transporte
+  'ambulancia', 'bicicletas', 'camionetas', 'colectivos', 'locomotora', 'submarinos', 'transporte',
+  'pantalones', 'zapatillas', 'televisión', 'telescopio', 'termómetro', 'fotografía', 'esculturas',
+  'carteleras', 'periódicos', 'noticieros', 'acordeones', 'panderetas', 'tamboriles',
+  // Cielo y tiempo
+  'astronomía', 'meteoritos', 'planetario', 'nubarrones', 'relámpagos', 'tormentoso',
+  // Familia y fiestas
+  'casamiento', 'matrimonio', 'nacimiento', 'graduación', 'dinosaurio',
 ];

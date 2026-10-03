@@ -4,6 +4,8 @@ import { TRIVIA_QUESTIONS, getSevenLettersDictionary } from "@repo/content";
 import {
   FIVE_QUESTIONS_RULES,
   SEQUENCE_RULES,
+  SEVEN_LETTERS_RULES,
+  TEN_LETTERS_RULES,
   answerSeconds,
   createFiveQuestions,
   createReflexes,
@@ -14,6 +16,7 @@ import {
   normalizeWord,
   practiceRngs,
   sevenLettersScore,
+  sevenLettersWordPoints,
   type FiveQuestionsContent,
   type FiveQuestionsSolution,
   type Flag,
@@ -96,17 +99,38 @@ const CATEGORY_LABELS: Record<TriviaCategory, string> = {
   entertainment: "Entretenimiento",
 };
 
+/**
+ * "Diez Letras" (10 letters, fixed points) for the daily challenge from this
+ * game date on; earlier days keep "Siete Letras", so a day's challenge never
+ * changes after it started. Practice always uses the current rules.
+ */
+const TEN_LETTERS_FROM = "2026-10-04";
+
 function buildEngines() {
   return {
-    "seven-letters": createSevenLetters(getSevenLettersDictionary()),
+    "seven-letters": createSevenLetters(getSevenLettersDictionary(), TEN_LETTERS_RULES),
     "five-questions": createFiveQuestions(TRIVIA_QUESTIONS),
     reflexes: createReflexes(),
     sequence: createSequence(),
   };
 }
 
-let engines: ReturnType<typeof buildEngines> | undefined;
+type Engines = ReturnType<typeof buildEngines>;
+let engines: Engines | undefined;
+let sevenLettersEngine: Engines["seven-letters"] | undefined;
 const getEngines = () => (engines ??= buildEngines());
+
+function usesSevenLetters(claims: Pick<AttemptClaims, "mode" | "date">): boolean {
+  return claims.mode === "daily" && claims.date < TEN_LETTERS_FROM;
+}
+
+/** The engines for an attempt, with the letters game its date had. */
+function enginesFor(claims: Pick<AttemptClaims, "mode" | "date">): Engines {
+  const all = getEngines();
+  if (!usesSevenLetters(claims)) return all;
+  sevenLettersEngine ??= createSevenLetters(getSevenLettersDictionary(), SEVEN_LETTERS_RULES);
+  return { ...all, "seven-letters": sevenLettersEngine };
+}
 
 const cache = new Map<string, Generated>();
 const CACHE_LIMIT = 500;
@@ -118,11 +142,13 @@ function rngsFor(claims: AttemptClaims): GameRngs {
 }
 
 function generate(claims: AttemptClaims): Generated {
-  const key = claims.mode === "daily" ? `d:${claims.date}:${claims.slot}:${claims.user}` : `p:${claims.seed}`;
+  // The letters game only uses the shared seed: one entry per day and slot is enough.
+  const player = claims.game === "seven-letters" ? "" : `:${claims.user}`;
+  const key = claims.mode === "daily" ? `d:${claims.date}:${claims.slot}${player}` : `p:${claims.seed}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
-  const all = getEngines();
+  const all = enginesFor(claims);
   const rngs = rngsFor(claims);
   let generated: Generated;
   switch (claims.game) {
@@ -227,8 +253,10 @@ function generatedFor<G extends GameId>(claims: AttemptClaims, game: G): Extract
 export function checkWord(claims: AttemptClaims, raw: string): WordCheckResponse {
   const { content, solution } = generatedFor(claims, "seven-letters");
   const word = normalizeWord(raw) ?? "";
-  if (word.length < content.minWordLength) return { word, status: "too-short" };
-  return { word, status: solution.words.includes(word) ? "valid" : "invalid" };
+  if (word.length < content.minWordLength) return { word, status: "too-short", points: 0 };
+  if (!solution.words.includes(word)) return { word, status: "invalid", points: 0 };
+  const rules = usesSevenLetters(claims) ? SEVEN_LETTERS_RULES : TEN_LETTERS_RULES;
+  return { word, status: "valid", points: sevenLettersWordPoints(word, rules) };
 }
 
 /** `servedAt` is when the question was first shown in this attempt: its clock runs from then. */
@@ -297,7 +325,7 @@ function reportFlags(claims: AttemptClaims, flags: Flag[]) {
 }
 
 export function gradeAttempt(claims: AttemptClaims, log: unknown, now = Date.now()): { result: ChallengeResult; flags: Flag[] } {
-  const all = getEngines();
+  const all = enginesFor(claims);
   const context = { serverElapsedMs: now - claims.startedAt };
   const generated = generate(claims);
   let flags: Flag[] = [];
