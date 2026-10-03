@@ -192,7 +192,7 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 **Tabla `game.places`** (ya creada), con una jerarquía genérica para poder sumar otros países:
 `id, kind (country | province | department | locality), parent_id, name, search_name, lat, lon, radius_km`. Los ids son los de Georef con el país adelante (`ar-06224010` es Chivilcoy). Para la primera versión alcanza con el centro de cada localidad y un radio (*R* = 12 km por defecto); los polígonos llegan después.
 
-**Cómo se elige** (decidido el 3/10/2026; construido, falta publicarlo, ver la [bitácora](BITACORA.md)). El código está en `apps/web/src/server/places.ts` (reglas), `packages/db/src/places.ts` (consultas) y `packages/shared/src/places.ts` (cuándo una posición verifica una localidad, y los nombres).
+**Cómo se elige** (decidido y construido el 3/10/2026). El código está en `apps/web/src/server/places.ts` (reglas), `packages/db/src/places.ts` (consultas) y `packages/shared/src/places.ts` (cuándo una posición verifica una localidad, y los nombres).
 
 | Endpoint | Qué hace |
 |---|---|
@@ -225,7 +225,7 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 ## 6. Rankings y coronas
 
 - **Los grupos ya andan** (ver §4, "Grupos y corona semanal"): calculan el ranking en el momento, desde `attempts`, porque son de hasta 50 personas.
-- **Los lugares** (construidos, falta publicarlos) también se calculan en el momento, con una consulta (`STANDINGS` en `packages/db/src/places.ts`):
+- **Los lugares** también se calculan en el momento, con una consulta (`STANDINGS` en `packages/db/src/places.ts`):
   - el área es la localidad (en la ciudad, el barrio), o todas las localidades de la provincia o del país;
   - cuentan los retos del día terminados con cuenta y con ese lugar; la semana suma los 5 mejores días;
   - con los mismos puntos va primero quien llegó antes a ese puntaje;
@@ -244,8 +244,8 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | `users` | **(Creada.)** La cuenta: apodo, hash de la contraseña, personaje, El / La Mejor, localidad, cuándo se verificó (`place_verified_at`, migración `places`) y, más adelante, Google vinculado. |
 | `sessions` | **(Creada.)** Sesiones abiertas: hash del token, cuenta, navegador y vencimiento. |
 | `auth_events` | **(Creada.)** Cuentas nuevas e intentos fallidos de entrar, para los límites. |
-| `location_checks` | **(En la migración `places`, sin aplicar todavía.)** Resultado de cada verificación con el GPS (sin coordenadas). |
-| `place_weeks` | **(En la migración `places`.)** Semanas ya decididas de la corona de cada lugar. |
+| `location_checks` | **(Creada.)** Resultado de cada verificación con el GPS (sin coordenadas). |
+| `place_weeks` | **(Creada.)** Semanas ya decididas de la corona de cada lugar. |
 | `daily_challenges` | Los retos de cada día: fecha, slot, juego, referencia de la semilla y dificultad. |
 | `attempts` | **(Creada.)** Cada intento: navegador, cuenta, fecha y slot, juego, inicio, fin, puntaje, resultado, marcas, progreso del servidor y lugar del momento. |
 | `daily_scores` / `weekly_scores` | Totales por día y por semana. |

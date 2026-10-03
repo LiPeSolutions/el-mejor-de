@@ -15,7 +15,8 @@
 - ✅ Base de datos en Supabase (São Paulo), conectada a la app: un solo intento por reto controlado por el servidor, y los lugares oficiales de Argentina cargados (provincias, departamentos y 4.037 localidades).
 - ✅ Cuentas con apodo y contraseña (sin email): personaje, El / La Mejor y perfil. Lo jugado ese día pasa a la cuenta.
 - ✅ Grupos privados con su ranking del día y de la semana, invitación por link o código, y corona semanal en vivo (festejo y palmarés).
-- 🛠️ Tu lugar con GPS y rankings por barrio, provincia y país, cada uno con su corona: construidos, falta probarlos de punta a punta y publicarlos.
+- ✅ Tu lugar con GPS y rankings por barrio, provincia y país, cada uno con su corona en vivo.
+- 🛠️ Largada, el nuevo juego de reflejos: una largada de autos contra los tiempos de tu grupo (diseño listo, a construir).
 - ⏳ Vincular con Google.
 
 ## Documentos

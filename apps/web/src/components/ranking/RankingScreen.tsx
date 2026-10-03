@@ -238,7 +238,7 @@ function Rankings({ account, today, initialLevel }: { account: PublicAccount; to
             {crowned && me?.holder ? (
               <CrownBand
                 title={`Tenés la corona de ${place.crownName}`}
-                detail={`${gapText(rows, me, account.article)} · se define el domingo · ${daysLeftText(week.start, data.today)}`}
+                detail={`${me.position === 1 ? gapText(rows, me, account.article) : `${rows[0]?.username ?? "Quien va primero"} suma más, pero no verificó esta semana`} · se define el domingo · ${daysLeftText(week.start, data.today)}`}
               />
             ) : (
               <MeBar position={me?.position ?? null} player={mePlayer} detail={meDetail} />

@@ -30,6 +30,7 @@ Lo que la hace distinta:
 | Corona | **Semanal y en vivo.** Durante la semana la corona la tiene quien va primero, y si alguien lo pasa en puntos, se la saca. El domingo a la medianoche queda definitiva: el #1 de cada lugar y de cada grupo es "El Mejor de…" esa semana. Cuenta la suma de los **5 mejores días**, **sin mínimo de días**; si empatan, la conserva quien llegó primero a ese puntaje (3/10/2026). Hay corona de **barrio o localidad, de provincia y de país**, cada una con su nombre ("¡Sos El Mejor de Caballito!", "…de Argentina"), y por ahora **se entregan solas** (3/10/2026). |
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
 | Puntajes | **Los del plan** (§7), no los del diseño. Diez Letras pasó a **puntos fijos por largo** (3/10/2026). |
+| Largada | Reemplaza a **Reflejos**: una largada de autos contra los tiempos de hoy de tu grupo, con 3 largadas y el puntaje según tu promedio. La espera es **distinta para cada jugador**, cada auto tiene **el color del personaje** y se corre contra **el último grupo que abriste**, que se puede cambiar (3/10/2026, a construir; ver §7). |
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
@@ -163,6 +164,18 @@ Cada reto da de 0 a 1.000 puntos:
 | Secuencia | Llegar al nivel 12 (14 colores seguidos) vale 1.000; cada nivel menos resta proporcionalmente. |
 
 Para que nadie se pase las respuestas, en Cinco Preguntas todos ven las mismas preguntas, pero cada uno ve las opciones en otro orden. En Reflejos y Secuencia cada jugador tiene su propia versión, de la misma dificultad.
+
+### Largada *(reemplaza a Reflejos; decidido el 3/10/2026, a construir)*
+
+La responsable del producto la diseñó con Claude Design. El diseño completo, con las pantallas y la explicación, está en [`docs/diseno/handoff-largada`](diseno/handoff-largada/LARGADA.md).
+
+- **Cómo se juega:** se prenden las cinco luces del semáforo de a una. Después de una espera al azar se apagan todas juntas, y ahí hay que tocar. Son **3 largadas**, y los autos corren solos según el tiempo de reacción de cada uno.
+- **Puntaje:** sale del promedio: 1.000 con 200 ms o menos, 2 puntos menos por cada milisegundo más y 0 con 700 ms o más. Adelantarse cuenta como 450 ms, y no tocar, como 700 ms.
+- **Rivales:** los del grupo que ya jugaron ese día, cada uno con sus tiempos reales, en hasta 5 carriles contándote a vos. Se corre contra **el último grupo que abriste**, y antes de empezar se puede elegir otro.
+- **Sin grupo o si nadie jugó todavía:** contra el mejor de ese día de tu localidad, o del país si no tenés lugar, como un auto fantasma gris.
+- **Esperas distintas para cada jugador**, como en Reflejos: si fueran iguales, quien ya jugó podría avisarle a otro cuándo se apagan las luces. Los tiempos se comparan igual, porque se miden desde que se apagan.
+- **Autos:** cada uno con el color de su personaje.
+- **Desde cuándo:** desde el día siguiente a publicarla. Los retos ya jugados no cambian.
 
 ### Ideas para después
 

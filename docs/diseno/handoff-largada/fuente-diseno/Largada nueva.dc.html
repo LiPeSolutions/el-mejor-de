@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/outfit-latin.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: url('fonts/plus-jakarta-sans-latin.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
+    body { margin: 0; background: #E9EBF4; color: #23263A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #4F6BFF; } a:hover { color: #3F58E6; }
+    .dv-turn{padding:56px 64px 72px;border-bottom:1px solid rgba(35,38,58,.08);scroll-margin-top:16px;width:max-content}
+    .dv-thd{display:flex;align-items:baseline;gap:12px;margin:0 0 22px}
+    .dv-tid{font:600 11px ui-monospace,Menlo,monospace;padding:3px 7px;background:#23263A;color:#fff;border-radius:4px;text-decoration:none}
+    .dv-tname{font:800 30px/1.1 'Outfit',sans-serif;color:#23263A;letter-spacing:-.02em}
+    .dv-opts{display:flex;flex-direction:column;gap:88px;align-items:flex-start}
+    .dv-opt{flex:none;display:flex;flex-direction:column;gap:18px;scroll-margin-top:16px}
+    .dv-oid{font:600 11px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(35,38,58,.1);color:#23263A;border-radius:5px;text-decoration:none}
+    .dv-olabel{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+    .dv-opt:target .dv-oid{background:#4F6BFF;color:#fff}
+    .dv-next{margin:64px 0 0;font:14px/1.5 'Plus Jakarta Sans',sans-serif;color:#6C7191}
+  </style>
+</helmet>
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Largada contra todo el grupo · 3 direcciones y otras ideas</span></div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;width:1240px;margin-bottom:64px">
+    <div style="background:#fff;border-radius:22px;padding:20px 24px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Supuestos</div>
+      <ul style="margin:10px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;font-weight:600">
+        <li>Corrés contra el grupo: un carril por cada amigo que ya jugó hoy, con sus tiempos reales. Quien no jugó deja su lugar vacío.</li>
+        <li>El puntaje no cambia: sale de tu promedio. Cada largada te da un puesto en el grupo, y ganarle al que tiene la corona es el pique.</li>
+        <li>Cada auto es el del equipo de su dueño, con su animal en el visor.</li>
+        <li>Mismo arte y mismas reglas; lo que cambia es cómo se arma la pantalla, cómo se ve la señal, cómo se mueve y cómo se cuenta el resultado.</li>
+      </ul>
+    </div>
+    <div style="background:#fff;border-radius:22px;padding:20px 24px;box-shadow:0 8px 20px rgba(35,38,58,.08);display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Datos de ejemplo · grupo Los del Chivi</span></div>
+      <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:#E6EAFF"><img src="img/equipo/casco-nico.svg" alt="" style="width:40px;height:28.8px;display:block"><span style="font-size:13px;font-weight:800;color:#4F6BFF">Vos · Nico</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:#F1F2FA"><img src="img/equipo/casco-juli.svg" alt="" style="width:40px;height:28.8px;display:block"><span style="font-size:13px;font-weight:800">Juli</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:#F1F2FA"><img src="img/equipo/casco-caro.svg" alt="" style="width:40px;height:28.8px;display:block"><span style="font-size:13px;font-weight:800">Caro</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:#FFF3D6"><img src="img/equipo/casco-tincho.svg" alt="" style="width:40px;height:28.8px;display:block"><span style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:800">Tincho<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:#F1F2FA"><img src="img/equipo/casco-sofi.svg" alt="" style="width:40px;height:28.8px;display:block"><span style="font-size:13px;font-weight:800">Sofi</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:16px;border:2px dashed #D9DDF3"><img src="img/equipo/casco-pato.svg" alt="" style="width:40px;height:28.8px;display:block;opacity:.45"><span style="font-size:13px;font-weight:800;color:#6C7191">Pato · no jugó</span></div>
+      </div>
+      <div style="font-size:13px;line-height:1.5;font-weight:600;color:#4B5070">Tincho tiene la corona de la semana. Largada 1: Juli 218 · vos 231 · Caro 247 · Tincho 256 · Sofi 289 ms. Partimos de <a href="Largada actual.dc.html">Largada · como está hoy</a>; lo que se mueve está contado abajo de cada pantalla.</div>
+    </div>
+  </div>
+
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a><span style="font:800 28px/1 'Outfit',sans-serif;letter-spacing:-.02em">Estadio</span><span style="font-size:15px;font-weight:600;color:#4B5070">La pista ocupa la pantalla y la carrera entera entra de una.</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:1240px">
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Layout</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Cinco carriles iguales, cámara fija. El texto se achica a un renglón.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Señal</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">El pórtico crece al doble y la pista se oscurece con cada luz.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Movimiento</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Los autos cruzan la pantalla con su tiempo como etiqueta.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Resultado</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Los carriles se vuelven la tabla de llegada; al final, podio del grupo.</div></div>
+      </div>
+      <div style="display:flex;gap:36px;align-items:flex-start;margin-top:10px">
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">01 · Antes de empezar</div>
+          <div data-screen-label="1a 01 Antes de empezar" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-40px;bottom:80px;width:220px;height:154px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:110px;height:110px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:84px;height:84px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="height:34px;display:flex;align-items:center;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Reto 3 de 3</div>
+              </div>
+              <div style="position:relative;margin:16px 20px 0;height:120px;display:flex;align-items:flex-end;justify-content:space-between;overflow:hidden;border-radius:28px;padding:0 14px 0 20px;background:linear-gradient(165deg,#4FD6C9 0%,#2EC4B6 60%,#22B0A3 100%);color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.3)">
+                <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 85% -10%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%)"></div>
+                <div style="position:relative;align-self:center">
+                  <div style="display:inline-flex;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.22)">Reflejos</div>
+                  <div style="margin-top:8px;font:800 32px/1.05 'Outfit',sans-serif;letter-spacing:-.02em">Largada</div>
+                </div>
+                <div style="position:relative;width:100px;height:112px;flex:none">
+                  <div style="position:absolute;top:54%;left:50%;width:100px;height:100px;transform:translate(-50%,-50%);border-radius:999px;background:rgba(255,255,255,.38)"></div>
+                  <img src="img/personajes/rana-bandera.svg" alt="" style="position:relative;display:block;width:94px;height:112.8px;margin:0 auto;filter:drop-shadow(0 10px 14px rgba(0,0,0,.28))">
+                </div>
+              </div>
+              <p style="margin:0;padding:14px 24px 0;font-size:16px;line-height:1.45;font-weight:600">Cuando se apaguen las cinco luces, tocá. Hoy corrés contra los tiempos que hizo tu grupo.</p>
+              <div style="display:flex;gap:8px;padding:12px 20px 0">
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V2l10 5-10 5"></path></svg>3 largadas</div>
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>1.000 con 200 ms</div>
+              </div>
+              <div style="margin:12px 20px 0;border-radius:22px;background:#3B4056;padding:14px 16px 16px;color:#fff;box-shadow:0 12px 24px rgba(35,38,58,.18)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.72)">Parrilla de hoy</span>
+                  <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.72)">Los del Chivi</span>
+                </div>
+                <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:10px;padding-bottom:20px">
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px solid rgba(255,255,255,.5);border-bottom:0;border-radius:8px 8px 0 0">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.55)">1</span>
+                    <img src="img/equipo/casco-tincho.svg" alt="" style="width:33px;height:24px;flex:none;display:block">
+                    <span style="font:800 15px/1 'Outfit',sans-serif">Tincho</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFC53D" stroke="#FFC53D" stroke-width="1.6" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
+                  </div>
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px solid rgba(255,255,255,.5);border-bottom:0;border-radius:8px 8px 0 0;transform:translateY(20px)">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.55)">2</span>
+                    <img src="img/equipo/casco-juli.svg" alt="" style="width:33px;height:24px;flex:none;display:block">
+                    <span style="font:800 15px/1 'Outfit',sans-serif">Juli</span>
+                  </div>
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px solid rgba(255,255,255,.5);border-bottom:0;border-radius:8px 8px 0 0">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.55)">3</span>
+                    <img src="img/equipo/casco-caro.svg" alt="" style="width:33px;height:24px;flex:none;display:block">
+                    <span style="font:800 15px/1 'Outfit',sans-serif">Caro</span>
+                  </div>
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px solid rgba(255,255,255,.5);border-bottom:0;border-radius:8px 8px 0 0;transform:translateY(20px)">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.55)">4</span>
+                    <img src="img/equipo/casco-sofi.svg" alt="" style="width:33px;height:24px;flex:none;display:block">
+                    <span style="font:800 15px/1 'Outfit',sans-serif">Sofi</span>
+                  </div>
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px solid #8FA2FF;border-bottom:0;border-radius:8px 8px 0 0;background:rgba(79,107,255,.3)">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.7)">5</span>
+                    <img src="img/equipo/casco-nico.svg" alt="" style="width:33px;height:24px;flex:none;display:block">
+                    <span style="font:800 15px/1 'Outfit',sans-serif">Vos</span>
+                  </div>
+                  <div style="position:relative;height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 10px 0 24px;border:2px dashed rgba(255,255,255,.32);border-bottom:0;border-radius:8px 8px 0 0;transform:translateY(20px)">
+                    <span style="position:absolute;left:8px;top:6px;font:800 11px/1 'Outfit',sans-serif;color:rgba(255,255,255,.4)">6</span>
+                    <img src="img/equipo/casco-pato.svg" alt="" style="width:33px;height:24px;flex:none;display:block;opacity:.4"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:800 14px/1 'Outfit',sans-serif;color:rgba(255,255,255,.7)">Pato</span><span style="font-size:10.5px;font-weight:700;line-height:1;color:rgba(255,255,255,.55)">todavía no</span></span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;border:2px solid #FFC53D;background:#FFF3D6;padding:10px 14px">
+                <div style="width:32px;height:32px;flex:none;border-radius:10px;background:#FFC53D;display:grid;place-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+                <p style="margin:0;font-size:13.5px;font-weight:700;line-height:1.35">Tenés un solo intento.<br><span style="font-weight:600;color:#4B5070">Si te adelantás, perdés esa largada.</span></p>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0">
+                <div style="position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;height:74px;font:800 22px 'Outfit',sans-serif;background:#2EC4B6;color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.35)">
+                  <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span>
+                  <span style="position:relative;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>Empezar</span>
+                </div>
+                <p style="margin:8px 0 0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Las luces arrancan cuando tocás</p>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La parrilla dice quién ya corrió hoy: cada casco es el fantasma de ese amigo con sus tiempos reales. El lugar de Pato queda vacío hasta que juegue.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">02 · Se prenden las luces</div>
+          <div data-screen-label="1a 02 Se prenden las luces" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#9AAED4 0%,#ADB9DA 45%,#BCC3DD 100%)">
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 43px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#23263A">Largada</div>
+                <div style="width:38px"></div>
+              </div>
+              <div style="height:102px;box-sizing:border-box;padding-top:12px;text-align:center">
+                <div style="font:800 46px/1 'Outfit',sans-serif;letter-spacing:-.03em">Esperá…</div>
+                <div style="margin-top:10px;font-size:15px;font-weight:600;color:#33384F">Tocá cuando se apaguen las cinco</div>
+              </div>
+              <dc-import name="Pista" cfg="{{ a02 }}" hint-size="390px,512px"></dc-import>
+              <div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
+                <div style="height:34px;box-sizing:border-box;display:flex;align-items:center;padding:0 15px;border-radius:999px;border:2px solid #23263A;font:800 13px 'Outfit',sans-serif">Largada 1</div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.32)"></div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.32)"></div>
+              </div>
+              <p style="margin:auto 0 0;text-align:center;font-size:13px;font-weight:600;color:#33384F">Si tocás antes de que se apaguen, perdés la largada</p>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Cada luz entra con un golpe seco y una vibración corta, y la pantalla se oscurece un paso. Con cuatro o cinco prendidas, lo único que brilla es el pórtico.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">03 · Se apagan · ¡Largá!</div>
+          <div data-screen-label="1a 03 Larga" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#2EC4B6">
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 43px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.4);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#23263A">Largada</div>
+                <div style="width:38px"></div>
+              </div>
+              <div style="height:102px;box-sizing:border-box;padding-top:4px;text-align:center">
+                <div style="font:800 94px/1 'Outfit',sans-serif;letter-spacing:-.05em">¡LARGÁ!</div>
+              </div>
+              <dc-import name="Pista" cfg="{{ a03 }}" hint-size="390px,512px"></dc-import>
+              <div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
+                <div style="height:34px;box-sizing:border-box;display:flex;align-items:center;padding:0 15px;border-radius:999px;border:2px solid #23263A;font:800 13px 'Outfit',sans-serif">Largada 1</div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.32)"></div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.32)"></div>
+              </div>
+              <p style="margin:auto 0 0;text-align:center;font-size:13px;font-weight:700;color:#23263A">Toda la pantalla es el botón</p>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Se apagan las cinco juntas: flash turquesa en el cielo y la tribuna, la línea de largada se enciende y tu auto tira humo.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">04 · Carrera</div>
+          <div data-screen-label="1a 04 Carrera" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 43px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+                <div style="width:38px"></div>
+              </div>
+              <div style="height:102px;box-sizing:border-box;padding-top:10px;display:flex;flex-direction:column;align-items:center">
+                <div style="height:28px;display:flex;align-items:center;gap:7px;padding:0 12px 0 4px;border-radius:999px;background:#fff;font-size:13.5px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="height:20px;min-width:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#4F6BFF;color:#fff;display:grid;place-items:center;font:800 12px/1 'Outfit',sans-serif">2º</span>de 5 · Juli salió antes</div>
+                <div style="margin-top:8px;display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums"><span style="font:800 56px/1 'Outfit',sans-serif;letter-spacing:-.05em">231</span><span style="font:800 20px/1 'Outfit',sans-serif;color:#6C7191">ms</span></div>
+              </div>
+              <dc-import name="Pista" cfg="{{ a04 }}" hint-size="390px,512px"></dc-import>
+              <div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
+                <div style="height:34px;box-sizing:border-box;display:flex;align-items:center;padding:0 15px;border-radius:999px;border:2px solid #23263A;font:800 13px 'Outfit',sans-serif">Largada 1</div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.3)"></div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.3)"></div>
+              </div>
+              <p style="margin:auto 0 0;text-align:center;font-size:13px;font-weight:600;color:#4B5070">Los autos corren solos hasta la meta</p>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Cámara fija: la carrera entera entra en pantalla. Cada auto sale con su tiempo real de reacción y lo lleva arriba como etiqueta.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">05 · Resultado de la largada</div>
+          <div data-screen-label="1a 05 Resultado de la largada" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 43px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+                <div style="width:38px"></div>
+              </div>
+              <div style="height:102px;box-sizing:border-box;padding:12px 20px 0;text-align:center">
+                <div style="font:800 40px/1 'Outfit',sans-serif;letter-spacing:-.03em">Llegaste 2º</div>
+                <div style="margin-top:10px;font-size:14px;line-height:1.3;font-weight:600;color:#4B5070">A 13 ms de Juli · le ganaste a Tincho, Caro y Sofi</div>
+              </div>
+              <dc-import name="Pista" cfg="{{ a05 }}" hint-size="390px,512px"></dc-import>
+              <div style="display:flex;justify-content:center;gap:8px;margin-top:16px">
+                <div style="height:34px;box-sizing:border-box;display:flex;align-items:center;padding:0 14px;border-radius:999px;background:#4F6BFF;color:#fff;font:800 13px 'Outfit',sans-serif;font-variant-numeric:tabular-nums">2º · 231 ms</div>
+                <div style="height:34px;box-sizing:border-box;display:flex;align-items:center;padding:0 15px;border-radius:999px;border:2px solid #23263A;font:800 13px 'Outfit',sans-serif">Largada 2</div>
+                <div style="width:52px;height:34px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.3)"></div>
+              </div>
+              <p style="margin:auto 0 0;text-align:center;font-size:13px;font-weight:600;color:#4B5070">La próxima arranca sola en 2 s · tocá para seguir</p>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Al cruzar la meta los autos siguen de largo y cada carril queda como una fila de la tabla de llegada, con su puesto y su tiempo.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">06 · Resultado del reto</div>
+          <div data-screen-label="1a 06 Resultado del reto" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-70px;top:110px;width:200px;height:140px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:100px;height:100px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:76px;height:76px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:absolute;right:-60px;top:190px;width:170px;height:119px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:85px;height:85px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:65px;height:65px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;justify-content:center"><div style="height:34px;display:flex;align-items:center;gap:6px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="width:8px;height:8px;border-radius:999px;background:#2EC4B6"></span>Reto 3 de 3 · Largada</div></div>
+              <div style="margin-top:12px;padding:0 20px 0 24px;display:grid;grid-template-columns:minmax(0,1fr) 176px;gap:10px;align-items:center">
+                <div>
+                  <div style="font-size:14px;font-weight:700;color:#6C7191">¡Qué reflejos, Nico!</div>
+                  <div style="margin-top:2px;font:800 72px/1 'Outfit',sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums">920</div>
+                  <div style="margin-top:4px;font:700 15px 'Outfit',sans-serif;color:#6C7191">de 1.000</div>
+                  <div style="margin-top:10px;height:10px;overflow:hidden;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px rgba(35,38,58,.06)"><div style="width:92%;height:100%;border-radius:999px;background:linear-gradient(90deg,#4FD6C9,#2EC4B6)"></div></div>
+                  <div style="margin-top:10px;font-size:12.5px;line-height:1.4;font-weight:700;color:#4B5070">Promedio 240 ms<br>Mejor largada 231 ms</div>
+                </div>
+                <div style="position:relative;width:176px;box-sizing:border-box;padding:7px 7px 0;background:#fff;border-radius:10px;box-shadow:0 14px 30px rgba(35,38,58,.2);transform:rotate(4deg)">
+                  <div style="width:162px;height:156px;overflow:hidden;border-radius:3px"><div style="width:318px;transform:scale(.5094);transform-origin:0 0"><dc-import name="Pista" cfg="{{ aFoto }}" hint-size="318px,306px"></dc-import></div></div>
+                  <div style="height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 2px"><span style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Largada 3</span><span style="font:800 11.5px 'Outfit',sans-serif;color:#4F6BFF">Vos 1º por 6 ms</span></div>
+                </div>
+              </div>
+              <div style="margin:12px 20px 0;border-radius:22px;background:#fff;padding:14px 16px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Largada de hoy en el grupo</span><span style="font-size:12px;font-weight:700;color:#6C7191">Los del Chivi</span></div>
+                <div style="margin-top:6px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end">
+                  <div style="display:flex;flex-direction:column;align-items:center">
+                    <img src="img/personajes/juli.svg" alt="" style="width:46px;height:55.2px;display:block">
+                    <div style="margin-top:2px;font-size:13px;font-weight:800">Juli</div>
+                    <div style="font:800 13px/1.2 'Outfit',sans-serif;color:#6C7191;font-variant-numeric:tabular-nums">917</div>
+                    <div style="margin-top:6px;width:100%;height:30px;border-radius:12px 12px 6px 6px;background:#F1F2FA;display:grid;place-items:center;font:800 18px/1 'Outfit',sans-serif;color:#6C7191">2</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center">
+                    <img src="img/personajes/nico.svg" alt="" style="width:54px;height:64.8px;display:block">
+                    <div style="margin-top:2px;font-size:13px;font-weight:800;color:#4F6BFF">Vos</div>
+                    <div style="font:800 13px/1.2 'Outfit',sans-serif;color:#23263A;font-variant-numeric:tabular-nums">920</div>
+                    <div style="margin-top:6px;width:100%;height:42px;border-radius:12px 12px 6px 6px;background:#FFC53D;display:grid;place-items:center;font:800 22px/1 'Outfit',sans-serif;color:#23263A;box-shadow:0 8px 18px rgba(255,197,61,.35)">1</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center">
+                    <img src="img/personajes/tincho-corona.svg" alt="" style="width:46px;height:55.2px;display:block">
+                    <div style="margin-top:2px;font-size:13px;font-weight:800">Tincho</div>
+                    <div style="font:800 13px/1.2 'Outfit',sans-serif;color:#6C7191;font-variant-numeric:tabular-nums">891</div>
+                    <div style="margin-top:6px;width:100%;height:22px;border-radius:12px 12px 6px 6px;background:#F1F2FA;display:grid;place-items:center;font:800 16px/1 'Outfit',sans-serif;color:#6C7191">3</div>
+                  </div>
+                </div>
+                <div style="height:1px;background:#EDEFF8;margin:12px 0 10px"></div>
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+                  <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:#F1F2FA;min-width:0"><span style="font:800 12px/1 'Outfit',sans-serif;color:#6C7191">4</span><img src="img/equipo/casco-caro.svg" alt="" style="width:25px;height:18px;flex:none;display:block"><div style="min-width:0"><div style="font-size:12px;font-weight:800;line-height:1.15">Caro</div><div style="font:800 12px/1.15 'Outfit',sans-serif;color:#6C7191">887</div></div></div>
+                  <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:#F1F2FA;min-width:0"><span style="font:800 12px/1 'Outfit',sans-serif;color:#6C7191">5</span><img src="img/equipo/casco-sofi.svg" alt="" style="width:25px;height:18px;flex:none;display:block"><div style="min-width:0"><div style="font-size:12px;font-weight:800;line-height:1.15">Sofi</div><div style="font:800 12px/1.15 'Outfit',sans-serif;color:#6C7191">724</div></div></div>
+                  <div style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:12px;border:1.5px dashed #B8BDD6;min-width:0"><img src="img/equipo/casco-pato.svg" alt="" style="width:25px;height:18px;flex:none;display:block;opacity:.5"><div style="min-width:0"><div style="font-size:12px;font-weight:800;line-height:1.15;color:#6C7191">Pato</div><div style="font-size:11px;font-weight:700;line-height:1.15;color:#6C7191">no jugó</div></div></div>
+                </div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;background:#FFC53D;padding:12px 14px;box-shadow:0 12px 24px rgba(255,197,61,.4)">
+                <div style="width:38px;height:38px;flex:none;border-radius:12px;background:rgba(255,255,255,.45);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="#23263A" stroke="#23263A" stroke-width="1.6" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+                <div><div style="font:800 16px/1.2 'Outfit',sans-serif">¡Le sacaste la corona a Tincho!</div><div style="margin-top:2px;font-size:12.5px;font-weight:700;color:#5A4300">Vas 1º en la semana por 30 · se define el domingo</div></div>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;background:#25D366;color:#fff;font:800 18px 'Outfit',sans-serif;box-shadow:0 12px 24px rgba(37,211,102,.35)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Contale al grupo</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:999px;background:#fff;color:#23263A;font:800 16px 'Outfit',sans-serif;box-shadow:0 8px 20px rgba(35,38,58,.08)">Ver resumen del día<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Junto al podio queda la foto de llegada de tu mejor largada: quién cruzó primero la meta y por cuánto. Si con estos puntos pasás al de la corona, aparece la franja dorada.</p></sc-if>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a><span style="font:800 28px/1 'Outfit',sans-serif;letter-spacing:-.02em">Transmisión</span><span style="font-size:15px;font-weight:600;color:#4B5070">Como una carrera por tele: planos, cámara que te sigue y posiciones en vivo.</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:1240px">
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Layout</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Pista con profundidad: tu carril es el más cercano. Posiciones arriba, control abajo.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Señal</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Las luces bajan al botón, donde está tu pulgar: un tacómetro que sube con cada una.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Movimiento</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Plano general en las luces y corte a una cámara que te sigue, con el fondo barrido.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Resultado</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Foto de llegada con las diferencias en ms. Al final, las 3 fotos para mandar al grupo.</div></div>
+      </div>
+      <div style="display:flex;gap:36px;align-items:flex-start;margin-top:10px">
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">01 · Antes de empezar</div>
+          <div data-screen-label="1b 01 Antes de empezar" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;right:-50px;bottom:110px;width:200px;height:140px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:100px;height:100px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:76px;height:76px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="height:34px;display:flex;align-items:center;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Reto 3 de 3</div>
+              </div>
+              <div style="position:relative;margin:16px 20px 0;height:208px;overflow:hidden;border-radius:28px;background:linear-gradient(165deg,#4FD6C9 0%,#2EC4B6 60%,#22B0A3 100%);color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.3)">
+                <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 85% -10%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%)"></div>
+                <div style="position:absolute;left:20px;top:18px">
+                  <div style="display:inline-flex;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.22)">Reflejos</div>
+                  <div style="margin-top:8px;font:800 32px/1.05 'Outfit',sans-serif;letter-spacing:-.02em">Largada</div>
+                </div>
+                <div style="position:absolute;right:16px;top:20px;height:30px;display:flex;align-items:center;gap:6px;padding:0 12px 0 5px;border-radius:999px;background:rgba(255,255,255,.26);font-size:12px;font-weight:800;white-space:nowrap"><img src="img/equipo/casco-nico.svg" alt="" style="width:30px;height:21.6px;display:block">Tu hornero al volante</div>
+                <div style="position:absolute;left:0;right:0;bottom:70px;height:6px;background:repeating-linear-gradient(90deg,#E2504C 0 14px,#FFFFFF 14px 28px)"></div>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:70px;background:#3B4056"></div>
+                <div style="position:absolute;left:0;right:0;bottom:12px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 14px,transparent 14px 32px)"></div>
+                <div style="position:absolute;left:62px;bottom:15px;width:262px;height:9px;border-radius:50%;background:rgba(0,0,0,.2)"></div>
+                <div style="position:absolute;left:10px;bottom:62px;width:36px;height:3px;border-radius:999px;background:#fff"></div>
+                <div style="position:absolute;left:24px;bottom:49px;width:22px;height:3px;border-radius:999px;background:#fff"></div>
+                <div style="position:absolute;left:10px;bottom:36px;width:36px;height:3px;border-radius:999px;background:#fff"></div>
+                <img src="img/equipo/auto-nico.svg" alt="" style="position:absolute;left:54px;bottom:19px;width:272px;height:73.9px;display:block">
+              </div>
+              <p style="margin:0;padding:14px 24px 0;font-size:16px;line-height:1.45;font-weight:600">Cuando se apaguen las cinco luces, tocá. Corrés con tu auto contra los tiempos de hoy de tu grupo.</p>
+              <div style="padding:14px 20px 0">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Contra</div>
+                <div style="margin-top:8px;display:flex;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="position:relative;width:54px;height:54px;border-radius:50%;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08)"><img src="img/personajes/juli.svg" alt="" style="position:absolute;left:5px;top:-2px;width:44px;height:52.8px;display:block"></div><span style="font-size:12px;font-weight:800">Juli</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="position:relative;width:54px;height:54px;border-radius:50%;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08)"><img src="img/personajes/caro.svg" alt="" style="position:absolute;left:5px;top:-2px;width:44px;height:52.8px;display:block"></div><span style="font-size:12px;font-weight:800">Caro</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="position:relative;width:54px;height:54px;border-radius:50%;background:#FFF3D6;box-shadow:0 0 0 2px #FFC53D,0 6px 16px rgba(35,38,58,.08)"><img src="img/personajes/tincho-corona.svg" alt="" style="position:absolute;left:5px;top:-6px;width:44px;height:52.8px;display:block"></div><span style="font-size:12px;font-weight:800">Tincho</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="position:relative;width:54px;height:54px;border-radius:50%;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08)"><img src="img/personajes/sofi.svg" alt="" style="position:absolute;left:5px;top:-2px;width:44px;height:52.8px;display:block"></div><span style="font-size:12px;font-weight:800">Sofi</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="position:relative;width:54px;height:54px;box-sizing:border-box;border-radius:50%;border:2px dashed #B8BDD6"><img src="img/personajes/pato.svg" alt="" style="position:absolute;left:3px;top:-4px;width:44px;height:52.8px;display:block;opacity:.4"></div><span style="font-size:12px;font-weight:800;color:#6C7191;white-space:nowrap">Pato · no</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;padding:14px 20px 0">
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V2l10 5-10 5"></path></svg>3 largadas</div>
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>1.000 con 200 ms</div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;border:2px solid #FFC53D;background:#FFF3D6;padding:10px 14px">
+                <div style="width:32px;height:32px;flex:none;border-radius:10px;background:#FFC53D;display:grid;place-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+                <p style="margin:0;font-size:13.5px;font-weight:700;line-height:1.35">Tenés un solo intento.<br><span style="font-weight:600;color:#4B5070">Si te adelantás, perdés esa largada.</span></p>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0">
+                <div style="position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;height:74px;font:800 22px 'Outfit',sans-serif;background:#2EC4B6;color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.35)">
+                  <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span>
+                  <span style="position:relative;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>Empezar</span>
+                </div>
+                <p style="margin:8px 0 0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Las luces arrancan cuando tocás</p>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Tu auto es el protagonista desde el principio: el de tu equipo, con tu hornero al volante. Los rivales se presentan con sus personajes.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">02 · Se prenden las luces</div>
+          <div data-screen-label="1b 02 Se prenden las luces" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#A9BADB 0%,#BBC5E1 100%)">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#23263A">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:12px;right:12px;top:112px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px">
+              <div style="position:relative;height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-tincho.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Tincho</span><svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round" style="position:absolute;right:6px;top:5px"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+              <div style="height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-juli.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Juli</span></div>
+              <div style="height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-caro.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Caro</span></div>
+              <div style="height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-sofi.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Sofi</span></div>
+              <div style="height:50px;border-radius:14px;background:#4F6BFF;color:#fff;box-shadow:0 8px 18px rgba(79,107,255,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-nico.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Vos</span></div>
+            </div>
+            <div style="position:absolute;left:0;top:170px"><dc-import name="Pista" cfg="{{ b02 }}" hint-size="390px,430px"></dc-import></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;height:244px;border-radius:30px 30px 0 0;background:#23263A;box-shadow:0 -12px 30px rgba(35,38,58,.25)">
+              <svg width="390" height="244" viewBox="0 0 390 244" style="position:absolute;left:0;top:0"><path d="M109.4 120.2 A90 90 0 0 1 280.6 120.2" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="46" stroke-linecap="round"></path></svg>
+              <div style="position:absolute;left:93.4px;top:104.2px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 48%,#B32F2C 100%);box-shadow:0 0 16px rgba(226,80,76,.95),0 0 38px rgba(226,80,76,.5)"></div>
+              <div style="position:absolute;left:126.1px;top:59.2px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 48%,#B32F2C 100%);box-shadow:0 0 16px rgba(226,80,76,.95),0 0 38px rgba(226,80,76,.5)"></div>
+              <div style="position:absolute;left:179px;top:42px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 48%,#B32F2C 100%);box-shadow:0 0 16px rgba(226,80,76,.95),0 0 38px rgba(226,80,76,.5)"></div>
+              <div style="position:absolute;left:231.9px;top:59.2px;width:32px;height:32px;border-radius:50%;background:#3A3E58;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)"></div>
+              <div style="position:absolute;left:264.6px;top:104.2px;width:32px;height:32px;border-radius:50%;background:#3A3E58;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)"></div>
+              <div style="position:absolute;left:139px;top:92px;width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#454B66 0%,#2B2E45 72%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.1),0 12px 26px rgba(0,0,0,.4);display:grid;place-items:center;color:#fff;font:800 19px/1 'Outfit',sans-serif">Esperá…</div>
+            </div>
+            <dc-import name="Celu" home-blanco="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Las luces viven abajo, donde tenés el pulgar: cada una sube el motor un escalón, con sonido y vibración. Plano general de la parrilla; tu carril es el más cercano.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">03 · Se apagan · ¡Largá!</div>
+          <div data-screen-label="1b 03 Larga" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#2EC4B6">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.4);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#23263A">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.4);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:12px;right:12px;top:112px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px">
+              <div style="position:relative;height:50px;border-radius:14px;background:rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-tincho.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Tincho</span><svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round" style="position:absolute;right:6px;top:5px"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+              <div style="height:50px;border-radius:14px;background:rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-juli.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Juli</span></div>
+              <div style="height:50px;border-radius:14px;background:rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-caro.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Caro</span></div>
+              <div style="height:50px;border-radius:14px;background:rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-sofi.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Sofi</span></div>
+              <div style="height:50px;border-radius:14px;background:#4F6BFF;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><img src="img/equipo/casco-nico.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font-size:11.5px;font-weight:800;line-height:1">Vos</span></div>
+            </div>
+            <div style="position:absolute;left:0;top:170px"><dc-import name="Pista" cfg="{{ b03 }}" hint-size="390px,430px"></dc-import></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;height:244px;border-radius:30px 30px 0 0;background:#2EC4B6;box-shadow:0 -12px 30px rgba(21,138,127,.35)">
+              <svg width="390" height="244" viewBox="0 0 390 244" style="position:absolute;left:0;top:0"><path d="M109.4 120.2 A90 90 0 0 1 280.6 120.2" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="46" stroke-linecap="round"></path></svg>
+              <div style="position:absolute;left:93.4px;top:104.2px;width:32px;height:32px;border-radius:50%;background:#1C9C90;box-shadow:inset 0 2px 5px rgba(0,0,0,.25)"></div>
+              <div style="position:absolute;left:126.1px;top:59.2px;width:32px;height:32px;border-radius:50%;background:#1C9C90;box-shadow:inset 0 2px 5px rgba(0,0,0,.25)"></div>
+              <div style="position:absolute;left:179px;top:42px;width:32px;height:32px;border-radius:50%;background:#1C9C90;box-shadow:inset 0 2px 5px rgba(0,0,0,.25)"></div>
+              <div style="position:absolute;left:231.9px;top:59.2px;width:32px;height:32px;border-radius:50%;background:#1C9C90;box-shadow:inset 0 2px 5px rgba(0,0,0,.25)"></div>
+              <div style="position:absolute;left:264.6px;top:104.2px;width:32px;height:32px;border-radius:50%;background:#1C9C90;box-shadow:inset 0 2px 5px rgba(0,0,0,.25)"></div>
+              <div style="position:absolute;left:139px;top:92px;width:112px;height:112px;border-radius:50%;background:#fff;box-shadow:0 0 0 10px rgba(255,255,255,.32),0 0 0 22px rgba(255,255,255,.14),0 14px 30px rgba(21,138,127,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#23263A"><span style="font:800 23px/1 'Outfit',sans-serif;letter-spacing:-.02em">¡LARGÁ!</span><span style="font-size:12px;font-weight:800;color:#158A7F">¡Tocá!</span></div>
+            </div>
+            <div style="position:absolute;inset:0;border-radius:48px;box-shadow:inset 0 0 0 7px rgba(255,255,255,.6);pointer-events:none"></div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">El botón se pone blanco y late; el borde de la pantalla destella. Igual vale tocar en cualquier parte.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">04 · Carrera</div>
+          <div data-screen-label="1b 04 Carrera" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:12px;right:12px;top:112px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px">
+              <div style="position:relative;height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="position:absolute;left:5px;top:5px;height:15px;min-width:15px;padding:0 3px;box-sizing:border-box;border-radius:999px;background:#23263A;color:#fff;display:grid;place-items:center;font:800 10px/1 'Outfit',sans-serif">1</span><img src="img/equipo/casco-juli.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font:800 12.5px/1 'Outfit',sans-serif;font-variant-numeric:tabular-nums">218</span></div>
+              <div style="position:relative;height:50px;border-radius:14px;background:#4F6BFF;color:#fff;box-shadow:0 8px 18px rgba(79,107,255,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="position:absolute;left:5px;top:5px;height:15px;min-width:15px;padding:0 3px;box-sizing:border-box;border-radius:999px;background:#fff;color:#4F6BFF;display:grid;place-items:center;font:800 10px/1 'Outfit',sans-serif">2</span><img src="img/equipo/casco-nico.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font:800 12.5px/1 'Outfit',sans-serif;font-variant-numeric:tabular-nums">+13</span></div>
+              <div style="position:relative;height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="position:absolute;left:5px;top:5px;height:15px;min-width:15px;padding:0 3px;box-sizing:border-box;border-radius:999px;background:#23263A;color:#fff;display:grid;place-items:center;font:800 10px/1 'Outfit',sans-serif">3</span><img src="img/equipo/casco-caro.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font:800 12.5px/1 'Outfit',sans-serif;color:#4B5070;font-variant-numeric:tabular-nums">+29</span></div>
+              <div style="position:relative;height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="position:absolute;left:5px;top:5px;height:15px;min-width:15px;padding:0 3px;box-sizing:border-box;border-radius:999px;background:#23263A;color:#fff;display:grid;place-items:center;font:800 10px/1 'Outfit',sans-serif">4</span><svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round" style="position:absolute;right:6px;top:5px"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg><img src="img/equipo/casco-tincho.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font:800 12.5px/1 'Outfit',sans-serif;color:#4B5070;font-variant-numeric:tabular-nums">+38</span></div>
+              <div style="position:relative;height:50px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="position:absolute;left:5px;top:5px;height:15px;min-width:15px;padding:0 3px;box-sizing:border-box;border-radius:999px;background:#23263A;color:#fff;display:grid;place-items:center;font:800 10px/1 'Outfit',sans-serif">5</span><img src="img/equipo/casco-sofi.svg" alt="" style="width:31px;height:22.3px;display:block"><span style="font:800 12.5px/1 'Outfit',sans-serif;color:#4B5070;font-variant-numeric:tabular-nums">+71</span></div>
+            </div>
+            <div style="position:absolute;left:0;top:170px"><dc-import name="Pista" cfg="{{ b04 }}" hint-size="390px,540px"></dc-import></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;height:150px;box-sizing:border-box;border-radius:30px 30px 0 0;background:#23263A;color:#fff;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;box-shadow:0 -12px 30px rgba(35,38,58,.25)">
+              <div>
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.62)">Tu reacción</div>
+                <div style="margin-top:6px;display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums"><span style="font:800 50px/1 'Outfit',sans-serif;letter-spacing:-.04em">231</span><span style="font:800 18px/1 'Outfit',sans-serif;color:rgba(255,255,255,.62)">ms</span></div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.62)">Puesto</div>
+                <div style="margin-top:6px;display:flex;align-items:baseline;justify-content:flex-end;gap:6px"><span style="font:800 50px/1 'Outfit',sans-serif;letter-spacing:-.04em">2º</span><span style="font:800 18px/1 'Outfit',sans-serif;color:rgba(255,255,255,.62)">de 5</span></div>
+              </div>
+            </div>
+            <dc-import name="Celu" home-blanco="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Corte a una cámara que te sigue: fondo barrido, líneas de velocidad y un temblor leve. Arriba, las posiciones se reordenan en vivo con la diferencia en ms.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">05 · Resultado de la largada</div>
+          <div data-screen-label="1b 05 Resultado de la largada" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:112px;padding:0 20px;text-align:center">
+              <div style="font:800 38px/1 'Outfit',sans-serif;letter-spacing:-.03em">Llegaste 2º</div>
+              <div style="margin-top:8px;font-size:14px;font-weight:600;color:#4B5070">A 13 ms de Juli · le ganaste a Tincho, Caro y Sofi</div>
+            </div>
+            <div style="position:absolute;left:26px;top:194px;width:338px;box-sizing:border-box;padding:10px 10px 0;background:#fff;border-radius:12px;box-shadow:0 18px 40px rgba(35,38,58,.22);transform:rotate(-2deg)">
+              <div style="border-radius:4px;overflow:hidden"><dc-import name="Pista" cfg="{{ b05 }}" hint-size="318px,334px"></dc-import></div>
+              <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+                <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#6C7191"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>Foto de llegada · largada 1</span>
+                <span style="font:800 14px 'Outfit',sans-serif;color:#4F6BFF;font-variant-numeric:tabular-nums">Vos +13 ms</span>
+              </div>
+            </div>
+            <div style="position:absolute;left:0;right:0;bottom:0;height:204px;border-radius:30px 30px 0 0;background:#23263A;box-shadow:0 -12px 30px rgba(35,38,58,.25)">
+              <svg width="132" height="132" viewBox="0 0 132 132" style="position:absolute;left:129px;top:22px;transform:rotate(-90deg)"><circle cx="66" cy="66" r="60" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"></circle><circle cx="66" cy="66" r="60" fill="none" stroke="#2EC4B6" stroke-width="6" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="132"></circle></svg>
+              <div style="position:absolute;left:141px;top:34px;width:108px;height:108px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#454B66 0%,#2B2E45 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff"><span style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.62)">Largada 2</span><span style="font:800 26px/1 'Outfit',sans-serif">en 2 s</span></div>
+              <div style="position:absolute;left:0;right:0;top:164px;text-align:center;font-size:12px;font-weight:600;color:rgba(255,255,255,.62)">Tocá para seguir</div>
+            </div>
+            <dc-import name="Celu" home-blanco="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La llegada se frena en cámara lenta y queda como foto, con lo que le sacó cada uno al primero. El anillo del botón descuenta los 2 s.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">06 · Resultado del reto</div>
+          <div data-screen-label="1b 06 Resultado del reto" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-70px;top:240px;width:200px;height:140px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:100px;height:100px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:76px;height:76px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:absolute;right:-60px;top:150px;width:170px;height:119px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:85px;height:85px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:65px;height:65px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;justify-content:center"><div style="height:34px;display:flex;align-items:center;gap:6px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="width:8px;height:8px;border-radius:999px;background:#2EC4B6"></span>Reto 3 de 3 · Largada</div></div>
+              <div style="margin-top:10px;display:flex;align-items:baseline;justify-content:center;gap:6px"><div style="font:800 72px/1 'Outfit',sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums">920</div><div style="font:700 17px 'Outfit',sans-serif;color:#6C7191">/ 1.000</div></div>
+              <div style="margin-top:6px;text-align:center;font-size:14px;font-weight:700;color:#4B5070">1º del grupo hoy · promedio 240 ms</div>
+              <div style="position:relative;height:300px;margin-top:14px">
+                <div style="position:absolute;left:92px;top:16px;width:238px;height:272px;box-sizing:border-box;padding:9px 9px 0;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(35,38,58,.16);transform:rotate(8deg)"><div style="height:220px;border-radius:4px;background:linear-gradient(180deg,#E8EAF6 0 26%,#B8BDD6 26% 30%,#6CCB6C 30% 35%,#3B4056 35% 92%,#6CCB6C 92%)"></div></div>
+                <div style="position:absolute;left:52px;top:10px;width:238px;height:272px;box-sizing:border-box;padding:9px 9px 0;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(35,38,58,.16);transform:rotate(-7deg)"><div style="height:220px;border-radius:4px;background:linear-gradient(180deg,#E8EAF6 0 26%,#B8BDD6 26% 30%,#6CCB6C 30% 35%,#3B4056 35% 92%,#6CCB6C 92%)"></div></div>
+                <div style="position:absolute;left:70px;top:0;width:250px;height:287px;transform:rotate(-2deg)">
+                  <div style="width:338px;box-sizing:border-box;padding:10px 10px 0;background:#fff;border-radius:12px;box-shadow:0 18px 40px rgba(35,38,58,.22);transform:scale(.74);transform-origin:top left">
+                    <div style="border-radius:4px;overflow:hidden"><dc-import name="Pista" cfg="{{ b05 }}" hint-size="318px,334px"></dc-import></div>
+                    <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 4px"><span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#6C7191">Largada 1 · tu mejor tiempo</span><span style="font:800 16px 'Outfit',sans-serif;color:#4F6BFF">231 ms</span></div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin:8px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;background:#FFC53D;padding:12px 14px;box-shadow:0 12px 24px rgba(255,197,61,.4)">
+                <div style="width:38px;height:38px;flex:none;border-radius:12px;background:rgba(255,255,255,.45);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="#23263A" stroke="#23263A" stroke-width="1.6" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+                <div><div style="font:800 16px/1.2 'Outfit',sans-serif">¡Le sacaste la corona a Tincho!</div><div style="margin-top:2px;font-size:12.5px;font-weight:700;color:#5A4300">Vas 1º en la semana por 30 · se define el domingo</div></div>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;background:#25D366;color:#fff;font:800 18px 'Outfit',sans-serif;box-shadow:0 12px 24px rgba(37,211,102,.35)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Mandale las fotos al grupo</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:999px;background:#fff;color:#23263A;font:800 16px 'Outfit',sans-serif;box-shadow:0 8px 20px rgba(35,38,58,.08)">Ver resumen del día<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Cada largada deja su foto y quedan apiladas, la mejor arriba. Compartir manda las fotos con tu puntaje al grupo.</p></sc-if>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a><span style="font:800 28px/1 'Outfit',sans-serif;letter-spacing:-.02em">Semáforo</span><span style="font-size:15px;font-weight:600;color:#4B5070">Las luces son la pantalla; la pista queda abajo, compacta, con todo el grupo.</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:1240px">
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Layout</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Arriba un tablero que cambia según el momento; abajo, la pista con los cinco carriles.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Señal</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Cinco columnas de luces sobre negro; al apagarse, la pantalla entera se vuelve turquesa.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Movimiento</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Las columnas se pliegan y dejan tu tiempo; los cascos caen sobre una regla de ms.</div></div>
+        <div style="background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Resultado</div><div style="margin-top:4px;font-size:13.5px;font-weight:600;line-height:1.4">Una regla de reacción: quién salió antes y por cuánto. Al final, las tres juntas.</div></div>
+      </div>
+      <div style="display:flex;gap:36px;align-items:flex-start;margin-top:10px">
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">01 · Antes de empezar</div>
+          <div data-screen-label="1c 01 Antes de empezar" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-40px;bottom:90px;width:220px;height:154px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:110px;height:110px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:84px;height:84px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+                <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                <div style="height:34px;display:flex;align-items:center;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Reto 3 de 3</div>
+              </div>
+              <div style="position:relative;margin:16px 20px 0;height:150px;overflow:hidden;border-radius:28px;background:#23263A;color:#fff;box-shadow:0 16px 32px rgba(35,38,58,.25)">
+                <div style="position:absolute;inset:0;background:radial-gradient(70% 90% at 78% 40%,rgba(226,80,76,.4),rgba(226,80,76,0) 70%)"></div>
+                <div style="position:absolute;left:20px;top:24px">
+                  <div style="display:inline-flex;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(46,196,182,.22);color:#7FE0D6">Reflejos</div>
+                  <div style="margin-top:8px;font:800 32px/1.05 'Outfit',sans-serif;letter-spacing:-.02em">Largada</div>
+                  <div style="margin-top:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.7)">contra tu grupo</div>
+                </div>
+                <div style="position:absolute;right:20px;top:22px;display:flex;gap:7px">
+                  <div style="width:20px;height:106px;border-radius:10px;background:#30344F;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span></div>
+                  <div style="width:20px;height:106px;border-radius:10px;background:#30344F;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span></div>
+                  <div style="width:20px;height:106px;border-radius:10px;background:#30344F;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span></div>
+                  <div style="width:20px;height:106px;border-radius:10px;background:#30344F;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span></div>
+                  <div style="width:20px;height:106px;border-radius:10px;background:#30344F;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span><span style="width:13px;height:13px;border-radius:50%;background:#E2504C;box-shadow:0 0 10px rgba(226,80,76,.95)"></span></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 20px 0">
+                <div style="border-radius:16px;background:#fff;padding:12px 8px 10px;box-shadow:0 6px 16px rgba(35,38,58,.06);display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="height:22px;display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#E2504C;box-shadow:0 0 6px rgba(226,80,76,.8)"></span><span style="width:10px;height:10px;border-radius:50%;background:#E2504C;box-shadow:0 0 6px rgba(226,80,76,.8)"></span><span style="width:10px;height:10px;border-radius:50%;background:#E2504C;box-shadow:0 0 6px rgba(226,80,76,.8)"></span><span style="width:10px;height:10px;border-radius:50%;background:#E2504C;box-shadow:0 0 6px rgba(226,80,76,.8)"></span><span style="width:10px;height:10px;border-radius:50%;background:#E2504C;box-shadow:0 0 6px rgba(226,80,76,.8)"></span></div>
+                  <div style="font-size:12.5px;font-weight:700;line-height:1.25;text-align:center">Se prenden<br>las cinco</div>
+                </div>
+                <div style="border-radius:16px;background:#fff;padding:12px 8px 10px;box-shadow:0 6px 16px rgba(35,38,58,.06);display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="height:22px;display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#4B5070"></span><span style="width:10px;height:10px;border-radius:50%;background:#4B5070"></span><span style="width:10px;height:10px;border-radius:50%;background:#4B5070"></span><span style="width:10px;height:10px;border-radius:50%;background:#4B5070"></span><span style="width:10px;height:10px;border-radius:50%;background:#4B5070"></span></div>
+                  <div style="font-size:12.5px;font-weight:700;line-height:1.25;text-align:center">Se apagan<br>todas juntas</div>
+                </div>
+                <div style="border-radius:16px;background:#CFF3EE;padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#2EC4B6;display:grid;place-items:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="#23263A" stroke="#23263A" stroke-width="1.5" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg></div>
+                  <div style="font-size:12.5px;font-weight:800;line-height:1.25;text-align:center;color:#0F6E65">Tocá en<br>cualquier lado</div>
+                </div>
+              </div>
+              <div style="padding:14px 20px 0">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Contra los tiempos de hoy de</div>
+                <div style="margin-top:8px;display:flex;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="width:58px;height:44px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.06);display:grid;place-items:center"><img src="img/equipo/casco-juli.svg" alt="" style="width:40px;height:28.8px;display:block"></div><span style="font-size:12px;font-weight:800">Juli</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="width:58px;height:44px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.06);display:grid;place-items:center"><img src="img/equipo/casco-caro.svg" alt="" style="width:40px;height:28.8px;display:block"></div><span style="font-size:12px;font-weight:800">Caro</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="width:58px;height:44px;border-radius:14px;background:#FFF3D6;box-shadow:0 0 0 2px #FFC53D;display:grid;place-items:center"><img src="img/equipo/casco-tincho.svg" alt="" style="width:40px;height:28.8px;display:block"></div><span style="display:flex;align-items:center;gap:3px;font-size:12px;font-weight:800">Tincho<svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="width:58px;height:44px;border-radius:14px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.06);display:grid;place-items:center"><img src="img/equipo/casco-sofi.svg" alt="" style="width:40px;height:28.8px;display:block"></div><span style="font-size:12px;font-weight:800">Sofi</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px"><div style="width:58px;height:44px;box-sizing:border-box;border-radius:14px;border:2px dashed #B8BDD6;display:grid;place-items:center"><img src="img/equipo/casco-pato.svg" alt="" style="width:40px;height:28.8px;display:block;opacity:.4"></div><span style="font-size:12px;font-weight:800;color:#6C7191">Pato · no</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;padding:14px 20px 0">
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V2l10 5-10 5"></path></svg>3 largadas</div>
+                <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.06)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#158A7F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>1.000 con 200 ms</div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;border:2px solid #FFC53D;background:#FFF3D6;padding:10px 14px">
+                <div style="width:32px;height:32px;flex:none;border-radius:10px;background:#FFC53D;display:grid;place-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+                <p style="margin:0;font-size:13.5px;font-weight:700;line-height:1.35">Tenés un solo intento.<br><span style="font-weight:600;color:#4B5070">Si te adelantás, perdés esa largada.</span></p>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0">
+                <div style="position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;height:74px;font:800 22px 'Outfit',sans-serif;background:#2EC4B6;color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.35)">
+                  <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span>
+                  <span style="position:relative;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>Empezar</span>
+                </div>
+                <p style="margin:8px 0 0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Las luces arrancan cuando tocás</p>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La regla se entiende sin leer: se prenden, se apagan, tocás. El grupo aparece con sus cascos, como en la pista.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">02 · Se prenden las luces</div>
+          <div data-screen-label="1c 02 Se prenden las luces" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#1C1E30">
+            <div style="position:absolute;inset:0;background:radial-gradient(85% 50% at 50% 30%,rgba(226,80,76,.34),rgba(226,80,76,0) 72%)"></div>
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.12);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#7FE0D6">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:142px;height:16px;background:#111222"></div>
+            <div style="position:absolute;left:26px;top:116px;display:flex;gap:12px">
+              <div style="width:58px;height:236px;border-radius:29px;background:#30344F;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#30344F;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#30344F;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span><span style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 22px rgba(226,80,76,.95),0 0 56px rgba(226,80,76,.45)"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#30344F;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#30344F;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 12px 26px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span><span style="width:44px;height:44px;border-radius:50%;background:#1F2236;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)"></span></div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:378px;text-align:center;color:#fff">
+              <div style="font:800 42px/1 'Outfit',sans-serif;letter-spacing:-.03em">Esperá…</div>
+              <div style="margin-top:10px;font-size:15px;font-weight:600;color:rgba(255,255,255,.66)">Tocá cuando se apaguen todas</div>
+            </div>
+            <div style="position:absolute;left:0;bottom:0"><dc-import name="Pista" cfg="{{ c02 }}" hint-size="390px,367px"></dc-import></div>
+            <dc-import name="Celu" oscuro="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Las luces son la pantalla: cinco columnas gigantes sobre negro. Con cada una crece el resplandor rojo y la pista se apaga un poco más.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">03 · Se apagan · ¡Largá!</div>
+          <div data-screen-label="1c 03 Larga" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#2EC4B6">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.4);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#23263A">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.4);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:142px;height:16px;background:#1B8F84"></div>
+            <div style="position:absolute;left:26px;top:116px;display:flex;gap:12px">
+              <div style="width:58px;height:236px;border-radius:29px;background:#23263A;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#23263A;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#23263A;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#23263A;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span></div>
+              <div style="width:58px;height:236px;border-radius:29px;background:#23263A;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly"><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span><span style="width:44px;height:44px;border-radius:50%;background:#383C56"></span></div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:370px;text-align:center">
+              <div style="font:800 96px/1 'Outfit',sans-serif;letter-spacing:-.05em">¡LARGÁ!</div>
+            </div>
+            <div style="position:absolute;left:0;bottom:0"><dc-import name="Pista" cfg="{{ c03 }}" hint-size="390px,367px"></dc-import></div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Apagón total y la pantalla entera se inunda de turquesa, de borde a borde. Se ve aunque estés mirando la pista.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">04 · Carrera</div>
+          <div data-screen-label="1c 04 Carrera" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:104px;display:flex;flex-direction:column;align-items:center">
+              <div style="display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums"><span style="font:800 100px/1 'Outfit',sans-serif;letter-spacing:-.05em">231</span><span style="font:800 26px/1 'Outfit',sans-serif;color:#6C7191">ms</span></div>
+              <div style="margin-top:8px;height:30px;display:flex;align-items:center;gap:7px;padding:0 13px 0 5px;border-radius:999px;background:#fff;font-size:13.5px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="height:20px;min-width:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#4F6BFF;color:#fff;display:grid;place-items:center;font:800 12px/1 'Outfit',sans-serif">2º</span>de 5 · Juli salió antes</div>
+            </div>
+            <div style="position:absolute;left:20px;right:20px;top:258px;height:186px;box-sizing:border-box;border-radius:22px;background:#fff;box-shadow:0 8px 20px rgba(35,38,58,.08);padding:12px 16px 0">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Reacción · largada 1</span><span style="font-size:11.5px;font-weight:700;color:#6C7191">← más rápido</span></div>
+              <div style="position:relative;height:142px;margin-top:6px">
+                <div style="position:absolute;left:0;right:0;top:70px;height:2px;border-radius:2px;background:#D9DDF3"></div>
+                <span style="position:absolute;left:0;top:79px;font-size:10.5px;font-weight:700;color:#6C7191">200</span>
+                <span style="position:absolute;right:0;top:79px;font-size:10.5px;font-weight:700;color:#6C7191">300 ms</span>
+                <div style="position:absolute;left:57.2px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">218</span><img src="img/equipo/casco-juli.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#C9CEE6"></span><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span></div>
+                <div style="position:absolute;left:149.5px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">247</span><img src="img/equipo/casco-caro.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#C9CEE6"></span><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span></div>
+                <div style="position:absolute;left:283px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">289</span><img src="img/equipo/casco-sofi.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#C9CEE6"></span><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span></div>
+                <div style="position:absolute;left:98.6px;top:66px;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:#4F6BFF;box-shadow:0 0 0 3px rgba(79,107,255,.25)"></span><span style="width:2px;height:25px;background:#4F6BFF"></span><img src="img/equipo/casco-nico.svg" alt="" style="width:33px;height:24px;margin-top:2px;display:block"><span style="margin-top:3px;height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;color:#4F6BFF;font-variant-numeric:tabular-nums">Vos 231</span></div>
+                <div style="position:absolute;left:178.1px;top:66px;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span><span style="width:2px;height:25px;background:#C9CEE6"></span><img src="img/equipo/casco-tincho.svg" alt="" style="width:33px;height:24px;margin-top:2px;display:block"><span style="margin-top:3px;height:12px;display:flex;align-items:center;gap:3px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">256<svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></span></div>
+              </div>
+            </div>
+            <div style="position:absolute;left:0;bottom:0"><dc-import name="Pista" cfg="{{ c04 }}" hint-size="390px,367px"></dc-import></div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Las columnas se pliegan hacia arriba y queda tu tiempo enorme. Cada casco cae sobre la regla en el instante en que ese amigo reacciona.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">05 · Resultado de la largada</div>
+          <div data-screen-label="1c 05 Resultado de la largada" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:0;right:0;top:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#158A7F">Largada</div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            </div>
+            <div style="position:absolute;left:0;right:0;top:110px;padding:0 20px;text-align:center">
+              <div style="font:800 40px/1 'Outfit',sans-serif;letter-spacing:-.03em">Llegaste 2º</div>
+              <div style="margin-top:8px;font-size:15px;font-weight:600;color:#4B5070">A 13 ms de Juli</div>
+            </div>
+            <div style="position:absolute;left:20px;right:20px;top:188px;height:182px;box-sizing:border-box;border-radius:22px;background:#fff;box-shadow:0 8px 20px rgba(35,38,58,.08);padding:12px 16px 0">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Reacción · largada 1</span><span style="font-size:11.5px;font-weight:700;color:#6C7191">← más rápido</span></div>
+              <div style="position:relative;height:142px;margin-top:4px">
+                <div style="position:absolute;left:0;right:0;top:70px;height:2px;border-radius:2px;background:#D9DDF3"></div>
+                <span style="position:absolute;left:0;top:79px;font-size:10.5px;font-weight:700;color:#6C7191">200</span>
+                <span style="position:absolute;right:0;top:79px;font-size:10.5px;font-weight:700;color:#6C7191">300 ms</span>
+                <div style="position:absolute;left:57.2px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">1º · 218</span><img src="img/equipo/casco-juli.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#FFC53D"></span><span style="width:10px;height:10px;border-radius:50%;background:#FFC53D;box-shadow:0 0 0 2px #23263A"></span></div>
+                <div style="position:absolute;left:149.5px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">3º · 247</span><img src="img/equipo/casco-caro.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#C9CEE6"></span><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span></div>
+                <div style="position:absolute;left:283px;top:0;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">5º · 289</span><img src="img/equipo/casco-sofi.svg" alt="" style="width:33px;height:24px;margin-top:3px;display:block"><span style="width:2px;height:25px;margin-top:2px;background:#C9CEE6"></span><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span></div>
+                <div style="position:absolute;left:98.6px;top:66px;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:#4F6BFF;box-shadow:0 0 0 3px rgba(79,107,255,.25)"></span><span style="width:2px;height:25px;background:#4F6BFF"></span><img src="img/equipo/casco-nico.svg" alt="" style="width:33px;height:24px;margin-top:2px;display:block"><span style="margin-top:3px;height:12px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;color:#4F6BFF;font-variant-numeric:tabular-nums">2º · Vos 231</span></div>
+                <div style="position:absolute;left:178.1px;top:66px;width:44px;margin-left:-22px;display:flex;flex-direction:column;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:#23263A"></span><span style="width:2px;height:25px;background:#C9CEE6"></span><img src="img/equipo/casco-tincho.svg" alt="" style="width:33px;height:24px;margin-top:2px;display:block"><span style="margin-top:3px;height:12px;display:flex;align-items:center;gap:3px;font:800 12px/12px 'Outfit',sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums">4º · 256<svg width="11" height="11" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.4" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></span></div>
+              </div>
+            </div>
+            <div style="position:absolute;left:20px;right:20px;top:380px;height:38px;box-sizing:border-box;border-radius:14px;background:#FFF3D6;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13px;font-weight:800;color:#5A4300"><svg width="17" height="17" viewBox="0 0 24 24" fill="#FFC53D" stroke="#5A4300" stroke-width="2" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>Le ganaste a Tincho, que tiene la corona</div>
+            <div style="position:absolute;left:0;right:0;top:430px;display:flex;justify-content:center;gap:6px">
+              <div style="height:28px;display:flex;align-items:center;padding:0 12px;border-radius:999px;background:#4F6BFF;color:#fff;font:800 12px 'Outfit',sans-serif">L1 · 2º</div>
+              <div style="height:28px;box-sizing:border-box;display:flex;align-items:center;padding:0 12px;border-radius:999px;border:2px solid #23263A;font:800 12px 'Outfit',sans-serif">L2</div>
+              <div style="width:44px;height:28px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(35,38,58,.3)"></div>
+            </div>
+            <div style="position:absolute;left:0;bottom:0"><dc-import name="Pista" cfg="{{ c05 }}" hint-size="390px,367px"></dc-import></div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La regla cuenta la largada de un vistazo: quién salió antes y por cuánto. Abajo, cada carril muestra su puesto.</p></sc-if>
+        </div>
+
+        <div style="width:390px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">06 · Resultado del reto</div>
+          <div data-screen-label="1c 06 Resultado del reto" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;right:-60px;top:120px;width:170px;height:119px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:85px;height:85px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:65px;height:65px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:absolute;left:-50px;bottom:150px;width:200px;height:140px;opacity:.95">
+              <span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:22%;left:12%;width:100px;height:100px;border-radius:999px;background:#fff"></span>
+              <span style="position:absolute;bottom:28%;left:44%;width:76px;height:76px;border-radius:999px;background:#fff"></span>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+              <div style="display:flex;justify-content:center"><div style="height:34px;display:flex;align-items:center;gap:6px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="width:8px;height:8px;border-radius:999px;background:#2EC4B6"></span>Reto 3 de 3 · Largada</div></div>
+              <div style="margin-top:10px;text-align:center">
+                <div style="font-size:14px;font-weight:700;color:#6C7191">¡Qué reflejos, Nico!</div>
+                <div style="margin-top:2px;display:flex;align-items:baseline;justify-content:center;gap:6px"><div style="font:800 76px/1 'Outfit',sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums">920</div><div style="font:700 18px 'Outfit',sans-serif;color:#6C7191">/ 1.000</div></div>
+                <div style="margin:10px 56px 0;height:10px;overflow:hidden;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px rgba(35,38,58,.06)"><div style="width:92%;height:100%;border-radius:999px;background:linear-gradient(90deg,#4FD6C9,#2EC4B6)"></div></div>
+              </div>
+              <div style="margin:14px 20px 0;border-radius:22px;background:#fff;padding:12px 16px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:800">Tus 3 largadas</span><span style="font:800 14px 'Outfit',sans-serif;color:#4B5070;font-variant-numeric:tabular-nums">promedio 240 ms</span></div>
+                <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">
+                  <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;height:44px">
+                    <div><div style="font:800 13px/1 'Outfit',sans-serif">L1</div><div style="margin-top:3px;font-size:11px;font-weight:800;color:#4F6BFF">2º</div></div>
+                    <div style="position:relative;height:44px">
+                      <div style="position:absolute;left:0;right:0;top:21px;height:2px;background:#E1E4F3"></div>
+                      <img src="img/equipo/casco-juli.svg" alt="" style="position:absolute;left:16.6%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-caro.svg" alt="" style="position:absolute;left:43.2%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-sofi.svg" alt="" style="position:absolute;left:81.9%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-tincho.svg" alt="" style="position:absolute;left:51.5%;top:26px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <span style="position:absolute;left:28.5%;top:24px;margin-left:-14px;padding:1px 2px;border-radius:7px;background:#E6EAFF;box-shadow:0 0 0 2px #4F6BFF;line-height:0"><img src="img/equipo/casco-nico.svg" alt="" style="width:24px;height:17.3px;display:block"></span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;height:44px">
+                    <div><div style="font:800 13px/1 'Outfit',sans-serif">L2</div><div style="margin-top:3px;font-size:11px;font-weight:800;color:#4F6BFF">2º</div></div>
+                    <div style="position:relative;height:44px">
+                      <div style="position:absolute;left:0;right:0;top:21px;height:2px;background:#E1E4F3"></div>
+                      <img src="img/equipo/casco-tincho.svg" alt="" style="position:absolute;left:39.6%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-juli.svg" alt="" style="position:absolute;left:57%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-sofi.svg" alt="" style="position:absolute;left:69%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-caro.svg" alt="" style="position:absolute;left:64.4%;top:26px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <span style="position:absolute;left:46.9%;top:24px;margin-left:-14px;padding:1px 2px;border-radius:7px;background:#E6EAFF;box-shadow:0 0 0 2px #4F6BFF;line-height:0"><img src="img/equipo/casco-nico.svg" alt="" style="width:24px;height:17.3px;display:block"></span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;height:44px">
+                    <div><div style="font:800 13px/1 'Outfit',sans-serif">L3</div><div style="margin-top:3px;font-size:11px;font-weight:800;color:#1FA093">1º</div></div>
+                    <div style="position:relative;height:44px">
+                      <div style="position:absolute;left:0;right:0;top:21px;height:2px;background:#E1E4F3"></div>
+                      <span style="position:absolute;left:35%;top:1px;margin-left:-14px;padding:1px 2px;border-radius:7px;background:#E6EAFF;box-shadow:0 0 0 2px #4F6BFF;line-height:0"><img src="img/equipo/casco-nico.svg" alt="" style="width:24px;height:17.3px;display:block"></span>
+                      <img src="img/equipo/casco-caro.svg" alt="" style="position:absolute;left:47.8%;top:3px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-juli.svg" alt="" style="position:absolute;left:40.5%;top:26px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <img src="img/equipo/casco-tincho.svg" alt="" style="position:absolute;left:59.8%;top:26px;width:21px;height:15px;margin-left:-10.5px;display:block">
+                      <span style="position:absolute;left:97%;top:4px;margin-left:-9px;width:18px;height:14px;border-radius:999px;background:#E2504C;display:grid;place-items:center"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></span>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:4px;display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px"><span></span><div style="position:relative;height:14px;font-size:10.5px;font-weight:700;color:#6C7191;white-space:nowrap"><span style="position:absolute;left:0;top:0">200 ms</span><span style="position:absolute;left:92%;top:0;transform:translateX(-50%)">300</span></div></div>
+                <div style="margin-top:6px;display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:10.5px;font-weight:700;color:#6C7191"><span style="width:8px;height:8px;border-radius:50%;background:#E2504C"></span>Sofi se adelantó en la 3</div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;background:#FFC53D;padding:12px 14px;box-shadow:0 12px 24px rgba(255,197,61,.4)">
+                <div style="width:38px;height:38px;flex:none;border-radius:12px;background:rgba(255,255,255,.45);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="#23263A" stroke="#23263A" stroke-width="1.6" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+                <div><div style="font:800 16px/1.2 'Outfit',sans-serif">¡Le sacaste la corona a Tincho!</div><div style="margin-top:2px;font-size:12.5px;font-weight:700;color:#5A4300">Vas 1º en la semana por 30 · se define el domingo</div></div>
+              </div>
+              <div style="margin:12px 20px 0;display:flex;align-items:center;gap:12px;border-radius:18px;background:#fff;padding:8px 14px;box-shadow:0 6px 16px rgba(35,38,58,.06)">
+                <img src="img/personajes/pato.svg" alt="" style="width:40px;height:48px;flex:none;display:block">
+                <div><div style="font-size:14px;font-weight:800">Pato todavía no largó</div><div style="margin-top:2px;font-size:12.5px;font-weight:600;color:#4B5070">Si hace menos de 240 ms de promedio, te pasa.</div></div>
+              </div>
+              <div style="margin-top:auto;padding:14px 20px 0;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;background:#25D366;color:#fff;font:800 18px 'Outfit',sans-serif;box-shadow:0 12px 24px rgba(37,211,102,.35)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Desafiá a Pato</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:999px;background:#fff;color:#23263A;font:800 16px 'Outfit',sans-serif;box-shadow:0 8px 20px rgba(35,38,58,.08)">Ver resumen del día<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+              </div>
+            </div>
+            <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Las tres reglas juntas muestran tu constancia contra el grupo. Si alguien todavía no jugó, el botón principal es desafiarlo.</p></sc-if>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:110px;display:flex;flex-direction:column;gap:6px;width:1240px">
+    <div style="font:800 28px/1.1 'Outfit',sans-serif;letter-spacing:-.02em">Otras formas de verlo</div>
+    <div style="font-size:15px;font-weight:600;color:#4B5070">Ideas más sueltas, cada una en su pantalla clave: otra orientación, jugar todos a la vez y jugar en el mismo celu.</div>
+  </div>
+  <div class="dv-opts" style="flex-direction:row;align-items:flex-start;gap:64px;margin-top:28px">
+
+    <div class="dv-opt" id="1d">
+      <div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a><span style="font:800 24px/1 'Outfit',sans-serif;letter-spacing:-.02em">Acostado</span><span style="font-size:14px;font-weight:600;color:#4B5070">La vista lateral pide pantalla ancha.</span></div>
+      <div style="display:flex;flex-direction:column;gap:32px">
+        <div style="width:844px;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">Se prenden las luces</div>
+          <div data-screen-label="1d Acostado luces" style="position:relative;width:844px;height:390px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#E8EAF6">
+            <dc-import name="Pista" cfg="{{ d02 }}" hint-size="844px,390px"></dc-import>
+            <div style="position:absolute;left:11px;top:132px;width:37px;height:126px;border-radius:24px;background:#000"></div>
+            <div style="position:absolute;left:64px;top:16px;display:flex;align-items:center;gap:10px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.12);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.12);font:800 17px 'Outfit',sans-serif">Esperá…</div>
+            </div>
+            <div style="position:absolute;right:30px;top:16px;height:38px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.12);font:800 15px 'Outfit',sans-serif">1 de 3</div>
+            <div style="position:absolute;left:50%;bottom:6px;width:139px;height:5px;margin-left:-69.5px;border-radius:100px;background:rgba(255,255,255,.8)"></div>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:600px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La pista mide más del doble y el pórtico entra grande sin tapar nada. Los nombres van delante de la línea de largada.</p></sc-if>
+        </div>
+        <div style="width:844px;display:flex;flex-direction:column;gap:12px">
+          <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">Carrera</div>
+          <div data-screen-label="1d Acostado carrera" style="position:relative;width:844px;height:390px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#E8EAF6">
+            <dc-import name="Pista" cfg="{{ d04 }}" hint-size="844px,390px"></dc-import>
+            <div style="position:absolute;left:11px;top:132px;width:37px;height:126px;border-radius:24px;background:#000"></div>
+            <div style="position:absolute;left:64px;top:16px;width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.12);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+            <div style="position:absolute;right:30px;top:16px;height:38px;display:flex;align-items:center;gap:8px;padding:0 16px 0 6px;border-radius:999px;background:#4F6BFF;color:#fff;box-shadow:0 8px 18px rgba(79,107,255,.35);font:800 15px 'Outfit',sans-serif;font-variant-numeric:tabular-nums"><span style="height:26px;min-width:26px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#fff;color:#4F6BFF;display:grid;place-items:center;font:800 13px/1 'Outfit',sans-serif">2º</span>Vos · 231 ms</div>
+            <div style="position:absolute;left:50%;bottom:6px;width:139px;height:5px;margin-left:-69.5px;border-radius:100px;background:rgba(255,255,255,.8)"></div>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:600px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La carrera dura más en pantalla y las diferencias se leen mejor. Se ofrecería al girar el celu; la vertical sigue siendo la principal.</p></sc-if>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1e">
+      <div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a><span style="font:800 24px/1 'Outfit',sans-serif;letter-spacing:-.02em">En vivo</span><span style="font-size:14px;font-weight:600;color:#4B5070">Revancha con el grupo, todos a la vez.</span></div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:12px">
+        <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">Sala de largada</div>
+        <div data-screen-label="1e En vivo" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+          <div style="position:relative;display:flex;flex-direction:column;height:100%;padding:66px 0 44px;box-sizing:border-box">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+              <div style="width:38px;height:38px;border-radius:999px;background:#fff;box-shadow:0 6px 16px rgba(35,38,58,.08);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23263A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+              <div style="height:34px;display:flex;align-items:center;gap:7px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="width:8px;height:8px;border-radius:50%;background:#E2504C;box-shadow:0 0 0 3px rgba(226,80,76,.2)"></span>Revancha en vivo</div>
+            </div>
+            <div style="padding:16px 24px 0">
+              <div style="font:800 30px/1.05 'Outfit',sans-serif;letter-spacing:-.02em">Largan todos a la vez</div>
+              <div style="margin-top:8px;font-size:14px;line-height:1.4;font-weight:600;color:#4B5070">Las mismas luces para todos, en el mismo segundo. No suma para la corona.</div>
+            </div>
+            <div style="position:relative;margin-top:16px">
+              <dc-import name="Pista" cfg="{{ e01 }}" hint-size="390px,465px"></dc-import>
+              <div style="position:absolute;left:70px;top:58px;display:flex;flex-direction:column;align-items:flex-start;z-index:4">
+                <div style="padding:7px 12px;border-radius:14px;background:#fff;font-size:13px;font-weight:800;white-space:nowrap;box-shadow:0 8px 18px rgba(35,38,58,.18)">¡Hoy no me ganás!</div>
+                <span style="width:12px;height:12px;margin:-7px 0 0 14px;background:#fff;transform:rotate(45deg)"></span>
+              </div>
+            </div>
+            <div style="margin-top:auto;padding:0 20px;display:flex;flex-direction:column;gap:10px">
+              <div style="text-align:center;font-size:13px;font-weight:700;color:#4B5070">Arranca en <span style="font:800 15px 'Outfit',sans-serif;color:#23263A;font-variant-numeric:tabular-nums">0:08</span> o cuando estén todos</div>
+              <div style="position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;height:60px;font:800 20px 'Outfit',sans-serif;background:#2EC4B6;color:#fff;box-shadow:0 16px 32px rgba(46,196,182,.35)"><span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span><span style="position:relative">¡Estoy listo!</span></div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:800;color:#128C4A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Invitar a Pato</div>
+            </div>
+          </div>
+          <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+        </div>
+        <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Después del reto, el grupo se junta en una sala y larga a la vez con las mismas luces. Los carriles se llenan a medida que entran. No suma para la corona: suma pique.</p></sc-if>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1f">
+      <div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a><span style="font:800 24px/1 'Outfit',sans-serif;letter-spacing:-.02em">Cara a cara</span><span style="font-size:14px;font-weight:600;color:#4B5070">Un celu en la mesa, dos jugadores.</span></div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:12px">
+        <div style="font:700 12px/1 'Plus Jakarta Sans',sans-serif;color:#6C7191;text-transform:uppercase;letter-spacing:.08em">Picada en la mesa</div>
+        <div data-screen-label="1f Cara a cara" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#23263A">
+          <div style="position:absolute;left:0;top:0;width:390px;height:372px;overflow:hidden;background:#FDE4E3;transform:rotate(180deg)">
+            <div style="position:absolute;left:0;top:0"><dc-import name="Pista" cfg="{{ fT }}" hint-size="390px,230px"></dc-import></div>
+            <div style="position:absolute;left:0;right:0;top:230px;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-bottom:64px">
+              <div style="font:800 36px/1 'Outfit',sans-serif;letter-spacing:-.02em;color:#B83431">Tocá acá</div>
+              <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 14px 0 6px;border-radius:999px;background:#fff;font-size:14px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)"><img src="img/equipo/casco-tincho.svg" alt="" style="width:30px;height:21.6px;display:block">Tincho<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.2" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;top:372px;width:390px;height:100px;background:#23263A;display:flex;align-items:center;justify-content:center;gap:16px">
+            <span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 18px rgba(226,80,76,.95),0 0 40px rgba(226,80,76,.45)"></span>
+            <span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 18px rgba(226,80,76,.95),0 0 40px rgba(226,80,76,.45)"></span>
+            <span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 18px rgba(226,80,76,.95),0 0 40px rgba(226,80,76,.45)"></span>
+            <span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF9C97 0%,#E2504C 46%,#B32F2C 100%);box-shadow:0 0 18px rgba(226,80,76,.95),0 0 40px rgba(226,80,76,.45)"></span>
+            <span style="width:40px;height:40px;border-radius:50%;background:#3A3E58;box-shadow:inset 0 3px 6px rgba(0,0,0,.45)"></span>
+          </div>
+          <div style="position:absolute;left:0;top:472px;width:390px;height:372px;overflow:hidden;background:#E3E8FF">
+            <div style="position:absolute;left:0;top:0"><dc-import name="Pista" cfg="{{ fN }}" hint-size="390px,230px"></dc-import></div>
+            <div style="position:absolute;left:0;right:0;top:230px;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-bottom:26px">
+              <div style="font:800 36px/1 'Outfit',sans-serif;letter-spacing:-.02em;color:#3449C9">Tocá acá</div>
+              <div style="height:32px;display:flex;align-items:center;gap:6px;padding:0 14px 0 6px;border-radius:999px;background:#fff;font-size:14px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)"><img src="img/equipo/casco-nico.svg" alt="" style="width:30px;height:21.6px;display:block">Nico</div>
+            </div>
+          </div>
+          <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+        </div>
+        <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Dos jugadores, uno de cada lado. Las luces quedan en el medio, a la vista de los dos; cada uno toca su mitad y el que reacciona primero se lleva la largada.</p></sc-if>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Para seguir: “la señal de <a class="dv-oid" href="#1c">1c</a> con la pista de <a class="dv-oid" href="#1a">1a</a>” · “hacé jugable <a class="dv-oid" href="#1b">1b</a>” · “armá las 6 pantallas de <a class="dv-oid" href="#1e">1e</a>”</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;fantasmas&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Color de cada equipo&quot;,&quot;Gris fantasma&quot;],&quot;default&quot;:&quot;Color de cada equipo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;notas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const gris = this.props.fantasmas === 'Gris fantasma';
+    const E = 'img/equipo/';
+    const G = {
+      tincho: { n: 'Tincho', corona: true }, juli: { n: 'Juli' }, caro: { n: 'Caro' },
+      sofi: { n: 'Sofi' }, pato: { n: 'Pato' }, nico: { n: 'Vos', yo: true },
+    };
+    // Largada 1 of the example: reaction ms and finishing place.
+    const MS = { juli: 218, nico: 231, caro: 247, tincho: 256, sofi: 289 };
+    const POS = { juli: 1, nico: 2, caro: 3, tincho: 4, sofi: 5 };
+    const ORDER = ['tincho', 'juli', 'caro', 'sofi', 'nico'];
+    const YO = 'rgba(79,107,255,.22)';
+    const TURQ = { tinte: '#A6EAE2', tinteRaya: '#8DE1D7', largadaC: '#2EC4B6', largadaSh: '0 0 14px 3px rgba(46,196,182,.9)' };
+    const casco = (k) => E + 'casco-' + k + '.svg';
+    const tono = (k) => (G[k].yo ? 'marca' : 'blanco');
+    const gap = (k, f) => (MS[k] - 218) * f; // reaction gap → px (exaggerated so 13 ms reads)
+    const lane = (k, h, s, x, o) => {
+      const ghost = gris && !G[k].yo;
+      return Object.assign({ h, s, x, auto: ghost ? 'img/autos/auto-fantasma.svg' : E + 'auto-' + k + '.svg', op: ghost ? 0.62 : 1, fondo: G[k].yo ? YO : undefined }, o);
+    };
+    const name = (k, o) => Object.assign({ txt: G[k].n, casco: casco(k), corona: !!G[k].corona, tono: tono(k), hh: 24, fs: 12 }, o);
+    const res = (k, txt, o) => Object.assign({ txt, pos: POS[k] + 'º', casco: casco(k), corona: !!G[k].corona, tono: G[k].yo ? 'marca' : POS[k] === 1 ? 'oro' : 'blanco', hh: 26, fs: 12 }, o);
+
+    // 1a · Estadio — five equal lanes, fixed camera.
+    const aS = 0.56, aW = 302 * aS, aX = 192;
+    const aBase = { k: 1.15, largadaX: aX, metaX: 362 };
+    const aL = { r: 17, gap: 48, w: 262, h: 52, rad: 14 };
+    const aGrid = (humo) => ORDER.map((k) => lane(k, 72, aS, aX - aW, { humo: humo && k === 'nico', chip: name(k, { r: 22, dy: 24 }) }));
+    const a02 = { ...aBase, sombra: 0.3, luces: { ...aL, on: 3, glow: true }, carriles: aGrid(false) };
+    const a03 = { ...aBase, ...TURQ, luces: { ...aL, on: 0, barra: true }, carriles: aGrid(true) };
+    const a04 = { ...aBase, luces: { ...aL, on: 0 }, carriles: ORDER.map((k) => {
+      const x = 330 - gap(k, 1.6) - aW;
+      return lane(k, 72, aS, x, { lineas: true, humo: k === 'nico', chip: { txt: G[k].n + ' · ' + MS[k], corona: !!G[k].corona, tono: tono(k), x: x + 44, dy: 1, hh: 21, fs: 11.5 } });
+    }) };
+    const a05 = { ...aBase, luces: { ...aL, on: 0 }, carriles: ORDER.map((k) => lane(k, 72, aS, 490 - gap(k, 1.6) - aW, { chip: res(k, G[k].n + ' · ' + MS[k] + ' ms', { x: 10, dy: 23 }) })) };
+
+    // 1b · Transmisión — depth lanes (yours closest), then a camera that follows you.
+    const bL = [['tincho', 46, 0.36], ['juli', 52, 0.42], ['caro', 60, 0.5], ['sofi', 70, 0.59], ['nico', 82, 0.72]];
+    const bX = 300, bBase = { k: 0.95, h: 430, largadaX: bX };
+    const bGrid = (humo) => bL.map(([k, h, s]) => lane(k, h, s, bX - 302 * s, { humo: humo && k === 'nico', chip: name(k, { r: 8, dy: (h - 22) / 2, hh: 22, fs: 11.5 }) }));
+    const b02 = { ...bBase, sombra: 0.18, luces: { on: 3, glow: true }, carriles: bGrid(false) };
+    const b03 = { ...bBase, ...TURQ, luces: { on: 0, barra: true }, carriles: bGrid(true) };
+    const b04 = { k: 1.4, h: 540, borroso: true, portico: false,
+      carriles: [['juli', 120], ['nico', 50], ['caro', -40]].map(([k, x]) => lane(k, 124, 1.05, x, { lineas: true, chip: name(k, { txt: G[k].n + ' · ' + MS[k] + ' ms', x: 12, dy: 6 }) })) };
+    const b05 = { w: 318, k: 0.6, h: 334, portico: false, metaX: 210,
+      carriles: ORDER.map((k) => lane(k, 50, 0.5, 224 - gap(k, 1.6) - 151, { chip: k === 'juli' ? { txt: '1º Juli', tono: 'oro', x: 232, dy: 14, hh: 22, fs: 11.5 } : { txt: '+' + (MS[k] - 218) + ' ms', tono: tono(k), x: 232, dy: 14, hh: 22, fs: 11.5 } })) };
+
+    // 1c · Semáforo — compact track under a giant light board.
+    const cS = 0.42, cW = 302 * cS, cX = 150;
+    const cBase = { k: 0.8, portico: false, largadaX: cX, metaX: 362 };
+    const cGrid = (humo) => ORDER.map((k) => lane(k, 50, cS, cX - cW, { humo: humo && k === 'nico', chip: name(k, { r: 14, dy: 14, hh: 22, fs: 11.5 }) }));
+    const c02 = { ...cBase, sombra: 0.42, carriles: cGrid(false) };
+    const c03 = { ...cBase, ...TURQ, carriles: cGrid(true) };
+    const c04 = { ...cBase, carriles: ORDER.map((k) => lane(k, 50, cS, 300 - gap(k, 1.6) - cW, { lineas: true })) };
+    const c05 = { ...cBase, carriles: ORDER.map((k) => lane(k, 50, cS, 470 - gap(k, 1.6) - cW, { chip: res(k, G[k].n, { x: 8, dy: 13, hh: 24 }) })) };
+
+    // 1d · Acostado — landscape.
+    const dS = 0.5, dW = 302 * dS, dX = 330;
+    const dBase = { w: 844, h: 390, k: 0.9, largadaX: dX, metaX: 790 };
+    const dL = { r: 13, gap: 36, w: 200, h: 40, rad: 10 };
+    const d02 = { ...dBase, sombra: 0.28, luces: { ...dL, on: 3, glow: true }, carriles: ORDER.map((k) => lane(k, 52, dS, dX - dW, { chip: name(k, { x: dX + 14, dy: 15, hh: 22, fs: 11.5 }) })) };
+    const d04 = { ...dBase, luces: { ...dL, on: 0 }, carriles: ORDER.map((k) => {
+      const x = 700 - gap(k, 2.4) - dW;
+      return lane(k, 52, dS, x, { lineas: true, chip: name(k, { txt: G[k].n + ' · ' + MS[k] + ' ms', r: 844 - x + 30, dy: 15, hh: 22, fs: 11.5 }) });
+    }) };
+
+    // 1e · En vivo — live lobby, empty lanes for who isn't in yet.
+    const eS = 0.45, eX = 170, eW = 302 * eS;
+    const live = (k, txt, dotC) => name(k, { txt, dot: true, dotC, r: 14, dy: 16 });
+    const e01 = { k: 0.9, largadaX: eX, luces: { on: 0 }, carriles: [
+      lane('tincho', 56, eS, eX - eW, { chip: live('tincho', 'Tincho · listo', '#1FA093') }),
+      lane('juli', 56, eS, eX - eW, { chip: live('juli', 'Juli · lista', '#1FA093') }),
+      lane('caro', 56, eS, eX - eW, { chip: live('caro', 'Caro · lista', '#1FA093') }),
+      { h: 56, chip: live('sofi', 'Sofi · entrando…', '#FFC53D') },
+      { h: 56, chip: live('pato', 'Pato · no está', '#B8BDD6') },
+      lane('nico', 56, eS, eX - eW, { chip: live('nico', 'Vos', '#FFFFFF') }),
+    ] };
+
+    // 1f · Cara a cara — one lane per half.
+    const f = (k) => ({ k: 0.9, h: 230, portico: false, largadaX: 300, carriles: [lane(k, 110, 0.78, 300 - 302 * 0.78, { fondo: undefined })] });
+
+    const L3 = { nico: 238, juli: 244, caro: 252, tincho: 265 };
+    const aFoto = { w: 318, k: 0.6, h: 306, portico: false, metaX: 210, carriles: ORDER.map((k) => k === 'sofi'
+      ? lane(k, 44, 0.44, -70, { chip: { txt: 'Se adelantó', tono: 'peligro', x: 76, dy: 6, hh: 32, fs: 17 } })
+      : lane(k, 44, 0.44, 226 - (L3[k] - 238) * 3 - 302 * 0.44, { chip: k === 'nico' ? { txt: '1º Vos', tono: 'oro', x: 232, dy: 5, hh: 34, fs: 19 } : { txt: '+' + (L3[k] - 238) + ' ms', x: 232, dy: 5, hh: 34, fs: 19 } })) };
+    return { aFoto, a02, a03, a04, a05, b02, b03, b04, b05, c02, c03, c04, c05, d02, d04, e01, fT: f('tincho'), fN: f('nico'), notas: this.props.notas ?? true };
+  }
+}
+</script>
+</body>
+</html>

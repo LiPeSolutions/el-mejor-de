@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:relative;width:{{ W }}px;height:{{ H }}px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif">
+  <div style="position:absolute;left:0;top:0;width:100%;height:{{ k10 }}px;background:#23263A"></div>
+  <div style="position:absolute;left:0;top:{{ k10 }}px;width:100%;height:{{ standsH }}px;background:{{ standsBg }}"></div>
+  <sc-for list="{{ stripes }}" as="st" hint-placeholder-count="3">
+    <div style="position:absolute;left:0;width:100%;top:{{ st.y }}px;height:{{ st.h }}px;background:{{ stripeBg }}"></div>
+  </sc-for>
+  <sc-for list="{{ dots }}" as="d" hint-placeholder-count="12">
+    <div style="position:absolute;left:{{ d.x }}px;top:{{ d.y }}px;width:{{ d.w }}px;height:{{ d.h }}px;border-radius:999px;background:{{ d.c }};opacity:{{ d.o }}"></div>
+  </sc-for>
+  <div style="position:absolute;left:0;top:{{ k0 }}px;width:100%;height:{{ k10 }}px;background:#23263A"></div>
+  <div style="position:absolute;left:0;top:{{ wallY }}px;width:100%;height:{{ wallH }}px;background:#B8BDD6"></div>
+  <div style="position:absolute;left:0;top:{{ wallLineY }}px;width:100%;height:{{ wallLineH }}px;background:#FFFFFF"></div>
+  <div style="position:absolute;left:0;top:{{ grassY }}px;width:100%;height:{{ grassH }}px;background:#6CCB6C"></div>
+  <div style="position:absolute;left:0;top:{{ pianoY }}px;width:100%;height:8px;background:repeating-linear-gradient(90deg,#E2504C 0 16px,#FFFFFF 16px 32px);filter:{{ pianoBlur }}"></div>
+  <sc-if value="{{ portico }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:0;top:{{ beamY }}px;width:100%;height:{{ beamH }}px;background:#23263A"></div>
+    <div style="position:absolute;left:10px;top:{{ beamY }}px;width:6px;height:{{ postH }}px;background:#23263A"></div>
+    <div style="position:absolute;right:10px;top:{{ beamY }}px;width:6px;height:{{ postH }}px;background:#23263A"></div>
+  </sc-if>
+  <div style="position:absolute;left:0;top:{{ A0 }}px;width:100%;height:{{ asphaltH }}px;background:#3B4056"></div>
+  <div style="position:absolute;left:0;top:{{ edgeTop }}px;width:100%;height:2px;background:rgba(255,255,255,.83)"></div>
+  <div style="position:absolute;left:0;top:{{ edgeBottom }}px;width:100%;height:2px;background:rgba(255,255,255,.83)"></div>
+  <sc-for list="{{ lanes }}" as="ln" hint-placeholder-count="2">
+    <div style="position:absolute;left:0;width:100%;top:{{ ln.y }}px;height:{{ ln.h }}px;background:{{ ln.fondo }}"></div>
+    <div style="position:absolute;left:0;width:100%;top:{{ ln.divY }}px;height:{{ ln.divH }}px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 14px,transparent 14px 32px);background-position:{{ ln.divPos }}"></div>
+  </sc-for>
+  <sc-if value="{{ hasLargada }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:{{ largadaX }}px;top:{{ A0 }}px;width:4px;height:{{ asphaltH }}px;background:{{ largadaC }};box-shadow:{{ largadaSh }}"></div>
+  </sc-if>
+  <sc-if value="{{ hasMeta }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:{{ metaX }}px;top:{{ A0 }}px;width:14px;height:{{ asphaltH }}px;background:repeating-conic-gradient(#FFFFFF 0 25%,#23263A 0 50%) 0 0/14px 14px"></div>
+  </sc-if>
+  <sc-for list="{{ lanes }}" as="ln" hint-placeholder-count="2">
+    <sc-if value="{{ ln.auto }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:{{ ln.shX }}px;top:{{ ln.shY }}px;width:{{ ln.shW }}px;height:{{ ln.shH }}px;border-radius:50%;background:rgba(0,0,0,.18)"></div>
+      <sc-for list="{{ ln.lines }}" as="sl" hint-placeholder-count="3">
+        <div style="position:absolute;left:{{ sl.x }}px;top:{{ sl.y }}px;width:{{ sl.w }}px;height:{{ sl.h }}px;border-radius:999px;background:#FFFFFF;opacity:{{ sl.o }}"></div>
+      </sc-for>
+      <img src="{{ ln.auto }}" alt="" style="position:absolute;left:{{ ln.x }}px;top:{{ ln.carY }}px;width:{{ ln.carW }}px;height:{{ ln.carH }}px;opacity:{{ ln.op }};transform:rotate({{ ln.rot }}deg);transform-origin:20% 90%;display:block">
+      <sc-for list="{{ ln.smoke }}" as="sm" hint-placeholder-count="3">
+        <div style="position:absolute;left:{{ sm.x }}px;top:{{ sm.y }}px;width:{{ sm.d }}px;height:{{ sm.d }}px;border-radius:50%;background:rgba(255,255,255,.82)"></div>
+      </sc-for>
+    </sc-if>
+  </sc-for>
+  <sc-if value="{{ hasBottom }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:0;top:{{ botPianoY }}px;width:100%;height:8px;background:repeating-linear-gradient(90deg,#E2504C 0 16px,#FFFFFF 16px 32px);background-position:-8px 0;filter:{{ pianoBlur }}"></div>
+    <div style="position:absolute;left:0;top:{{ botGrassY }}px;width:100%;height:{{ botGrassH }}px;background:#6CCB6C"></div>
+  </sc-if>
+  <div style="position:absolute;left:0;top:0;width:100%;height:100%;background:rgba(16,18,32,{{ sombra }});pointer-events:none"></div>
+  <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="2">
+    <div style="position:absolute;top:{{ ch.y }}px;left:{{ ch.left }};right:{{ ch.right }};height:{{ ch.hh }}px;display:flex;align-items:center;gap:{{ ch.gap }}px;padding:0 {{ ch.pad }}px;border-radius:999px;background:{{ ch.bg }};color:{{ ch.fg }};font-size:{{ ch.fs }}px;font-weight:800;white-space:nowrap;box-shadow:{{ ch.sh }};font-variant-numeric:tabular-nums;z-index:3">
+      <sc-if value="{{ ch.dot }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ ch.dotC }};flex:none"></span></sc-if>
+      <sc-if value="{{ ch.pos }}" hint-placeholder-val="{{ false }}"><span style="height:18px;min-width:18px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:{{ ch.posBg }};color:{{ ch.posFg }};display:grid;place-items:center;font:800 11px/1 'Outfit',sans-serif;flex:none;margin-left:-5px">{{ ch.pos }}</span></sc-if>
+      <sc-if value="{{ ch.casco }}" hint-placeholder-val="{{ false }}"><img src="{{ ch.casco }}" alt="" style="width:{{ ch.cw }}px;height:{{ ch.chh }}px;display:block;flex:none;margin-left:{{ ch.cml }}px"></sc-if>
+      <sc-if value="{{ ch.check }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+      <sc-if value="{{ ch.corona }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFC53D" stroke="#23263A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg></sc-if>
+      <span>{{ ch.txt }}</span>
+    </div>
+  </sc-for>
+  <sc-if value="{{ hasBox }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:{{ boxX }}px;top:{{ boxY }}px;width:{{ boxW }}px;height:{{ boxH }}px;border-radius:{{ boxR }}px;background:#23263A;box-shadow:{{ boxSh }}"></div>
+    <sc-for list="{{ lights }}" as="lt" hint-placeholder-count="5">
+      <div style="position:absolute;left:{{ lt.hx }}px;top:{{ lt.hy }}px;width:{{ lt.hd }}px;height:{{ lt.hd }}px;border-radius:50%;background:{{ lt.halo }}"></div>
+      <div style="position:absolute;left:{{ lt.x }}px;top:{{ lt.y }}px;width:{{ lt.d }}px;height:{{ lt.d }}px;border-radius:50%;background:{{ lt.c }};box-shadow:{{ lt.glow }}"></div>
+    </sc-for>
+    <sc-if value="{{ barra }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:{{ barX }}px;top:{{ barY }}px;width:{{ barW }}px;height:5px;border-radius:3px;background:#2EC4B6"></div>
+    </sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:286},&quot;cfg&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;,&quot;default&quot;:{&quot;luces&quot;:{&quot;on&quot;:3},&quot;largadaX&quot;:250,&quot;metaX&quot;:366,&quot;carriles&quot;:[{&quot;h&quot;:77.5,&quot;auto&quot;:&quot;img/autos/auto-fantasma.svg&quot;,&quot;x&quot;:45,&quot;s&quot;:0.674,&quot;op&quot;:0.62,&quot;chip&quot;:{&quot;txt&quot;:&quot;Tincho · fantasma de hoy&quot;,&quot;r&quot;:12,&quot;dy&quot;:-0.5,&quot;dot&quot;:true}},{&quot;h&quot;:77.5,&quot;auto&quot;:&quot;img/autos/auto-azul.svg&quot;,&quot;x&quot;:0,&quot;s&quot;:0.825,&quot;chip&quot;:{&quot;txt&quot;:&quot;Vos&quot;,&quot;tono&quot;:&quot;marca&quot;,&quot;r&quot;:12,&quot;dy&quot;:9}}]}}}">
+class Component extends DCLogic {
+  renderVals() {
+    const c = this.props.cfg || { luces: { on: 3 }, largadaX: 250, metaX: 366, carriles: [{ h: 77.5, auto: 'img/autos/auto-fantasma.svg', x: 45, s: 0.674, op: 0.62, chip: { txt: 'Tincho · fantasma de hoy', r: 12, dy: -0.5, dot: true } }, { h: 77.5, auto: 'img/autos/auto-azul.svg', x: 0, s: 0.825, chip: { txt: 'Vos', tono: 'marca', r: 12, dy: 9 } }] };
+    const W = c.w ?? 390, k = c.k ?? 1;
+    const COLORS = ['#FFC53D', '#FF7AA2', '#4F6BFF', '#FF6B4A', '#8B6CFF', '#2EC4B6'];
+    const blur = !!c.borroso;
+    // Stands (k-scaled), from the 02 screen: ink 0-10, gap, beam 14-22, stands 22-70, wall 70-82, grass 82-94, piano 94-102.
+    const dots = [];
+    const rows = [{ y: 12.5, x0: 16, ci: 5 }, { y: 36, x0: 32, ci: 0 }, { y: 54, x0: 16, ci: 5 }];
+    const step = 33 * k, r = 4.5 * k;
+    rows.forEach((row) => {
+      let i = 0;
+      for (let x = row.x0 * k; x < W + step; x += step, i++) {
+        const w = blur ? 2 * r + 30 : 2 * r;
+        dots.push({ x: x - r - (blur ? 30 : 0), y: row.y * k - r, w, h: blur ? 2 * r * 0.8 : 2 * r, c: COLORS[(row.ci + i) % 6], o: blur ? 0.6 : 1 });
+      }
+    });
+    const stripes = [24, 42, 60].map((y) => ({ y: y * k, h: 5 * k }));
+    const A0 = 102 * k;
+    // Asphalt: 1.5 asphalt + 2 edge, lanes split by 2 px dashed lines, 2 edge + 1.5 asphalt.
+    const laneDefs = c.carriles || [];
+    let y = A0 + 3.5;
+    const lanes = [], chips = [];
+    laneDefs.forEach((ln, i) => {
+      const h = ln.h ?? 77.5, s = ln.s ?? 0.8, x = ln.x ?? 0;
+      const bottom = y + h - 2;
+      const carW = 302 * s, carH = 82 * s, carY = bottom - carH;
+      const smoke = ln.humo ? [[15.8, 75.3, 9.7], [2.4, 68, 7.3], [-7.3, 78.4, 4.8]].map(([cx, cy, rr]) => ({ x: x + (cx - rr) * s, y: carY + (cy - rr) * s, d: 2 * rr * s })) : [];
+      const lk = ln.lineas ? (blur ? 1.8 : 1) : 0;
+      const lines = ln.lineas ? [[24, -48, 30.4], [42, -40, 17], [60, -48, 30.4]].map(([ly, lx, lw]) => ({ x: x + (lx - (lk - 1) * lw) * s, y: carY + (ly - 1.5) * s, w: lw * lk * s, h: Math.max(2, 3 * s), o: ln.op != null && ln.op < 1 ? 0.75 : 0.95 })) : [];
+      const last = i === laneDefs.length - 1;
+      lanes.push({
+        y, h, fondo: ln.fondo || 'transparent',
+        divY: last ? -10 : y + h, divH: last ? 0 : 2, divPos: blur ? '0 0' : '0 0',
+        auto: ln.auto || '', x, carY, carW, carH, op: ln.op ?? 1, rot: ln.rot ?? 0,
+        shX: x + 6 * s, shY: bottom - 6 * s, shW: 290 * s, shH: 10 * s,
+        smoke, lines,
+      });
+      (ln.chips || (ln.chip ? [ln.chip] : [])).forEach((ch) => {
+        const tones = {
+          blanco: ['rgba(255,255,255,.92)', '#4B5070', 'none'],
+          marca: ['#4F6BFF', '#FFFFFF', 'none'],
+          exito: ['#1FA093', '#FFFFFF', 'none'],
+          peligro: ['#E2504C', '#FFFFFF', 'none'],
+          oro: ['#FFC53D', '#23263A', 'none'],
+          tinta: ['#23263A', '#FFFFFF', 'none'],
+          turquesa: ['#2EC4B6', '#23263A', 'none'],
+        };
+        const [bg, fg, sh] = tones[ch.tono || 'blanco'];
+        const hh = ch.hh ?? 22;
+        chips.push({
+          txt: ch.txt, y: y + (ch.dy ?? 0), hh, fs: ch.fs ?? 12, pad: ch.pad ?? (ch.dot ? 10 : 10), gap: ch.gap ?? 6,
+          left: ch.x != null ? ch.x + 'px' : 'auto', right: ch.r != null ? ch.r + 'px' : 'auto',
+          bg: ch.bg || bg, fg: ch.fg || fg, sh: ch.sh || sh,
+          dot: !!ch.dot, dotC: ch.dotC || '#B8BDD6', check: !!ch.check, corona: !!ch.corona,
+          casco: ch.casco || '', cw: (hh - 4) * 1.39, chh: hh - 4,
+          pos: ch.pos || '', cml: ch.pos ? 0 : -4,
+          posBg: (ch.tono || 'blanco') === 'blanco' ? '#23263A' : '#FFFFFF',
+          posFg: (ch.tono || 'blanco') === 'blanco' ? '#FFFFFF' : (ch.tono === 'oro' ? '#23263A' : bg),
+        });
+      });
+      y += h + (last ? 0 : 2);
+    });
+    const edgeBottom = y;
+    const asphaltH = edgeBottom + 2 + 1.5 - A0;
+    const bottomOn = c.abajo !== false;
+    const botPianoY = A0 + asphaltH;
+    const H = c.h ?? (botPianoY + (bottomOn ? 20 : 0));
+    // Gantry box with 5 lights (r 9, 26 px apart, 154 x 36, radius 6).
+    const L = Object.assign({ n: 5, on: 0, r: 9, gap: 26, w: 154, h: 36, top: 20 * k, rad: 6, barra: false, glow: false, visible: true }, c.luces || {});
+    const boxX = (W - L.w) / 2;
+    const m = (L.w - (L.n - 1) * L.gap) / 2;
+    const lights = Array.from({ length: L.n }, (_, i) => {
+      const cx = boxX + m + i * L.gap, cy = L.top + L.h / 2, on = i < L.on, hr = L.r + 4 * (L.r / 9);
+      return {
+        x: cx - L.r, y: cy - L.r, d: 2 * L.r, c: on ? '#E2504C' : '#4B5070',
+        hx: cx - hr, hy: cy - hr, hd: 2 * hr, halo: on ? 'rgba(226,80,76,.35)' : 'transparent',
+        glow: on && L.glow ? '0 0 ' + (L.r * 1.6) + 'px rgba(226,80,76,.85)' : 'none',
+      };
+    });
+    return {
+      W, H, k0: 0, k10: 10 * k, standsH: 60 * k, standsBg: c.tinte || '#E8EAF6', stripeBg: c.tinteRaya || '#D9DDF3',
+      stripes, dots, beamY: 14 * k, beamH: 8 * k, postH: A0 - 14 * k,
+      wallY: 70 * k, wallH: 12 * k, wallLineY: 74 * k, wallLineH: 3 * k, grassY: 82 * k, grassH: 12 * k, pianoY: 94 * k,
+      pianoBlur: blur ? 'blur(2px)' : 'none',
+      portico: c.portico !== false, A0, asphaltH, edgeTop: A0 + 1.5, edgeBottom,
+      lanes, chips,
+      sombra: c.sombra ?? 0, largadaC: c.largadaC || '#FFFFFF', largadaSh: c.largadaSh || 'none',
+      hasLargada: c.largadaX != null, largadaX: c.largadaX ?? 0,
+      hasMeta: c.metaX != null, metaX: c.metaX ?? 0,
+      hasBottom: bottomOn, botPianoY, botGrassY: botPianoY + 8, botGrassH: Math.max(0, H - botPianoY - 8),
+      hasBox: c.portico !== false && L.visible, boxX, boxY: L.top, boxW: L.w, boxH: L.h, boxR: L.rad,
+      boxSh: L.glow && L.on > 0 ? '0 10px 30px rgba(226,80,76,.35)' : 'none',
+      lights, barra: !!L.barra, barX: boxX + 8, barW: L.w - 16, barY: L.top + L.h - 3,
+    };
+  }
+}
+</script>
+</body>
+</html>
