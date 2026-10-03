@@ -1,6 +1,7 @@
 "use client";
 
-import { Play, X } from "lucide-react";
+import { LogIn, Play, X } from "lucide-react";
+import Link from "next/link";
 import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -19,10 +20,12 @@ interface GameIntroProps {
   starting: boolean;
   error?: string | null;
   onStart: () => void;
+  /** Signed out on a browser that knows an account: offer to sign in so the challenge counts. */
+  signInHint?: { username: string; href: string };
 }
 
 /** "Antes de empezar": hero tile with the mascot, how to play, two facts and the big Empezar button. */
-export function GameIntro({ game, practice, position, closeHref, starting, error, onStart }: GameIntroProps) {
+export function GameIntro({ game, practice, position, closeHref, starting, error, onStart, signInHint }: GameIntroProps) {
   const onGold = game.colors.on !== "#FFFFFF";
   return (
     <Screen clouds={["-left-10 bottom-[90px] w-[220px] opacity-95"]} style={gameStyle(game)}>
@@ -84,6 +87,15 @@ export function GameIntro({ game, practice, position, closeHref, starting, error
       {!practice && <OneAttemptNotice />}
 
       <div className="mt-auto px-5 pt-3.5">
+        {signInHint && (
+          <Link href={signInHint.href} className="mb-3 flex items-center gap-2.5 rounded-row bg-white px-3.5 py-2.5 shadow-sm active:scale-[.98]">
+            <LogIn className="size-4 shrink-0 text-brand" strokeWidth={2.6} />
+            <span className="flex-1 text-[13px] leading-[1.35] font-bold">
+              No entraste como {signInHint.username}: este reto no va a quedar en tu cuenta.
+            </span>
+            <span className="shrink-0 text-[13px] font-extrabold text-brand">Entrar</span>
+          </Link>
+        )}
         {error && (
           <p role="alert" className="mb-3 rounded-row bg-white px-4 py-3 text-center text-sm font-bold text-danger shadow-sm">
             {error}

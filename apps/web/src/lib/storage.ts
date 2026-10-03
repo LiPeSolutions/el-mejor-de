@@ -1,10 +1,13 @@
 import type { GameId } from "@repo/games";
 import { dailyTotal, weekStart, weeklyScore, addDays } from "@repo/shared";
+import { loadAccount } from "./account";
+import type { HistoryAttempt } from "./account-types";
 import type { ChallengeResult } from "./challenge-types";
 
 /**
- * What this browser played. Until accounts exist, today's attempts, the streak,
- * the week and practice records live in localStorage. Reads never throw.
+ * What was played on this browser: each day's attempts (for the streak and the
+ * week) and the practice records live in localStorage. Days are kept apart per
+ * account, so a family sharing a phone doesn't mix them. Reads never throw.
  */
 
 export interface StoredAttempt {
@@ -52,14 +55,32 @@ function write(key: string, value: unknown, storage: () => Storage = () => windo
   }
 }
 
+function keysStartingWith(prefix: string): string[] {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+  } catch {
+    // ignore
+  }
+  return keys;
+}
+
+/** "emd:dia:2026-10-03" without an account, "emd:<account id>:dia:2026-10-03" with one. */
+function dayPrefix(accountId = loadAccount()?.id): string {
+  return accountId ? `emd:${accountId}:dia:` : DAY_PREFIX;
+}
+
 export function loadDay(date: string): StoredDay {
-  return read<StoredDay>(DAY_PREFIX + date) ?? { date, attempts: {} };
+  return read<StoredDay>(dayPrefix() + date) ?? { date, attempts: {} };
 }
 
 export function saveAttempt(date: string, attempt: StoredAttempt): void {
   const day = loadDay(date);
   day.attempts[attempt.slot] = attempt;
-  write(DAY_PREFIX + date, day);
+  write(dayPrefix() + date, day);
 }
 
 export function updateAttempt(date: string, slot: number, patch: Partial<StoredAttempt>): void {
@@ -67,7 +88,45 @@ export function updateAttempt(date: string, slot: number, patch: Partial<StoredA
   const current = day.attempts[slot];
   if (!current) return;
   day.attempts[slot] = { ...current, ...patch };
-  write(DAY_PREFIX + date, day);
+  write(dayPrefix() + date, day);
+}
+
+/** At sign-up: what this browser played without an account becomes the new account's. */
+export function adoptAnonymousDays(accountId: string): void {
+  const target = dayPrefix(accountId);
+  for (const key of keysStartingWith(DAY_PREFIX)) {
+    const date = key.slice(DAY_PREFIX.length);
+    const anonymous = read<StoredDay>(key);
+    const existing = read<StoredDay>(target + date);
+    write(target + date, { date, attempts: { ...anonymous?.attempts, ...existing?.attempts } } satisfies StoredDay);
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/** At sign-in: the account's attempts, from the server, fill in what this browser doesn't know. */
+export function mergeAccountDays(accountId: string, attempts: readonly HistoryAttempt[]): void {
+  const target = dayPrefix(accountId);
+  const byDate = new Map<string, HistoryAttempt[]>();
+  for (const attempt of attempts) byDate.set(attempt.date, [...(byDate.get(attempt.date) ?? []), attempt]);
+  for (const [date, played] of byDate) {
+    const day = read<StoredDay>(target + date) ?? { date, attempts: {} };
+    for (const attempt of played) {
+      const local = day.attempts[attempt.slot];
+      if (local?.status === "finished" || (local && attempt.status !== "finished")) continue;
+      day.attempts[attempt.slot] = {
+        slot: attempt.slot,
+        game: attempt.game,
+        status: attempt.status,
+        startedAt: attempt.startedAt,
+        ...(attempt.result ? { result: attempt.result } : {}),
+      };
+    }
+    write(target + date, day);
+  }
 }
 
 export function finishedScores(day: StoredDay): number[] {
@@ -77,14 +136,7 @@ export function finishedScores(day: StoredDay): number[] {
 }
 
 export function hasAnyHistory(): boolean {
-  try {
-    for (let i = 0; i < window.localStorage.length; i++) {
-      if (window.localStorage.key(i)?.startsWith(DAY_PREFIX)) return true;
-    }
-  } catch {
-    // ignore
-  }
-  return false;
+  return keysStartingWith(dayPrefix()).length > 0;
 }
 
 /** Days in a row (ending today, or yesterday if today is still open) with at least one finished challenge. */
@@ -97,6 +149,20 @@ export function currentStreak(today: string): number {
     date = addDays(date, -1);
   }
   return streak;
+}
+
+/** Days with a finished challenge and the best day's total, from this browser's history. */
+export function playedDaysSummary(): { daysPlayed: number; bestDay: number } {
+  let daysPlayed = 0;
+  let bestDay = 0;
+  for (const key of keysStartingWith(dayPrefix())) {
+    const day = read<StoredDay>(key);
+    const scores = day ? finishedScores(day) : [];
+    if (scores.length === 0) continue;
+    daysPlayed++;
+    bestDay = Math.max(bestDay, dailyTotal(scores));
+  }
+  return { daysPlayed, bestDay };
 }
 
 /** This week's score (best 5 days) and days played, from this browser's history. */

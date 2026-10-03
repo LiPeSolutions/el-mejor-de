@@ -12,9 +12,9 @@
 | PWA | Manifest + service worker (**Serwist**) | Instalable sin tiendas, tolera mala conexión y permite notificaciones push (etapa 1.5). |
 | Hosting | **Vercel Pro** (ya contratado) | Deploys automáticos desde GitHub, previews por PR, crons y headers de geolocalización por IP. |
 | Base de datos | **Supabase Postgres** + **PostGIS** | SQL para rankings (funciones de ventana) y PostGIS para verificar ubicaciones contra polígonos. |
-| Auth | **Supabase Auth** | Usuarios anónimos que después se convierten en cuenta (Google o email con código). |
-| Emails | **Resend** (como SMTP de Supabase Auth) | El SMTP incluido en Supabase tiene límites muy bajos para producción. |
-| Anti-bots | **Cloudflare Turnstile** | Captcha invisible al crear usuarios anónimos y al registrarse. |
+| Cuentas | **Propias, en la base** (apodo y contraseña con scrypt, sesión en una cookie httpOnly) | La cuenta no usa email, así que Supabase Auth no aporta: así no hay nada que configurar en su panel y todo se prueba en local. Google se suma después, solo para vincular la cuenta. |
+| Emails | **Ninguno por ahora** | Las cuentas no usan email. Si algún día se suma, Resend como servicio de envío. |
+| Anti-bots | **Cloudflare Turnstile** *(propuesta)* | Captcha invisible al registrarse, si los límites por navegador y por conexión no alcanzan. |
 | Tests | **Vitest** (lógica) + **Playwright** (punta a punta) | La lógica de juegos y puntajes tiene que estar muy bien testeada. |
 | Tiempo real (etapa 2) | A definir: **Colyseus** en Fly.io/Railway o **Cloudflare Durable Objects** | Para el truco: servidor autoritativo con estado oculto por jugador. |
 
@@ -85,11 +85,11 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 | `/api/retos/terminar` | Recibe el registro del juego, recalcula todo desde la semilla y devuelve el puntaje. Un reto se corrige **una sola vez**: si se manda de nuevo, vuelve el resultado guardado. |
 
 - **Token del intento:** id del intento, juego, fecha, slot, jugador y hora de inicio, firmados con HMAC. El servidor regenera el contenido desde la semilla en cada pedido (con un caché en memoria), así que el contenido no se guarda. Un token vencido (pasado el tiempo máximo del juego más dos minutos) se rechaza.
-- **Jugador:** hasta que haya cuentas, una cookie anónima `emd_uid` (httpOnly, un año) hace de identificador del navegador.
-- **Un solo intento, en el servidor:** `empezar` registra el intento en `game.attempts`, que acepta uno por navegador (y, cuando haya cuentas, uno por cuenta) para cada fecha y slot. Si ya estaba, responde `409 already-played` con lo jugado, y el celu muestra el resultado guardado. Un intento empezado y abandonado se cierra con 0 cuando se vence.
+- **Jugador:** sin cuenta, una cookie anónima `emd_uid` (httpOnly, un año) identifica al navegador; con cuenta, el reto queda a nombre de la cuenta (ver "Cuentas").
+- **Un solo intento, en el servidor:** `empezar` registra el intento en `game.attempts`, que acepta uno por cuenta y, sin cuenta, uno por navegador, para cada fecha y slot. Si ya estaba, responde `409 already-played` con lo jugado, y el celu muestra el resultado guardado. Un intento empezado y abandonado se cierra con 0 cuando se vence.
 - **Lo que recuerda el celu:** los intentos del día, la racha, la semana y los récords de práctica también viven en el `localStorage`, para mostrarlos al instante. Si un reto se corta a la mitad, al volver se corrige con lo que se llegó a jugar.
 - **Marcas de plausibilidad:** se guardan con cada intento (`flags`) y también van a los logs del servidor como `suspicious-attempt`.
-- **Límite conocido:** sin cuentas, quien borra las cookies es un navegador nuevo y puede repetir. Por eso los rankings van a contar solo los intentos hechos con cuenta.
+- **Límite conocido:** sin cuenta, quien borra las cookies es un navegador nuevo y puede repetir. Por eso los rankings van a contar solo los intentos hechos con cuenta.
 - **Sin base de datos:** si no está `DATABASE_URL` (desarrollo local y CI), la API funciona igual pero no guarda nada, y "un solo intento" lo controla solo el navegador.
 - **Secreto:** la variable `CHALLENGE_SECRET` (32 caracteres o más) deriva las semillas y firma los tokens. En producción es obligatoria (sin ella la API no arranca); en desarrollo y en los previews se usa una de prueba.
 
@@ -99,6 +99,30 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 - **Conexión:** `DATABASE_URL` apunta al pooler de transacciones de Supabase (puerto 6543) con el rol `app_server`; el cliente es postgres.js sin prepared statements. La contraseña del rol se define fuera del repo.
 - **Región:** las funciones de Vercel corren en São Paulo (`gru1`, en `apps/web/vercel.json`), igual que la base: es lo más cerca de Argentina.
 - **Lugares:** `supabase/scripts/import-places.sql` carga provincias, departamentos y localidades desde Georef. Corre adentro de la base (extensión `http`) y se puede repetir para actualizar.
+
+### Cuentas
+
+Apodo y contraseña, sin email (decisión de producto del 3/10/2026). El código está en `apps/web/src/server/accounts.ts` (reglas), `packages/db/src/accounts.ts` (consultas) y `packages/shared/src/accounts.ts` (reglas de apodos y contraseñas, compartidas con el navegador).
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /api/cuenta/crear` | Crea la cuenta (apodo, contraseña, personaje y El / La Mejor), le pasa lo que ese navegador jugó **ese día** sin cuenta y la deja abierta. |
+| `POST /api/cuenta/entrar` | Entra con apodo y contraseña. Devuelve los intentos de los últimos 60 días, para que un celu nuevo muestre la racha y la semana. |
+| `POST /api/cuenta/salir` | Cierra la sesión de ese navegador. |
+| `GET /api/cuenta` | Quién está adentro (`?historial=1` suma los intentos). La app lo consulta en cada visita (`AccountSync`). |
+| `GET /api/cuenta/apodo?nombre=` | Si un apodo está libre. |
+| `POST /api/cuenta/perfil` | Cambia el personaje o El / La Mejor. |
+
+- **Apodos:** de 3 a 16 letras, números, puntos o guiones bajos. Únicos sin importar mayúsculas ni acentos (`username_key`, generado con `game.search_name`). Hay una lista de palabras prohibidas (con lunfardo y números disfrazados de letras) y de nombres reservados.
+- **Contraseñas:** 8 caracteres o más, que no sean de las más comunes ni iguales al apodo. Se guardan con **scrypt** (N=2^15, r=8, p=3, sal propia); los parámetros van con cada hash para poder subirlos.
+- **Sesión:** un token al azar en la cookie `emd_sesion` (httpOnly, SameSite=Lax, segura en producción). La base guarda solo su SHA-256, en `game.sessions`. Dura 90 días y se renueva sola cuando le quedan menos de 45. Salir la vence (el rol del servidor no borra filas).
+- **Límites:** 10 intentos fallidos por apodo y 30 por conexión cada 15 minutos; 3 cuentas nuevas por navegador por día y 20 por conexión por hora. La conexión se guarda como un hash con clave, nunca la IP (`game.auth_events`).
+- **Otros sitios:** los `POST` de cuentas rechazan pedidos con un `Origin` ajeno, además de las cookies SameSite.
+- **Retos con cuenta:** el token del intento lleva `device` (el navegador), `account` (la cuenta) y `user` (la semilla de las variantes: la cuenta si hay, si no el navegador). "Uno por navegador" vale solo sin cuenta, así una familia que comparte el celu juega cada uno con la suya; pero un navegador que ya jugó un reto sin cuenta no puede jugarlo de nuevo entrando a una.
+- **Qué pasa a la cuenta:** al **crearla**, lo que ese navegador jugó ese día. Al **entrar** a una cuenta que ya existía no se suma nada de lo jugado sin cuenta: si no, alguien podría probar en varios navegadores y entrar con el mejor.
+- **En el navegador:** una copia de la cuenta en `localStorage` (`emd:cuenta`) para dibujar las pantallas al instante, y los días guardados por cuenta (`emd:<cuenta>:dia:<fecha>`), para que en un celu compartido no se mezclen.
+- **Sin base de datos** (local y CI) las cuentas no funcionan: los endpoints responden `503 accounts-unavailable`.
+- **Pruebas:** reglas y consultas con Vitest sobre PGlite (`packages/shared`, `packages/db` y `apps/web/src/server/accounts.test.ts`).
 
 **Contrato de cada juego** (`packages/games`):
 
@@ -123,11 +147,11 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 | Agujero | Mitigación |
 |---|---|
-| Jugar como anónimo en varios navegadores para ensayar y registrarse con el mejor intento | Turnstile al crear usuarios anónimos, límite de anónimos por IP, y los puntajes que pasan de anónimo a cuenta atraviesan los mismos chequeos de plausibilidad. |
+| Jugar como anónimo en varios navegadores para ensayar y registrarse con el mejor intento | Solo pasa a la cuenta lo jugado ese día en el navegador donde se crea, una vez. Al entrar a una cuenta existente no se suma nada. Límite de cuentas nuevas por navegador y por conexión, y los mismos chequeos de plausibilidad. |
 | Pasarse las respuestas (la palabra o las preguntas del día) | Tiempo límite corto, orden mezclado y, si hace falta, contenido distinto por jugador con dificultad equivalente. |
 | Bots o scripts en juegos de habilidad (dependen del reloj del celu) | Rangos humanos (por ejemplo, reflejos de menos de 100 ms son imposibles), análisis de varianza, verificación en el podio y revisión manual de coronas grandes. Si un juego resulta demasiado trucable, sale de los retos diarios y queda solo como juego libre. |
 | GPS falso | Cruce con la región por IP (headers `x-vercel-ip-*`), precisión reportada, viajes imposibles y re-verificación en momentos clave. |
-| Cuentas múltiples | Un intento por cuenta, señales de IP y navegador, y revisión de patrones. |
+| Cuentas múltiples | Un intento por cuenta, cada cuenta con sus propias variantes (Reflejos, Secuencia), límites de cuentas nuevas, señales de conexión y navegador, y revisión de patrones. |
 
 ## 5. Lugares y verificación de ubicación
 
@@ -161,7 +185,9 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | Tabla | Para qué |
 |---|---|
 | `places` | **(Creada.)** Jerarquía de lugares (país → provincia → departamento → localidad). |
-| `profiles` | Apodo, avatar, localidad, fecha de verificación y fecha del último cambio de localidad. |
+| `users` | **(Creada.)** La cuenta: apodo, hash de la contraseña, personaje, El / La Mejor, localidad y, más adelante, Google vinculado. Falta: fecha de verificación y del último cambio de localidad. |
+| `sessions` | **(Creada.)** Sesiones abiertas: hash del token, cuenta, navegador y vencimiento. |
+| `auth_events` | **(Creada.)** Cuentas nuevas e intentos fallidos de entrar, para los límites. |
 | `location_verifications` | Resultado de cada verificación (sin coordenadas). |
 | `daily_challenges` | Los retos de cada día: fecha, slot, juego, referencia de la semilla y dificultad. |
 | `attempts` | **(Creada.)** Cada intento: navegador, cuenta, fecha y slot, juego, inicio, fin, puntaje, resultado, marcas, progreso del servidor y lugar del momento. |
@@ -194,7 +220,7 @@ Las tablas viven en el esquema `game` (ver §4, "La base de datos"). **Row Level
 
 - **Supabase:** organización propia, "El Mejor de" (separada de otros proyectos), con el proyecto `qosoxpsjltmghadfkzph` en São Paulo (`sa-east-1`). Plan gratuito para empezar y Pro para el lanzamiento. Se creó con la Data API apagada y RLS automático. Migraciones versionadas en `supabase/migrations`.
 - **Conexión de la app:** pooler de transacciones `aws-0-sa-east-1.pooler.supabase.com:6543`, usuario `app_server.qosoxpsjltmghadfkzph`, con TLS (`sslmode=require`). La URL completa vive solo en Vercel (`DATABASE_URL`, producción).
-- **Vercel:** proyecto `el-mejor-de-web` (Root Directory `apps/web`), que publica cada push a la rama principal. Mientras no esté el dominio propio, la dirección es `el-mejor-de-web.vercel.app`.
+- **Vercel:** proyecto `el-mejor-de-web` (Root Directory `apps/web`), que publica cada push a la rama principal. La dirección es `game.lipesolutions.com` (registro CNAME `game` → `cname.vercel-dns.com` en Namecheap, donde está el DNS de lipesolutions.com); `el-mejor-de-web.vercel.app` sigue andando.
 - **Variables de entorno:** `CHALLENGE_SECRET` y `DATABASE_URL` (ver `apps/web/.env.example`).
 - **Secretos:** solo en variables de entorno de Vercel y Supabase; nunca en el repo.
 - **CI (GitHub Actions):** lint, chequeo de tipos, tests unitarios y un smoke test con Playwright en cada PR.
@@ -205,7 +231,7 @@ Las tablas viven en el esquema `game` (ver §4, "La base de datos"). **Row Level
 |---|---|---|
 | Vercel Pro | ya contratado | ya contratado |
 | Supabase | USD 0 (Free) | USD 25/mes (Pro) |
-| Resend (emails) | USD 0 (hasta 3.000 por mes) | USD 0–20/mes |
+| Resend (emails) | No hace falta (cuentas sin email) | — |
 | Cloudflare Turnstile | USD 0 | USD 0 |
 | Dominio | ya está | ya está |
 | Tiempo real para el truco | — | USD 5–20/mes (etapa 2) |

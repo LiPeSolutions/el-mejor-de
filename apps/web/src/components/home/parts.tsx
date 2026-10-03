@@ -149,7 +149,7 @@ export function Hero({ title, subtitle, character, children }: { title: ReactNod
       <span aria-hidden className="absolute inset-0 bg-hero-glow" />
       <Cloud className="-top-3.5 -right-4 w-[110px] opacity-28" />
       <Cloud className="-bottom-[26px] -left-[22px] w-[190px] opacity-95" />
-      <h1 className="relative font-display text-[28px] leading-[1.05] font-extrabold tracking-[-.02em] short:text-2xl">{title}</h1>
+      <h1 className="relative font-display text-[28px] leading-[1.05] font-extrabold tracking-[-.02em] [overflow-wrap:anywhere] short:text-2xl">{title}</h1>
       <p className="relative mt-1 text-[13px] font-semibold text-white/82">{subtitle}</p>
       <div className="relative mt-1.5 flex items-end justify-between">
         <div className="ml-1 h-[139px] w-[116px] flex-none short:h-[101px] short:w-[84px]">{character}</div>

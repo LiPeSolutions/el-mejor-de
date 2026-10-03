@@ -66,14 +66,20 @@ export interface NewAttempt {
 }
 
 /**
- * Starts a daily challenge. If this browser (or this account) already took
- * the slot, nothing is written and the existing attempt comes back instead.
+ * Starts a daily challenge. If this player already took the slot, nothing is
+ * written and the existing attempt comes back instead. Without an account the
+ * player is the browser; with one, it's the account. A browser that already
+ * played the slot without an account can't play it again by signing in.
  */
 export async function claimAttempt(db: Queryable, input: NewAttempt): Promise<{ created: boolean; attempt: Attempt }> {
   const userId = input.userId ?? null;
   const inserted = await db.query<AttemptRow>(
     `insert into game.attempts (id, device_id, user_id, game_date, slot, game, started_at)
-     values ($1::uuid, $2::uuid, $3::uuid, $4::date, $5::smallint, $6, to_timestamp($7::float8 / 1000))
+     select $1::uuid, $2::uuid, $3::uuid, $4::date, $5::smallint, $6, to_timestamp($7::float8 / 1000)
+     where not exists (
+       select 1 from game.attempts
+       where device_id = $2::uuid and game_date = $4::date and slot = $5::smallint and user_id is null
+     )
      on conflict do nothing
      returning ${COLUMNS}`,
     [input.id, input.deviceId, userId, input.date, input.slot, input.game, input.startedAt],
@@ -83,7 +89,7 @@ export async function claimAttempt(db: Queryable, input: NewAttempt): Promise<{ 
   const existing = await db.query<AttemptRow>(
     `select ${COLUMNS} from game.attempts
      where game_date = $3::date and slot = $4::smallint
-       and (device_id = $1::uuid or ($2::uuid is not null and user_id = $2::uuid))
+       and ((device_id = $1::uuid and user_id is null) or user_id = $2::uuid)
      order by started_at
      limit 1`,
     [input.deviceId, userId, input.date, input.slot],
@@ -141,4 +147,15 @@ export async function questionServedAt(db: Queryable, attemptId: string, index: 
     [attemptId, key, now],
   );
   return rows[0]?.served_at ?? null;
+}
+
+/** An account's attempts from `fromDate` on, oldest first: for a browser that just signed in. */
+export async function userAttemptsSince(db: Queryable, userId: string, fromDate: string): Promise<Attempt[]> {
+  const rows = await db.query<AttemptRow>(
+    `select ${COLUMNS} from game.attempts
+     where user_id = $1::uuid and game_date >= $2::date
+     order by game_date, slot`,
+    [userId, fromDate],
+  );
+  return rows.map(toAttempt);
 }

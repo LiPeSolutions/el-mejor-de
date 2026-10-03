@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { claimAttempt, finishAttempt, questionServedAt } from './attempts';
+import { createUser } from './accounts';
+import { claimAttempt, finishAttempt, questionServedAt, userAttemptsSince } from './attempts';
 import { testDatabase, type TestDatabase } from './testing';
 
 let db: TestDatabase;
@@ -8,7 +9,7 @@ beforeAll(async () => {
   db = await testDatabase();
 });
 beforeEach(async () => {
-  await db.query('truncate game.attempts');
+  await db.query('truncate game.attempts, game.sessions, game.users');
 });
 afterAll(async () => {
   await db.close();
@@ -26,6 +27,11 @@ function attempt(overrides: Partial<Parameters<typeof claimAttempt>[1]> = {}) {
     startedAt: START,
     ...overrides,
   };
+}
+
+async function newUser(username: string): Promise<string> {
+  const user = await createUser(db, { username, passwordHash: 'x', avatar: {}, article: 'el' });
+  return user!.id;
 }
 
 const grade = (score: number) => ({ finishedAt: START + 60_000, score, result: { game: 'reflexes', score }, flags: [] });
@@ -48,11 +54,25 @@ describe('claimAttempt', () => {
   });
 
   it('starts a challenge once per account, even from another browser', async () => {
-    const userId = randomUUID();
+    const userId = await newUser('Tincho');
     const first = await claimAttempt(db, attempt({ userId }));
     const otherBrowser = await claimAttempt(db, attempt({ userId, deviceId: randomUUID() }));
     expect(otherBrowser.created).toBe(false);
     expect(otherBrowser.attempt.id).toBe(first.attempt.id);
+  });
+
+  it('lets a family share a phone, each with their own account', async () => {
+    const mom = await newUser('Mama');
+    const kid = await newUser('Juli');
+    expect((await claimAttempt(db, attempt({ userId: mom }))).created).toBe(true);
+    expect((await claimAttempt(db, attempt({ userId: kid }))).created).toBe(true);
+  });
+
+  it("doesn't let a browser that played without an account play it again by signing in", async () => {
+    const anonymous = await claimAttempt(db, attempt());
+    const signedIn = await claimAttempt(db, attempt({ userId: await newUser('Tincho') }));
+    expect(signedIn.created).toBe(false);
+    expect(signedIn.attempt.id).toBe(anonymous.attempt.id);
   });
 
   it('keeps players apart', async () => {
@@ -89,6 +109,21 @@ describe('finishAttempt', () => {
 
   it('returns null for an unknown attempt', async () => {
     expect(await finishAttempt(db, randomUUID(), grade(100))).toBeNull();
+  });
+});
+
+describe('userAttemptsSince', () => {
+  it("lists an account's attempts from a date on, oldest first", async () => {
+    const userId = await newUser('Tincho');
+    await claimAttempt(db, attempt({ userId, date: '2026-10-01' }));
+    await claimAttempt(db, attempt({ userId, date: '2026-10-03', slot: 1 }));
+    await claimAttempt(db, attempt({ userId, date: '2026-10-03' }));
+    await claimAttempt(db, attempt({ date: '2026-10-03', slot: 2 }));
+    const attempts = await userAttemptsSince(db, userId, '2026-10-02');
+    expect(attempts.map((a) => [a.date, a.slot])).toEqual([
+      ['2026-10-03', 0],
+      ['2026-10-03', 1],
+    ]);
   });
 });
 

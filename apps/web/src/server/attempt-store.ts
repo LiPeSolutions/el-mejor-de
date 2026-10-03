@@ -34,7 +34,8 @@ export async function recordStart(claims: AttemptClaims, now = Date.now()): Prom
   if (!db || claims.mode !== "daily") return;
   const { created, attempt } = await claimAttempt(db, {
     id: claims.id,
-    deviceId: claims.user,
+    deviceId: claims.device ?? claims.user,
+    userId: claims.account ?? null,
     date: claims.date,
     slot: claims.slot,
     game: claims.game,

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
+import { lastUsername, loadAccount } from "@/lib/account";
 import { ApiError, api } from "@/lib/api";
 import { zeroResult } from "@/lib/challenge-results";
 import type { PlayedAttempt, StartResponse } from "@/lib/challenge-types";
@@ -54,6 +55,8 @@ function Runner(props: Props) {
   // that was left halfway is graded with whatever was played before leaving.
   const [previous] = useState(() => (props.mode === "daily" ? loadDay(props.date).attempts[props.slot] : undefined));
   const resumable = previous?.status === "started" && previous.token ? previous : null;
+  // Someone who has an account here but isn't signed in would play it without it.
+  const [signedOutAs] = useState(() => (props.mode === "daily" && !loadAccount() ? lastUsername() : null));
   const [stage, setStage] = useState<Stage>(() => {
     if (previous?.status === "finished") return "redirecting";
     return resumable ? "finishing" : "intro";
@@ -163,6 +166,7 @@ function Runner(props: Props) {
         starting={starting}
         error={error}
         onStart={begin}
+        signInHint={signedOutAs ? { username: signedOutAs, href: `/cuenta/entrar?volver=/jugar/${props.slug}` } : undefined}
       />
     );
   }

@@ -54,7 +54,12 @@ export interface AttemptClaims {
   date: string;
   /** 0–2 for daily challenges, -1 for practice. */
   slot: number;
+  /** Seeds this player's own variants: the account when signed in, else the browser. */
   user: string;
+  /** The browser (emd_uid cookie). Tokens from before accounts don't have it: it's `user`. */
+  device?: string;
+  /** The account, when the player is signed in. */
+  account?: string;
   /** Practice only: random seed. */
   seed?: string;
   startedAt: number;
@@ -170,15 +175,22 @@ function startView(generated: Generated): StartView {
 
 export type StartInput = { mode: "daily"; slot: number } | { mode: "practice"; game: GameId };
 
-export function startAttempt(input: StartInput, user: string, now = Date.now()) {
+/** Who plays: the browser, and the account when signed in. */
+export interface Player {
+  device: string;
+  account?: string | null;
+}
+
+export function startAttempt(input: StartInput, player: Player, now = Date.now()) {
   const date = toGameDate(new Date(now));
+  const who = { user: player.account ?? player.device, device: player.device, ...(player.account ? { account: player.account } : {}) };
   let claims: AttemptClaims;
   if (input.mode === "daily") {
     const game = dailyLineup(date)[input.slot];
     if (!game) throw new HttpError(400, "invalid-slot");
-    claims = { v: 1, id: randomUUID(), mode: "daily", game, date, slot: input.slot, user, startedAt: now };
+    claims = { v: 1, id: randomUUID(), mode: "daily", game, date, slot: input.slot, ...who, startedAt: now };
   } else {
-    claims = { v: 1, id: randomUUID(), mode: "practice", game: input.game, date, slot: -1, user, seed: randomUUID(), startedAt: now };
+    claims = { v: 1, id: randomUUID(), mode: "practice", game: input.game, date, slot: -1, ...who, seed: randomUUID(), startedAt: now };
   }
   return { token: signToken(claims), claims, view: startView(generate(claims)) };
 }

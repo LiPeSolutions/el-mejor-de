@@ -13,7 +13,7 @@ import { useClientValue } from "@/lib/hooks";
 import { loadDay, practiceCount, practiceRecords, type PracticeRecord } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
 
-function recordLabel(game: GameTheme, record: PracticeRecord | undefined): string {
+export function recordLabel(game: GameTheme, record: PracticeRecord | undefined): string {
   if (!record) return "—";
   if (game.id === "reflexes" && record.best !== undefined) return `${record.best} ms`;
   if (game.id === "sequence" && record.best !== undefined) return `Nivel ${record.best}`;

@@ -6,8 +6,9 @@ const COOKIE = "emd_uid";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /**
- * Anonymous id for this browser, used to give each player their own variants.
- * It will be replaced by the account id once accounts exist.
+ * Anonymous id for this browser. Without an account it is the player (their
+ * own variants, one attempt per challenge); with one, it's still recorded with
+ * each attempt.
  */
 export async function deviceId(): Promise<string> {
   const store = await cookies();

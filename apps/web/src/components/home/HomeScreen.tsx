@@ -1,13 +1,17 @@
 "use client";
 
-import { Clock, Gamepad2, Lock, Play, Trophy, type LucideIcon } from "lucide-react";
+import { Clock, Gamepad2, Lock, LogIn, Play, Trophy, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
-import { Personaje } from "@/components/personaje/Personaje";
+import { Personaje, type Face } from "@/components/personaje/Personaje";
+import { avatarLook } from "@/components/personaje/avatar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 import { Logo } from "@/components/ui/Logo";
 import { Screen } from "@/components/ui/Screen";
+import { useAccount } from "@/lib/account";
+import type { PublicAccount } from "@/lib/account-types";
 import { daySlots, pendingSlots, type DaySlot } from "@/lib/day";
 import { useClientValue } from "@/lib/hooks";
 import { currentStreak, hasAnyHistory, loadDay, weekSummary } from "@/lib/storage";
@@ -23,6 +27,7 @@ interface HomeState {
 
 /** Inicio: first visit, today's challenges still to play, or the day already done. */
 export function HomeScreen({ today }: { today: TodayInfo }) {
+  const account = useAccount();
   const state = useClientValue<HomeState>(
     () => ({
       slots: daySlots(today, loadDay(today.date)),
@@ -30,15 +35,21 @@ export function HomeScreen({ today }: { today: TodayInfo }) {
       streak: currentStreak(today.date),
       week: weekSummary(today.date),
     }),
-    today.date,
+    `${today.date}:${account?.id ?? ""}`,
   );
 
   // What this browser played lives in localStorage: render once it's read.
-  if (!state) return <Screen>{null}</Screen>;
+  if (!state || account === undefined) return <Screen>{null}</Screen>;
   const pending = pendingSlots(state.slots);
-  if (state.firstVisit) return <FirstVisit next={pending[0] ?? state.slots[0]!} />;
-  if (pending.length > 0) return <TodayPending today={today} state={state} pending={pending} />;
-  return <TodayDone today={today} state={state} />;
+  if (state.firstVisit && !account) return <FirstVisit next={pending[0] ?? state.slots[0]!} />;
+  if (pending.length > 0) return <TodayPending today={today} state={state} pending={pending} account={account} />;
+  return <TodayDone today={today} state={state} account={account} />;
+}
+
+/** The player's own character when signed in; the hornero otherwise. */
+function HeroCharacter({ account, face }: { account: PublicAccount | null; face?: Face }) {
+  const look = account ? avatarLook(account.avatar) : { sp: "hornero" as const, acc: ["anteojos" as const] };
+  return <Personaje {...look} face={face} size={116} anim="bob" className="size-full" />;
 }
 
 const dayLabel = (today: TodayInfo) => (today.dayNumber > 0 ? `Día ${today.dayNumber} · ` : "");
@@ -60,8 +71,15 @@ function FirstVisit({ next }: { next: DaySlot }) {
     <Screen
       clouds={["-right-[50px] top-[150px] w-[160px] opacity-95", "left-[30px] top-[270px] w-[330px] opacity-95", "-right-[60px] bottom-[30px] w-[230px] opacity-95"]}
     >
-      <div className="px-5">
+      <div className="flex items-center justify-between px-5">
         <Logo />
+        <Link
+          href="/cuenta/entrar"
+          className="flex h-[38px] items-center gap-1.5 rounded-full bg-white px-3.5 text-sm font-extrabold shadow-[0_6px_16px_rgba(35,38,58,.08)] active:scale-95"
+        >
+          <LogIn className="size-4 text-brand" strokeWidth={2.6} />
+          Entrar
+        </Link>
       </div>
       <div className="mt-[72px] flex h-[100px] items-end justify-center gap-2.5 short:mt-5 short:h-[80px]" aria-hidden>
         <Personaje sp="carpincho" size={64} acc={["boina"]} />
@@ -112,7 +130,7 @@ function Names({ slots }: { slots: readonly DaySlot[] }) {
   ));
 }
 
-function TodayPending({ today, state, pending }: { today: TodayInfo; state: HomeState; pending: DaySlot[] }) {
+function TodayPending({ today, state, pending, account }: { today: TodayInfo; state: HomeState; pending: DaySlot[]; account: PublicAccount | null }) {
   const next = pending[0]!;
   const played = state.slots.length - pending.length;
   let bubble: ReactNode;
@@ -137,9 +155,9 @@ function TodayPending({ today, state, pending }: { today: TodayInfo; state: Home
         <StreakPill streak={state.streak} />
       </header>
       <Hero
-        title="¡Buenas!"
+        title={account ? `¡Buenas, ${account.username}!` : "¡Buenas!"}
         subtitle={played === 0 ? `${dayLabel(today)}tenés 3 retos nuevos` : `${dayLabel(today)}jugaste ${played} de 3 retos`}
-        character={<Personaje sp="hornero" acc={["anteojos"]} size={116} anim="bob" className="size-full" />}
+        character={<HeroCharacter account={account} />}
       >
         {bubble}
       </Hero>
@@ -164,7 +182,7 @@ function TodayPending({ today, state, pending }: { today: TodayInfo; state: Home
 
 /* ───────────── Day done (design 26) ───────────── */
 
-function TodayDone({ today, state }: { today: TodayInfo; state: HomeState }) {
+function TodayDone({ today, state, account }: { today: TodayInfo; state: HomeState; account: PublicAccount | null }) {
   return (
     <Screen clouds={HOME_CLOUDS} nav>
       <header className="flex items-center justify-between px-5">
@@ -172,9 +190,9 @@ function TodayDone({ today, state }: { today: TodayInfo; state: HomeState }) {
         <StreakPill streak={state.streak} />
       </header>
       <Hero
-        title="Hoy ya está"
+        title={account ? `Hoy ya está, ${account.username}` : "Hoy ya está"}
         subtitle={`${dayLabel(today)}jugaste los 3 retos`}
-        character={<Personaje sp="hornero" acc={["anteojos"]} face="sleep" size={116} anim="bob" className="size-full" />}
+        character={<HeroCharacter account={account} face="sleep" />}
       >
         Volvé mañana y seguí la racha. Mientras, podés practicar.
       </Hero>

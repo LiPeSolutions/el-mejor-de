@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 3 de octubre de 2026 (base de datos para un solo intento de verdad).
+> Última actualización: 3 de octubre de 2026 (cuentas con apodo y contraseña, y dirección `game.lipesolutions.com`).
 
 ## 1. La idea
 
@@ -20,7 +20,7 @@ Lo que la hace distinta:
 | Tema | Decisión |
 |---|---|
 | Nombre | **Provisorio: "El Mejor de"** (o "El Mejor") hasta definir el definitivo. En el código se cambia en un solo lugar. |
-| Dominio | **Por ahora, un subdominio de lipesolutions.com** (propuesta: `elmejorde.lipesolutions.com`). El dominio propio se compra cuando esté el nombre: `elmejorde.app` y `elmejorde.com` estaban libres el 2/10/2026. |
+| Dominio | **Por ahora, `game.lipesolutions.com`**, porque "El Mejor de" puede no ser el nombre definitivo. El dominio propio se compra cuando esté el nombre: `elmejorde.app` y `elmejorde.com` estaban libres el 2/10/2026. |
 | Diseño | Dirección **"Plaza + cielo"** de Claude Design: 40 pantallas de prioridad 1 y 2, sistema de diseño y personajes. Referencia: `docs/diseno/handoff/`. |
 | Alcance | **Argentina primero.** Todo se prepara para sumar otros países después. |
 | Público | **Todo público.** Implica cuidados extra de seguridad (ver §9). |
@@ -31,7 +31,7 @@ Lo que la hace distinta:
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
 | Puntajes | **Los del plan** (§7), no los del diseño. |
 | Ubicación | Se elige y **se verifica con GPS** al registrarse, y **se vuelve a verificar** al hacer un récord o subir en el ranking. |
-| Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta. |
+| Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. |
 | Truco | Online contra gente y mesas privadas. **Sin flor.** 1 vs 1, 2 vs 2 y 3 vs 3. |
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
@@ -47,7 +47,7 @@ Lo que la hace distinta:
 1. Te llega un link por WhatsApp: *"Hoy hice 2.640. ¿Me ganás?"*.
 2. Entrás y jugás los **3 retos del día** sin registrarte (de 3 a 5 minutos en total).
 3. Ves tu puntaje y en qué puesto quedarías en tu localidad: *"Hoy estarías #4 en Chivilcoy. Creá tu cuenta para entrar al ranking."*
-4. Creás la cuenta, elegís tu localidad y la verificás con el GPS. Lo que jugaste pasa a tu cuenta.
+4. Creás la cuenta (apodo, contraseña y personaje), elegís tu localidad y la verificás con el GPS. Lo que jugaste ese día pasa a tu cuenta.
 5. Compartís tu resultado, armás el grupo "El Mejor de los primos" y mandás el link.
 6. Al día siguiente volvés: retos nuevos, tu racha sigue y el ranking de la semana se mueve.
 7. El lunes a la mañana se anuncian las coronas: *"👑 Sos El Mejor de Chivilcoy de la semana"*.
@@ -127,7 +127,7 @@ Si la corona se puede trucar, deja de valer. Por eso hay varias capas:
 2. **Un intento de verdad.** Cada reto se puede empezar una sola vez por cuenta.
 3. **Detección de imposibles.** Por ejemplo, reflejos más rápidos de lo humanamente posible o un salto enorme de nivel de un día para otro. Esos puntajes se marcan para revisión.
 4. **Ubicación verificada** en los momentos clave (ver §5), cruzada con la ubicación aproximada de la conexión a internet.
-5. **Una persona, una cuenta.** Login con Google o email, más controles para detectar cuentas múltiples.
+5. **Una persona, una cuenta.** Como crear una cuenta es fácil (apodo y contraseña), hay límites de cuentas por celu y por conexión, cada reto se juega una vez por cuenta, el ranking del lugar pide GPS y las coronas grandes se revisan.
 6. **Reportes y revisión.** Cualquiera puede reportar algo raro, y las coronas de provincia y de país se revisan a mano antes de entregarse. *(Propuesta.)*
 
 ## 7. Minijuegos
@@ -183,7 +183,7 @@ Como también juegan chicos:
 - **Sin chat libre:** solo frases, emojis y señas predefinidas.
 - **Filtro de palabras** (lunfardo incluido) en apodos y nombres de grupos, más un botón para reportar.
 - **La ubicación nunca se muestra exacta:** solo el nombre de la localidad.
-- **Datos personales al mínimo**, opción de borrar la cuenta, y términos y política de privacidad claros.
+- **Datos personales al mínimo:** la cuenta es un apodo y una contraseña, sin email. Opción de borrar la cuenta, y términos y política de privacidad claros.
 - **Antes de lanzar, validar con un abogado** la Ley 25.326 de Protección de Datos Personales y el manejo de menores de edad (consentimiento de madres, padres o tutores). Más adelante, también la publicidad y las compras.
 
 ## 10. Truco (etapa 2)
@@ -218,7 +218,7 @@ Cada etapa termina con algo que se puede jugar y probar.
 ### Etapa 0 — Cimientos
 
 - Proyecto armado: web app, base de datos en Supabase y publicación en Vercel con el dominio propio.
-- Cuentas: jugar sin registrarse, y registro con Google o email.
+- Cuentas: jugar sin registrarse, y registro con apodo y contraseña (después, vincular con Google).
 - Mapa de lugares de Argentina (provincias, departamentos y localidades, con datos oficiales) y verificación por GPS.
 - Diseño base: colores, tipografía, logo provisorio y pantallas principales.
 
@@ -267,3 +267,5 @@ Para las próximas charlas:
 8. **Barrios** en ciudades grandes: ¿desde cuándo?
 9. **Edad mínima** y manejo de menores: a validar con un abogado.
 10. **Modo oscuro:** el diseño todavía no lo incluye.
+11. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
+12. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?

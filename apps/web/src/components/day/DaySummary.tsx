@@ -1,6 +1,6 @@
 "use client";
 
-import { House, Lock } from "lucide-react";
+import { CircleCheck, House, Lock, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { Countdown, ShareDayButton } from "@/components/home/parts";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Chip";
 import { Logo } from "@/components/ui/Logo";
 import { Screen } from "@/components/ui/Screen";
+import { useAccount } from "@/lib/account";
 import { dayTotal, daySlots } from "@/lib/day";
 import { formatNumber } from "@/lib/format";
 import { gameStyle } from "@/lib/games";
@@ -15,10 +16,11 @@ import { useClientValue } from "@/lib/hooks";
 import { loadDay } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
 
-/** End of the day's run (design 12, without rankings until accounts exist). */
+/** End of the day's run (design 12 and 13, without rankings yet). */
 export function DaySummary({ today }: { today: TodayInfo }) {
-  const slots = useClientValue(() => daySlots(today, loadDay(today.date)), today.date);
-  if (!slots) return <Screen>{null}</Screen>;
+  const account = useAccount();
+  const slots = useClientValue(() => daySlots(today, loadDay(today.date)), `${today.date}:${account?.id ?? ""}`);
+  if (!slots || account === undefined) return <Screen>{null}</Screen>;
 
   return (
     <Screen clouds={["-right-[60px] top-[110px] w-[170px] opacity-95", "-left-[50px] bottom-[120px] w-[220px] opacity-95"]}>
@@ -62,18 +64,28 @@ export function DaySummary({ today }: { today: TodayInfo }) {
           Vas a ver en qué puesto quedás en tu pueblo, tu provincia y el país, y quién se lleva la corona de la semana.
         </p>
         <div className="relative mt-3 flex items-center gap-2 rounded-key bg-white/18 px-3 py-2.5 text-[13px] font-bold">
-          <Lock className="size-4 shrink-0" strokeWidth={2.4} />
-          Para entrar al ranking vas a necesitar una cuenta
+          {account ? <CircleCheck className="size-4 shrink-0" strokeWidth={2.4} /> : <Lock className="size-4 shrink-0" strokeWidth={2.4} />}
+          {account ? `Jugás como ${account.username}: tus puntos quedan en tu cuenta` : "Creá tu cuenta para entrar al ranking"}
         </div>
       </section>
 
-      <div className="mt-auto flex flex-col gap-2.5 px-5 pt-3.5">
-        <ShareDayButton dayNumber={today.dayNumber} slots={slots} size="lg" />
-        <Button variant="secondary" size="md" href="/">
-          <House className="size-[18px]" strokeWidth={2.6} />
-          Ir al inicio
-        </Button>
-      </div>
+      {account ? (
+        <div className="mt-auto flex flex-col gap-2.5 px-5 pt-3.5">
+          <ShareDayButton dayNumber={today.dayNumber} slots={slots} size="lg" />
+          <Button variant="secondary" size="md" href="/">
+            <House className="size-[18px]" strokeWidth={2.6} />
+            Ir al inicio
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-auto grid grid-cols-2 gap-2.5 px-5 pt-3.5">
+          <Button size="md" href="/cuenta/crear?volver=/hoy/resumen">
+            <UserPlus className="size-[18px]" strokeWidth={2.6} />
+            Crear cuenta
+          </Button>
+          <ShareDayButton dayNumber={today.dayNumber} slots={slots} variant="secondary" />
+        </div>
+      )}
       <p className="pt-2.5 text-center text-xs font-semibold text-ink-700">
         Nuevos retos en <Countdown target={today.nextResetAt} />
       </p>
