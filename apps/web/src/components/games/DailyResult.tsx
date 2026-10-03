@@ -8,6 +8,7 @@ import { GAMES } from "@/lib/games";
 import { useClientValue } from "@/lib/hooks";
 import { loadDay } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
+import { LargadaResult } from "@/components/largada/LargadaResult";
 import { GameResultView } from "./GameResultView";
 
 /** Result of one of today's challenges, read from what this browser saved when it was graded. */
@@ -29,5 +30,9 @@ export function DailyResult({ today, slot }: { today: TodayInfo; slot: number })
     ? { href: `/jugar/${next.game.slug}`, label: "Siguiente reto", note: `${next.game.name} · ${next.game.duration}` }
     : { href: "/hoy/resumen", label: "Ver resumen del día", note: "Jugaste los 3 retos de hoy" };
 
-  return <GameResultView game={current.game} result={current.result} practice={false} position={slot + 1} next={nextLink} />;
+  const result = current.result;
+  if (result.game === "reflexes" && result.version === "largada") {
+    return <LargadaResult game={current.game} result={result} practice={false} position={slot + 1} date={today.date} next={nextLink} />;
+  }
+  return <GameResultView game={current.game} result={result} practice={false} position={slot + 1} next={nextLink} />;
 }

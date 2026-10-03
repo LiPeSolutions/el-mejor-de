@@ -6,6 +6,7 @@ import { Screen } from "@/components/ui/Screen";
 import { gameBySlug, type GameSlug } from "@/lib/games";
 import { useClientValue } from "@/lib/hooks";
 import { lastPracticeResult } from "@/lib/storage";
+import { LargadaResult } from "@/components/largada/LargadaResult";
 import { GameResultView } from "./GameResultView";
 
 /** Result of the practice game that just ended (kept for this tab only). */
@@ -20,6 +21,9 @@ export function PracticeResult({ slug }: { slug: GameSlug }) {
   }, [last, router, slug]);
 
   if (!last) return <Screen>{null}</Screen>;
+  if (last.result.game === "reflexes" && last.result.version === "largada") {
+    return <LargadaResult game={game} result={last.result} practice isRecord={last.isRecord} previous={last.previous?.score ?? null} againHref={`/practicar/${slug}`} />;
+  }
   return (
     <GameResultView
       game={game}

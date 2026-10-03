@@ -7,7 +7,9 @@ export type ChallengeMode = "daily" | "practice";
 export type StartView =
   | { game: "seven-letters"; letters: string[]; durationMs: number; minWordLength: number; targetPoints: number }
   | { game: "five-questions"; questionCount: number; secondsPerQuestion: number }
-  | { game: "reflexes"; delaysMs: number[]; maxReactionMs: number }
+  | { game: "reflexes"; version?: undefined; delaysMs: number[]; maxReactionMs: number }
+  /** Largada: five lights, one every `lightMs`, then each start's own wait before they go out. */
+  | { game: "reflexes"; version: "largada"; lights: number; lightMs: number; delaysMs: number[]; maxReactionMs: number }
   | { game: "sequence"; pads: number; startLength: number; showMsPerItem: number; sequence: number[] };
 
 export interface StartResponse {
@@ -64,8 +66,18 @@ export type ChallengeResult =
     }
   | {
       game: "reflexes";
+      version?: undefined;
       score: number;
       averageMs: number | null;
+      rounds: Array<{ outcome: ReflexesOutcome; reactionMs: number | null }>;
+    }
+  | {
+      game: "reflexes";
+      version: "largada";
+      score: number;
+      /** With the penalties: a jumped start counts 450 ms and a missed one 700. */
+      averageMs: number;
+      bestMs: number | null;
       rounds: Array<{ outcome: ReflexesOutcome; reactionMs: number | null }>;
     }
   | { game: "sequence"; score: number; levelReached: number; longestSequence: number };

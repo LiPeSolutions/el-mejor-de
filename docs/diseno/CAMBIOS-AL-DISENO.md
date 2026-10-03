@@ -44,3 +44,25 @@ El handoff original está en [`handoff/`](handoff/README.md). Al implementarlo, 
 | Pantallas bajas | Diseñado a 390 × 844 | En pantallas de menos de 800 px de alto (el navegador del celu) el personaje del inicio se achica y la racha y la semana quedan debajo del botón principal | Que "Jugar" siempre se vea sin bajar |
 | Etiqueta del resultado de práctica | "Práctica · Siete Letras · no cuenta para la corona" | "Práctica · Diez Letras" | No entraba en una línea en celulares angostos |
 | Ícono de la app | No está diseñado | El logo: corona dorada sobre azul | Para instalarla en la pantalla de inicio |
+
+## Largada
+
+El diseño de Largada está en [`handoff-largada/`](handoff-largada/LARGADA.md). Al implementarlo, estas cosas cambian respecto de lo que dice ese documento:
+
+| Tema | En el diseño | Lo que se implementa | Por qué |
+|---|---|---|---|
+| Esperas (§2) | Las mismas para todos ese día | **Distintas para cada jugador** (de 0,2 a 3 s). Los tiempos se comparan igual, porque se miden desde que se apagan las luces | Decisión de producto (3/10/2026): quien ya jugó no puede avisarle a otro cuándo se apagan |
+| Color de los autos (§13) | El auto del color del equipo | Cada auto con **el color de su personaje**. El pingüino natural, con el naranja del pico, porque su negro se pierde en el asfalto. El fantasma, gris al 62 % | Decisión de producto (3/10/2026) |
+| Grupo (§13) | El último grupo que abrió el jugador | Igual, y en la parrilla un chip para elegir otro si tenés más de uno | Decisión de producto (3/10/2026) |
+| Sin rivales (§9) | El fantasma "El mejor de Chivilcoy" | El mejor del día de tu localidad, si la verificaste; si no, del país ("El mejor de Argentina"). Si no jugó nadie, corrés solo contra el reloj. En la parrilla, "El mejor de" va arriba del nombre del lugar | Lo que hay en los datos |
+| Antes de empezar (01) | 6 boxes en la parrilla | Hasta 6: primero los que corren y después los que no jugaron ("todavía no"). Sin grupo: "Armá un grupo para correr contra tus amigos". Mientras carga, la parrilla en gris y "Preparando…" en el botón | Casos reales |
+| Puestos | "1º", "2º" | "1º" o "1ª" según El / La de cada jugador | Así se nombra cada uno |
+| Avisos durante el juego (§7) | Los cuatro chips | Iguales, debajo del título y sobre el pórtico | Que no tapen el tiempo |
+| Llegada (05) | Los autos siguen de largo | Igual. El auto que se adelantó no salió: queda tenue debajo de su chip | Que el chip se lea |
+| Foto de llegada (06) | Unos 3 px por cada ms de diferencia | Las diferencias chicas, a unos 3 px por ms; las grandes se achican para que cada auto entre entero. "No largó" en rojo. El chip del ganador lleva el nombre si entra; si no, solo "1º" | Con tiempos reales hay diferencias de 100 ms o más |
+| Resultado sin podio (06) | "Sos el primero del grupo hoy" y un botón para desafiar | Con grupo y sin nadie más: "Sos el primero del grupo hoy", quienes no jugaron y el botón "Desafiá al grupo". Sin grupo y en la práctica: "Tus largadas" con los tres tiempos (sin grupo, también "Armá un grupo…"), y el botón dice "Compartí tu largada" | Casos reales |
+| "Desafiá a Pato" (opción 1c) | Tarjeta para desafiar a quien todavía no jugó | Queda para una segunda vuelta | Decisión de producto (3/10/2026) |
+| Franja de la corona (06) | Si con los puntos de hoy pasás a quien tiene la corona | Sale si esta largada te dio la corona del grupo (el celu recuerda quién la tenía al empezar). Si no la tenía nadie: "¡La corona de Los del Chivi es tuya!". Después las pantallas de grupos no repiten el aviso | Para avisarlo una vez |
+| Compartir (06) | La foto en PNG y el texto | La polaroid (con las letras de la app) y "Largada de hoy: 920 · 1º de Los del Chivi 🏁 ¿Me ganás?", con el link de la app. Si el celu no comparte archivos, abre WhatsApp con el texto | — |
+| Práctica | La misma pantalla, sin sumar | Igual, con "Otra vez" y "Volver". El récord de práctica de Reflejos arranca de cero con Largada | El récord de antes era de otro juego |
+| Pantalla 06 en celulares angostos | 390 px de ancho | La polaroid se achica hasta el 43 % del ancho, y el 1.000 va más chico, para que entre al lado | Que no se encime |

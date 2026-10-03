@@ -9,7 +9,7 @@ import { createElement as h, type ReactElement } from "react";
 export type Species = "carpincho" | "hornero" | "pinguino" | "zorro" | "rana" | "llama" | "pelusa" | "nioqui";
 export type Face = "happy" | "joy" | "wow" | "wink" | "sleep";
 export type Accessory = "boina" | "gorra" | "anteojos" | "bufanda" | "mate" | "corona";
-export type GameProp = "letra" | "pregunta" | "rayo";
+export type GameProp = "letra" | "pregunta" | "rayo" | "bandera";
 
 export interface BodyColors {
   main: string;
@@ -36,6 +36,8 @@ export interface PersonajeProps {
   className?: string;
   /** Accessible name; without it the drawing is decorative. */
   title?: string;
+  /** Drawn inside another SVG, cropped to `viewBox` (e.g. the face in a helmet's visor). */
+  frame?: { x: number; y: number; width: number; height: number; viewBox: string };
 }
 
 interface SpeciesSpec {
@@ -393,7 +395,31 @@ export function Personaje(o: PersonajeProps): ReactElement {
     );
   }
 
+  if (o.prop === "bandera") {
+    // Largada's checkered flag, on a pole held in the hand.
+    const [hx, hy] = hand;
+    k.push(
+      h("line", { key: "bp", x1: hx + 7, y1: hy - 38, x2: hx + 5.3, y2: hy + 2, stroke: "#6C7191", strokeWidth: 2.2, strokeLinecap: "round" }),
+      h(
+        "g",
+        { key: "bf", transform: `translate(${hx + 7},${hy - 39})` },
+        h("rect", { width: 20, height: 15, fill: "#FFFFFF" }),
+        ...[
+          [5, 0],
+          [15, 0],
+          [0, 5],
+          [10, 5],
+          [5, 10],
+          [15, 10],
+        ].map(([x, y]) => h("rect", { key: `${x}-${y}`, x, y, width: 5, height: 5, fill: "#23263A" })),
+      ),
+    );
+  }
+
   const animation = o.anim === "float" ? "animate-float" : o.anim === "bob" ? "animate-bob" : "";
+  if (o.frame) {
+    return h("svg", { ...o.frame, preserveAspectRatio: "xMidYMid slice", "aria-hidden": true }, k);
+  }
   return h(
     "svg",
     {

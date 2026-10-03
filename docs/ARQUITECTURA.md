@@ -57,7 +57,7 @@ el-mejor-de/
 **Semillas secretas.** Cada reto usa dos generadores de azar derivados con HMAC-SHA256 de un secreto del servidor (`dailyRngs` en `@repo/games/server`):
 
 - **`shared`** = `HMAC(secreto, fecha, slot)`: igual para todos. Elige las letras, las preguntas, etc.
-- **`player`** = `HMAC(secreto, fecha, slot, usuario)`: único por jugador. Ordena las opciones y genera las versiones propias (esperas de Reflejos, secuencia de Secuencia).
+- **`player`** = `HMAC(secreto, fecha, slot, usuario)`: único por jugador. Ordena las opciones y genera las versiones propias (esperas de Largada, secuencia de Secuencia).
 
 Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron genera los retos del día siguiente y guarda el contenido en `daily_challenges` (así un cambio de diccionario o de preguntas no altera un día ya publicado); la solución nunca sale del servidor.
 
@@ -67,7 +67,7 @@ Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron g
 2. Durante el juego, según cada juego:
    - **Cinco Preguntas:** las preguntas se piden de a una (`/next`); el servidor cronometra cada una y corrige.
    - **Diez Letras:** cada palabra se verifica en el servidor mientras el jugador sigue (el diccionario no se manda al celu), y la lista final se corrige en el servidor.
-   - **Reflejos y Secuencia:** el cliente manda el registro de eventos (toques y tiempos) y el servidor lo valida.
+   - **Largada y Secuencia:** el cliente manda el registro de eventos (toques y tiempos) y el servidor lo valida.
 3. `POST /api/daily/{fecha}/{slot}/finish` → el servidor valida con `packages/games`, calcula el puntaje (0–1.000) y corre los chequeos de plausibilidad.
 4. Si un intento no se termina, al vencer su tiempo máximo se cierra con lo que haya.
 
@@ -152,6 +152,20 @@ Grupos privados con su ranking y su corona (decisiones del 3/10/2026 en [PLAN §
 - **Vista previa del link:** genérica ("Te invitaron a un grupo"), sin el nombre del grupo, que solo se ve en la página.
 - **Pruebas:** reglas y consultas con Vitest sobre PGlite (`packages/shared`, `packages/db` y `apps/web/src/server/groups.test.ts`).
 
+### Largada
+
+El juego de reflejos desde el 4/10/2026 (decisiones en [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidida-y-construida-el-3102026), diseño en [`docs/diseno/handoff-largada`](diseno/handoff-largada/LARGADA.md)). El motor está en `packages/games/src/games/largada.ts`; el servidor, en `apps/web/src/server/largada.ts` y `packages/db/src/largada.ts`; las pantallas, en `apps/web/src/components/largada`.
+
+- **Reglas por fecha:** `usesLargada(modo, fecha)` (con `LARGADA_FROM`, en `@repo/games`) decide qué motor de `reflexes` usa cada reto: Largada desde el 4/10/2026 y en la práctica; los días anteriores, el de cambio de color. El juego sigue siendo `reflexes` en la base; lo nuevo se reconoce por `version: "largada"` en lo que ve el jugador y en el resultado.
+- **Reto:** 5 luces (una por segundo), 3 largadas y una espera **propia de cada jugador** (de 0,2 a 3 s, con la semilla `player`). El registro es `{ rounds: { reactionMs, falseStart }[] }`; el resultado guarda `averageMs` (con las penalidades: 450 ms adelantarse, 700 no tocar), `bestMs` y cada largada.
+- **Marcas:** menos de 100 ms cuenta como adelantada y se marca (`impossible-reaction`); tres largadas a menos de 3 ms entre sí (`too-consistent`); un intento que terminó antes de lo que tardan las luces, las esperas y las reacciones, con 1 s de margen (`clock-mismatch`).
+- **`GET /api/largada?grupo=`:** la parrilla de hoy. Con cuenta y grupo (el pedido o, si no, el primero): quienes ya corrieron hoy con sus 3 largadas (`rivals`, en el orden de la semana), los que tienen carril (`lanes`: hasta 4, eligiendo a quien tiene la corona, a los de arriba y abajo tuyo en la semana y después a los más rápidos), quienes no jugaron (`waiting`), tu Largada si ya corriste (`me`), quién tiene la corona y tu semana. Sin grupo, sin cuenta o sin rivales, un fantasma: el mejor del día de tu localidad (si la verificaste) o del país (`bestLargadaIn`).
+- **La carrera es del celu** (`apps/web/src/lib/largada.ts`): cuándo sale cada auto (la diferencia real, exagerada 6 veces y con un tope de 600 ms), dónde está cada trompa, los puestos (un empate comparte el puesto y adelantarse va último), los textos de cada largada y la foto de llegada. La pista y los autos son SVG (`Track.tsx`, `Car.tsx`); cada auto toma el color del personaje.
+- **Lo que recuerda el navegador:** el último grupo abierto (`emd:ultimo-grupo`, lo guardan la pantalla del grupo y el chip de la parrilla) y la última carrera de cada modo (`emd:largada:reto` y `emd:largada:practica`: los autos con sus tiempos de ese momento, el grupo y quién tenía la corona al empezar). Con eso el resultado dibuja la foto y sabe si esa largada te dio la corona; en otro celu la foto sale de la parrilla de hoy y la franja de la corona no aparece.
+- **Compartir:** la foto se pasa a PNG antes de tocar el botón (el SVG con las letras de la app adentro, en una polaroid hecha en un canvas), porque la hoja de compartir tiene que abrirse en el mismo toque. Con la Web Share API va el archivo con el texto y el link; si el celu no comparte archivos, el botón abre WhatsApp (`wa.me`) con el texto.
+- **Sonido y vibración:** un golpe seco por luz con Web Audio, que se habilita al tocar "Empezar"; en el iPhone respeta el modo silencio (`audioSession` "ambient"). Vibra donde se puede (en Android sí, en el iPhone no).
+- **Récords de práctica:** el de Reflejos se guarda marcado como de Largada; el del juego anterior ya no se muestra.
+
 ### Contrato de cada juego
 
 Cada juego de `packages/games` cumple esta interfaz:
@@ -169,7 +183,7 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 - `content` es lo que el jugador puede ver (Cinco Preguntas y Secuencia lo revelan de a partes); `solution` nunca sale del servidor.
 - `evaluate` corrige, puntúa (0–1.000) y devuelve **marcas** (`flags`) de plausibilidad: `severity: 'high'` significa que el puntaje no cuenta hasta revisarlo.
 - Los juegos que necesitan datos se crean con ellos: `createSevenLetters(diccionario, reglas)` y `createFiveQuestions(bancoDePreguntas)`.
-- **Reglas por fecha:** un reto del día nunca cambia después de publicado. Diez Letras (`TEN_LETTERS_RULES`: 10 letras, puntos fijos) rige desde el 4/10/2026 (`TEN_LETTERS_FROM` en `apps/web/src/server/challenges.ts`). Los días anteriores se regeneran con las reglas de Siete Letras (`SEVEN_LETTERS_RULES`), y la práctica usa siempre las actuales. Así se van a manejar los próximos ajustes de puntajes.
+- **Reglas por fecha:** un reto del día nunca cambia después de publicado. Diez Letras (`TEN_LETTERS_RULES`: 10 letras, puntos fijos) rige desde el 4/10/2026 (`TEN_LETTERS_FROM` en `apps/web/src/server/challenges.ts`). Los días anteriores se regeneran con las reglas de Siete Letras (`SEVEN_LETTERS_RULES`), y la práctica usa siempre las actuales. Igual con Largada (`LARGADA_FROM`, 4/10/2026), que reemplaza al Reflejos de cambio de color. Así se van a manejar los próximos ajustes de puntajes.
 - **Diccionario de palabras:** 365.648 palabras de 3 a 10 letras (`packages/content`). Para buscar rápido qué palabras se arman con las letras del día, cada palabra tiene una máscara de bits con sus letras.
 - La misma lógica corre en el cliente (juego libre, con `practiceRngs()`) y en el servidor (retos diarios, con `dailyRngs()`).
 - `dailyLineup(fecha)` arma los 3 retos del día: rota el juego que descansa.
@@ -183,7 +197,7 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | Pasarse las respuestas (la palabra o las preguntas del día) | Tiempo límite corto, orden mezclado y, si hace falta, contenido distinto por jugador con dificultad equivalente. |
 | Bots o scripts en juegos de habilidad (dependen del reloj del celu) | Rangos humanos (por ejemplo, reflejos de menos de 100 ms son imposibles), análisis de varianza, verificación en el podio y revisión manual de coronas grandes. Si un juego resulta demasiado trucable, sale de los retos diarios y queda solo como juego libre. |
 | GPS falso | Cruce con la región por IP (headers `x-vercel-ip-*`), precisión reportada, viajes imposibles y re-verificación en momentos clave. |
-| Cuentas múltiples | Un intento por cuenta, cada cuenta con sus propias variantes (Reflejos, Secuencia), límites de cuentas nuevas, señales de conexión y navegador, y revisión de patrones. |
+| Cuentas múltiples | Un intento por cuenta, cada cuenta con sus propias variantes (Largada, Secuencia), límites de cuentas nuevas, señales de conexión y navegador, y revisión de patrones. |
 
 ## 5. Lugares y verificación de ubicación
 

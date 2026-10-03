@@ -68,6 +68,9 @@
   --animate-pop: pop 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
   --animate-rain: rain 4.5s linear infinite;
   --animate-toast: toast-in 0.16s ease-out both;
+  --animate-chip-in: chip-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-grow: grow 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  --animate-rise: rise 0.4s ease-out both;
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -85,6 +88,23 @@
   @keyframes rain {
     0% { transform: translateY(0) rotate(0deg); }
     100% { transform: translateY(900px) rotate(620deg); }
+  }
+  @keyframes chip-in {
+    from {
+      transform: translateX(-28px);
+      opacity: 0;
+    }
+  }
+  @keyframes grow {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(14px);
+      opacity: 0;
+    }
   }
   @keyframes toast-in {
     0% { transform: translate(-50%, 6px); opacity: 0; }

@@ -159,6 +159,14 @@ function detail(group: Group, user: User, now: number): GroupDetail {
   };
 }
 
+/** A group's week as its ranking shows it, and who has the live crown (for Largada's grid). */
+export async function groupWeek(db: Queryable, group: Group, user: User, now: number): Promise<{ rows: StandingRow[]; holderId: string | null }> {
+  const members = (await weekScores(db, [group.id], now)).get(group.id) ?? [];
+  const rows = weekRows(members, user.id);
+  const leader = rows[0] && rows[0].score > 0 ? rows[0] : null;
+  return { rows, holderId: weekInfo(now).hasCrown && leader ? leader.userId : null };
+}
+
 /* ───────────── Crowns ───────────── */
 
 /** Decides the crown of one closed week: whoever led when it closed, among the members of that moment. */

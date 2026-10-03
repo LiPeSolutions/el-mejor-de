@@ -1,5 +1,5 @@
-import type { GameId } from "@repo/games";
-import { Brain, CircleHelp, Clock, Grid2x2, Trophy, Type, Zap, type LucideIcon } from "lucide-react";
+import { usesLargada, type GameId } from "@repo/games";
+import { Brain, CircleHelp, Clock, Flag, Grid2x2, Trophy, Type, Zap, type LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { PersonajeProps } from "@/components/personaje/Personaje";
 
@@ -87,24 +87,24 @@ export const GAMES: Record<GameId, GameTheme> = {
   reflexes: {
     id: "reflexes",
     slug: "reflejos",
-    name: "Reflejos",
-    lines: ["Reflejos"],
-    kicker: "Habilidad",
-    howTo: "Tocá apenas la pantalla cambia. Son 5 rondas y cuenta tu promedio. Si tocás antes de tiempo, perdés la ronda.",
+    name: "Largada",
+    lines: ["Largada"],
+    kicker: "Reflejos",
+    howTo: "Cuando se apaguen las cinco luces, tocá. Hoy corrés contra los tiempos que hizo tu grupo.",
     facts: [
-      { Icon: Zap, value: "5 rondas", label: "un minuto, más o menos" },
-      { Icon: Trophy, value: "1.000", label: "puntos máximo" },
+      { Icon: Flag, value: "3 largadas", label: "medio minuto, más o menos" },
+      { Icon: Trophy, value: "1.000", label: "con 200 ms" },
     ],
-    startNote: "El tiempo arranca cuando tocás",
-    duration: "un minuto",
-    shortDuration: "60\u00A0s",
+    startNote: "Las luces arrancan cuando tocás",
+    duration: "medio minuto",
+    shortDuration: "40\u00A0s",
     praise: "¡Qué reflejos!",
-    Icon: Zap,
+    Icon: Flag,
     heroClass: "bg-hero-reflejos",
     colors: { main: "#2EC4B6", dark: "#158A7F", light: "#CFF3EE", on: "#FFFFFF", title: "#158A7F" },
     shadow: "rgba(46,196,182,.35)",
     gradient: "linear-gradient(90deg,#4FD6C9,#2EC4B6)",
-    mascot: { sp: "rana", c: { main: "#2EC4B6", light: "#CFF3EE", dark: "#158A7F" }, prop: "rayo", face: "joy" },
+    mascot: { sp: "rana", c: { main: "#2EC4B6", light: "#CFF3EE", dark: "#158A7F" }, prop: "bandera", face: "joy" },
     resultFace: "joy",
   },
   sequence: {
@@ -133,6 +133,29 @@ export const GAMES: Record<GameId, GameTheme> = {
 };
 
 export const GAME_LIST = Object.values(GAMES);
+
+/** The reflexes game before it became Largada, for the days that still had it (see `usesLargada`). */
+export const COLOR_REFLEXES: GameTheme = {
+  ...GAMES.reflexes,
+  name: "Reflejos",
+  lines: ["Reflejos"],
+  kicker: "Habilidad",
+  howTo: "Tocá apenas la pantalla cambia. Son 5 rondas y cuenta tu promedio. Si tocás antes de tiempo, perdés la ronda.",
+  facts: [
+    { Icon: Zap, value: "5 rondas", label: "un minuto, más o menos" },
+    { Icon: Trophy, value: "1.000", label: "puntos máximo" },
+  ],
+  startNote: "El tiempo arranca cuando tocás",
+  duration: "un minuto",
+  shortDuration: "60\u00A0s",
+  Icon: Zap,
+  mascot: { sp: "rana", c: { main: "#2EC4B6", light: "#CFF3EE", dark: "#158A7F" }, prop: "rayo", face: "joy" },
+};
+
+/** How a game looked on a day's challenge: before Largada, reflexes was the color-change game. */
+export function themeOn(id: GameId, date: string): GameTheme {
+  return id === "reflexes" && !usesLargada("daily", date) ? COLOR_REFLEXES : GAMES[id];
+}
 
 export function gameBySlug(slug: string): GameTheme | undefined {
   return GAME_LIST.find((game) => game.slug === slug);

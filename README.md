@@ -16,7 +16,7 @@
 - ✅ Cuentas con apodo y contraseña (sin email): personaje, El / La Mejor y perfil. Lo jugado ese día pasa a la cuenta.
 - ✅ Grupos privados con su ranking del día y de la semana, invitación por link o código, y corona semanal en vivo (festejo y palmarés).
 - ✅ Tu lugar con GPS y rankings por barrio, provincia y país, cada uno con su corona en vivo.
-- 🛠️ Largada, el nuevo juego de reflejos: una largada de autos contra los tiempos de tu grupo (diseño listo, a construir).
+- ✅ Largada, el nuevo juego de reflejos: una largada de autos contra los tiempos de hoy de tu grupo, con podio, foto de llegada para compartir y la corona en juego. En el reto del día desde el 4/10/2026.
 - ⏳ Vincular con Google.
 
 ## Documentos

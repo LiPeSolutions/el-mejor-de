@@ -15,7 +15,7 @@
    - Esa base no trae los lugares (en Supabase se cargan con `import-places.sql`, que corre adentro de la base). Para probar Tu lugar y los rankings, cargá después de las migraciones `supabase/scripts/places-sample.sql`: el país, las provincias, los barrios de la Ciudad y los pueblos alrededor de Chivilcoy.
 5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`). El GPS se simula con `geolocation: { latitude, longitude, accuracy }` y `permissions: ["geolocation"]` en el contexto; sin el permiso, el navegador lo niega.
 
-## Estado actual (3/10/2026, tarde)
+## Estado actual (3/10/2026, noche)
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
@@ -33,9 +33,11 @@
   - Ranking de tu barrio o localidad, tu provincia y el país, de hoy y de la semana. Cada uno tiene su corona en vivo, que la tiene el primero que verificó esa semana.
   - En el inicio, tu lugar arriba y tus puestos; en el resumen del día, tu puesto en los tres niveles; en el perfil, "Tu lugar" para cambiarlo.
   - La primera corona de los lugares también se entrega el **lunes 12/10**.
-- **Pruebas:** 245 automáticas, todas pasan.
+- **Largada** reemplaza a Reflejos: una largada de autos contra los tiempos de hoy de tu grupo, con podio, foto de llegada para compartir por WhatsApp y la franja de la corona.
+  - Ya está en la práctica. En el reto del día rige desde el 4/10, y el primer día con reto de reflejos es el **lunes 5/10**. El 3/10 sigue el Reflejos de antes.
+- **Pruebas:** 268 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** Largada, que reemplaza a Reflejos (ya está decidido cómo), y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -51,6 +53,34 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 (noche) — Largada
+
+- **Pedido de la responsable del producto:** reemplazar Reflejos por **Largada**, un juego de reflejos con autos que diseñó en Claude Design (`docs/diseno/handoff-largada`). Las decisiones se consultaron antes de empezar (ver la entrada de la tarde y [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidida-y-construida-el-3102026)).
+- **Cómo se juega:**
+  - Se prenden las cinco luces de a una y, después de una espera propia de cada jugador, se apagan todas juntas: hay que tocar.
+  - Son 3 largadas. Los autos corren contra los tiempos que hizo hoy tu grupo, un carril por amigo (hasta 5 con vos).
+  - El puntaje sale del promedio: 1.000 con 200 ms; adelantarse cuenta 450 ms y no tocar, 700.
+- **Qué se hizo:**
+  - **Motor** (`packages/games/src/games/largada.ts`): genera las esperas, corrige y marca lo sospechoso: menos de 100 ms, tres tiempos casi iguales, o terminar antes de lo que tardan las luces.
+  - **Por fecha:** el reto del día es Largada desde el **4/10/2026** (`LARGADA_FROM`), así el Reflejos del 3/10 no cambia. La práctica ya es Largada.
+  - **Servidor:** `GET /api/largada` arma la parrilla de hoy: quiénes corrieron en el grupo, con sus tiempos, quién tiene carril, quiénes no jugaron y quién tiene la corona. Sin grupo o sin rivales, el fantasma: el mejor del día de tu localidad o del país.
+  - **Pantallas** (diseños 01 a 06):
+    - Parrilla de hoy, con el chip para cambiar de grupo.
+    - Pista con las luces, el cielo que se oscurece, "¡LARGÁ!" en turquesa, la carrera y la tabla de llegada.
+    - Resultado con la foto de llegada, el podio del grupo y la franja "¡Le sacaste la corona a Tincho!".
+    - "Contale al grupo" comparte la foto como imagen y el texto. Si el celu no puede, abre WhatsApp con el texto.
+  - **Detalles:** sonido de cada luz (respeta el modo silencio del iPhone), vibración en Android y movimiento reducido. Pantallas bajas: carriles más chicos y sin el pie de texto.
+  - **Lo distinto del diseño**, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md#largada). Por ejemplo, el fantasma del país cuando no verificaste tu lugar, y la foto que achica las diferencias grandes para que entren todos los autos.
+  - **El récord de práctica de Reflejos arranca de cero:** era de otro juego.
+- **Pruebas:**
+  - 268 automáticas (23 nuevas): motor, puntajes y marcas, la parrilla con el grupo, los carriles y el fantasma, la carrera y los textos.
+  - Probado de punta a punta en local con un grupo de 6 y 4 largadas de ejemplo, en celulares simulados de 390 × 844 y 360 × 640, con movimiento reducido y sin grupo. También compartir, cambiar de grupo y que el Reflejos de hoy siga como antes.
+- **Visto al probar y corregido:**
+  - En la foto, los autos que llegaron lejos quedaban cortados contra el borde.
+  - El aviso "Te adelantaste" salía corrido y cortado en la pantalla.
+  - En la foto compartida, las etiquetas se salían de su píldora porque la imagen no tenía las letras de la app.
+  - El control de "terminó demasiado rápido" era 200 ms por largada más estricto que el juego real.
 
 ### 3/10/2026 (tarde) — Tu lugar y rankings por barrio, provincia y país
 
@@ -89,7 +119,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
   - La espera de las luces es distinta para cada jugador, para que nadie le pase a otro cuándo se apagan.
   - Cada auto tiene el color de su personaje.
   - Se corre contra el último grupo que abriste, con un chip para elegir otro.
-  - Todo quedó en [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidido-el-3102026-a-construir), y el diseño en [`docs/diseno/handoff-largada`](diseno/handoff-largada/LARGADA.md).
+  - Todo quedó en [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidida-y-construida-el-3102026), y el diseño en [`docs/diseno/handoff-largada`](diseno/handoff-largada/LARGADA.md).
 
 ### 3/10/2026 (tarde) — Grupos y corona en vivo
 
@@ -205,7 +235,8 @@ En orden sugerido.
    - Salir y volver a entrar a la cuenta.
    - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
 2. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
-3. **Largada**, que reemplaza a Reflejos: es lo próximo a construir. Ya está decidido cómo (ver [PLAN §7](PLAN.md#largada-reemplaza-a-reflejos-decidido-el-3102026-a-construir)), y el diseño está en [`docs/diseno/handoff-largada`](diseno/handoff-largada/LARGADA.md).
+3. **Probar Largada en el celu** (responsable del producto): ya está en Practicar, y el lunes 5/10 sale el primer reto del día. Mirar el sonido de las luces, que se lea la señal y que "Contale al grupo" mande la foto por WhatsApp.
+   - Para una segunda vuelta: la tarjeta "Pato todavía no largó · Desafiá a Pato" (opción 1c del diseño).
 4. **Probar Tu lugar en el celu** (responsable del producto): en Perfil → Tu lugar, "Usar mi ubicación", y después el ranking de los tres niveles.
 5. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
@@ -251,4 +282,9 @@ Para no tropezar dos veces:
 - **Base local con PGlite:** atiende todas las conexiones con un solo motor y mezcla las consultas que llegan juntas por conexiones distintas ("bind message supplies 1 parameters…"). Con `DATABASE_POOL_MAX=1` el servidor usa una sola conexión. En Supabase no pasa.
 - **Reloj único:** las filas que dependen del momento (entrar a un grupo, salir, invitaciones, códigos fallidos) se graban con la hora del servidor web y no con `now()` de la base. Así las pruebas pueden simular fechas, como el cierre de una semana.
 - **React en desarrollo corre cada efecto dos veces.** Algo que se hace una sola vez (sumarse al volver de crear la cuenta) borra su marca al empezar y no depende de que el efecto siga vivo para terminar.
+- **React Compiler y su lint de pureza:** si una función que llama a `Date.now()` usa objetos armados durante el render, el lint la toma como si corriera en el render. Esos valores se arman adentro de la función, con lo que hay en el estado.
+- **Tailwind 4 y `translate`:** `-translate-x-1/2` usa la propiedad `translate`, que se suma al `transform` de una animación. Un elemento que ya se centra con la animación queda corrido.
+- **De SVG a imagen:** al pasar un SVG a PNG no llegan las clases ni las tipografías de la página. Cada texto se lleva su letra como atributo y las tipografías van adentro, como datos.
+- **Compartir con Web Share:** la hoja de compartir se abre solo en el mismo toque. La imagen se prepara antes, y el toque llama a `navigator.share` directo; si el celu no comparte archivos, el mismo botón es un link a WhatsApp.
+- **Probar Largada en local un día anterior al 4/10:** cambiar por un rato `LARGADA_FROM` (y `FIRST_CROWN_WEEK`, para la franja de la corona) y volverlos antes de guardar el cambio.
 - **Formato del código:** el proyecto no usa Prettier (las líneas son largas, a mano); no correrlo sobre los archivos.

@@ -39,3 +39,21 @@ export function useClientValue<T>(load: () => T, key: string): T | null {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` identifies what `load` reads
   return useMemo(() => (isClient ? load() : null), [isClient, key]);
 }
+
+function subscribeTo(query: string) {
+  return (onChange: () => void) => {
+    const list = window.matchMedia(query);
+    list.addEventListener("change", onChange);
+    return () => list.removeEventListener("change", onChange);
+  };
+}
+
+/** Whether a media query matches (false on the server). */
+export function useMediaQuery(query: string): boolean {
+  const subscribe = useMemo(() => subscribeTo(query), [query]);
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}

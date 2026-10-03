@@ -8,6 +8,7 @@ import {
   TEN_LETTERS_RULES,
   answerSeconds,
   createFiveQuestions,
+  createLargada,
   createReflexes,
   createSequence,
   createSevenLetters,
@@ -17,11 +18,13 @@ import {
   practiceRngs,
   sevenLettersScore,
   sevenLettersWordPoints,
+  usesLargada,
   type FiveQuestionsContent,
   type FiveQuestionsSolution,
   type Flag,
   type GameId,
   type GameRngs,
+  type LargadaContent,
   type ReflexesContent,
   type SequenceContent,
   type SevenLettersContent,
@@ -86,7 +89,7 @@ interface ReceiptClaims {
 type Generated =
   | { game: "seven-letters"; content: SevenLettersContent; solution: SevenLettersSolution }
   | { game: "five-questions"; content: FiveQuestionsContent; solution: FiveQuestionsSolution }
-  | { game: "reflexes"; content: ReflexesContent; solution: null }
+  | { game: "reflexes"; content: ReflexesContent | LargadaContent; solution: null }
   | { game: "sequence"; content: SequenceContent; solution: null };
 
 const CATEGORY_LABELS: Record<TriviaCategory, string> = {
@@ -114,6 +117,10 @@ function buildEngines() {
     sequence: createSequence(),
   };
 }
+
+/** Largada replaced the color-change reflexes game (see `usesLargada`). */
+const largada = createLargada();
+const isLargada = (content: ReflexesContent | LargadaContent): content is LargadaContent => "version" in content && content.version === "largada";
 
 type Engines = ReturnType<typeof buildEngines>;
 let engines: Engines | undefined;
@@ -159,7 +166,7 @@ function generate(claims: AttemptClaims): Generated {
       generated = { game: claims.game, ...all[claims.game].generate(rngs) };
       break;
     case "reflexes":
-      generated = { game: claims.game, ...all[claims.game].generate(rngs) };
+      generated = { game: claims.game, ...(usesLargada(claims.mode, claims.date) ? largada : all[claims.game]).generate(rngs) };
       break;
     case "sequence":
       generated = { game: claims.game, ...all[claims.game].generate(rngs) };
@@ -186,8 +193,13 @@ function startView(generated: Generated): StartView {
         questionCount: generated.content.questions.length,
         secondsPerQuestion: generated.content.secondsPerQuestion,
       };
-    case "reflexes":
-      return { game: generated.game, delaysMs: generated.content.delaysMs, maxReactionMs: generated.content.maxReactionMs };
+    case "reflexes": {
+      const { content } = generated;
+      if (isLargada(content)) {
+        return { game: generated.game, version: "largada", lights: content.lights, lightMs: content.lightMs, delaysMs: content.delaysMs, maxReactionMs: content.maxReactionMs };
+      }
+      return { game: generated.game, delaysMs: content.delaysMs, maxReactionMs: content.maxReactionMs };
+    }
     case "sequence":
       return {
         game: generated.game,
@@ -223,7 +235,8 @@ export function startAttempt(input: StartInput, player: Player, now = Date.now()
 
 /** How long an attempt stays playable: the game's maximum length plus two minutes of slack. */
 export function attemptLimitMs(game: GameId): number {
-  return getEngines()[game].maxDurationMs + 120_000;
+  const maxDurationMs = game === "reflexes" ? Math.max(getEngines().reflexes.maxDurationMs, largada.maxDurationMs) : getEngines()[game].maxDurationMs;
+  return maxDurationMs + 120_000;
 }
 
 export function isExpired(attempt: { game: GameId; startedAt: number }, now = Date.now()): boolean {
@@ -383,7 +396,20 @@ export function gradeAttempt(claims: AttemptClaims, log: unknown, now = Date.now
         };
       }
       case "reflexes": {
-        const result = all.reflexes.evaluate(generated.content, null, reflexesLog.parse(log), context);
+        const { content } = generated;
+        if (isLargada(content)) {
+          const result = largada.evaluate(content, null, reflexesLog.parse(log), context);
+          flags = result.flags;
+          return {
+            game: "reflexes",
+            version: "largada",
+            score: result.score,
+            averageMs: result.averageMs,
+            bestMs: result.bestMs,
+            rounds: result.rounds.map((round) => ({ outcome: round.outcome, reactionMs: round.reactionMs })),
+          };
+        }
+        const result = all.reflexes.evaluate(content, null, reflexesLog.parse(log), context);
         flags = result.flags;
         return {
           game: "reflexes",

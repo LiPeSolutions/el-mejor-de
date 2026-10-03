@@ -1,5 +1,5 @@
 import type { ChallengeResult } from "./challenge-types";
-import { GAMES, type GameTheme } from "./games";
+import { themeOn, type GameTheme } from "./games";
 import type { StoredDay } from "./storage";
 import type { TodayInfo } from "./today-types";
 
@@ -16,7 +16,7 @@ export function daySlots(today: TodayInfo, day: StoredDay): DaySlot[] {
   return today.lineup.map((id, slot) => {
     const attempt = day.attempts[slot];
     const result = attempt?.status === "finished" ? (attempt.result ?? null) : null;
-    return { slot, game: GAMES[id], result, unfinished: attempt?.status === "started" };
+    return { slot, game: themeOn(id, today.date), result, unfinished: attempt?.status === "started" };
   });
 }
 

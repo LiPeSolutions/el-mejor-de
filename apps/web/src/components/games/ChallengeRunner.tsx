@@ -1,17 +1,26 @@
 "use client";
 
-import type { GameId } from "@repo/games";
+import { usesLargada, type GameId } from "@repo/games";
+import { DEFAULT_AVATAR } from "@repo/shared";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { LargadaIntro } from "@/components/largada/LargadaIntro";
+import { LargadaPlay } from "@/components/largada/LargadaPlay";
+import { raceField, type Racer } from "@/components/largada/field";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { lastUsername, loadAccount } from "@/lib/account";
-import { ApiError, api } from "@/lib/api";
+import { ApiError, api, largadaApi } from "@/lib/api";
 import { zeroResult } from "@/lib/challenge-results";
 import type { PlayedAttempt, StartResponse } from "@/lib/challenge-types";
-import { gameBySlug, gameStyle, type GameSlug } from "@/lib/games";
+import { gameBySlug, gameStyle, themeOn, type GameSlug } from "@/lib/games";
 import { useIsClient } from "@/lib/hooks";
+import { saveLargadaRace } from "@/lib/largada-session";
+import type { LargadaGridResponse } from "@/lib/largada-types";
+import { lastGroupId, rememberGroup } from "@/lib/last-group";
+import { unlockSound } from "@/lib/sound";
 import { loadDay, practiceRecords, saveAttempt, savePracticeResult, updateAttempt } from "@/lib/storage";
+import { useRequest } from "@/lib/use-request";
 import { ExitDialog } from "./chrome";
 import { FiveQuestionsPlay } from "./FiveQuestionsPlay";
 import { GameIntro } from "./GameIntro";
@@ -38,6 +47,11 @@ function emptyLog(game: GameId): unknown {
   }
 }
 
+/** Largada's grid, or a race against the clock if it takes too long. */
+function loadGrid(groupId: string | null): Promise<LargadaGridResponse> {
+  return Promise.race([largadaApi.grid(groupId), new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("timeout")), 6_000))]);
+}
+
 /** Runs one challenge: intro → play → grade on the server → result page. */
 export function ChallengeRunner(props: Props) {
   const isClient = useIsClient();
@@ -47,7 +61,10 @@ export function ChallengeRunner(props: Props) {
 }
 
 function Runner(props: Props) {
-  const game = gameBySlug(props.slug)!;
+  const base = gameBySlug(props.slug)!;
+  // The days before Largada kept the color-change game (and its look).
+  const game = props.mode === "daily" ? themeOn(base.id, props.date) : base;
+  const largada = base.id === "reflexes" && usesLargada(props.mode, props.mode === "daily" ? props.date : "");
   const router = useRouter();
   const daily = props.mode === "daily";
   const resultHref = daily ? `/jugar/${props.slug}/resultado` : `/practicar/${props.slug}/resultado`;
@@ -67,6 +84,20 @@ function Runner(props: Props) {
   const [exitOpen, setExitOpen] = useState(false);
   const pending = useRef<{ token: string; log: unknown } | null>(null);
   const startedAt = useRef(previous?.startedAt ?? 0);
+
+  // Largada races against the group's times of today (the last group opened), or the ghost.
+  const [account] = useState(() => loadAccount());
+  const [groupId, setGroupId] = useState(() => (largada ? lastGroupId() : null));
+  const grid = useRequest(largada && stage === "intro" ? `largada:${groupId ?? ""}` : null, () => loadGrid(groupId));
+  const gridValue = grid.data ?? (grid.error ? null : undefined);
+  const me = { userId: account?.id ?? null, avatar: account?.avatar ?? DEFAULT_AVATAR, article: account?.article ?? "el" };
+  const field = largada ? raceField(gridValue ?? null, me) : [];
+  /** The cars of this race, fixed when it starts. */
+  const [racing, setRacing] = useState<Racer[] | null>(null);
+  const chooseGroup = (id: string) => {
+    setGroupId(id);
+    rememberGroup(id);
+  };
 
   /** Sends the play log to the server, saves the graded result and shows it. */
   const grade = (token: string, log: unknown) => {
@@ -105,6 +136,9 @@ function Runner(props: Props) {
   }, []);
 
   const begin = async () => {
+    // Largada races the cars of the grid as it is now; and browsers play sound only after a tap: this one.
+    const race = largada ? { grid: gridValue ?? null, field: raceField(gridValue ?? null, { userId: account?.id ?? null, avatar: account?.avatar ?? DEFAULT_AVATAR, article: account?.article ?? "el" }) } : null;
+    if (race) unlockSound();
     setStarting(true);
     setError(null);
     try {
@@ -112,6 +146,10 @@ function Runner(props: Props) {
       startedAt.current = Date.now();
       if (props.mode === "daily") {
         saveAttempt(response.date, { slot: props.slot, game: game.id, status: "started", token: response.token, startedAt: startedAt.current });
+      }
+      if (race) {
+        setRacing(race.field);
+        saveLargadaRace(props.mode, { date: response.date, userId: account?.id ?? null, field: race.field, group: race.grid?.group ?? null, crown: race.grid?.crown ?? null });
       }
       setStart(response);
       setStage("playing");
@@ -156,6 +194,24 @@ function Runner(props: Props) {
 
   if (stage === "redirecting") return <Screen style={gameStyle(game)}>{null}</Screen>;
   if (stage === "finishing" || stage === "error") return <Finishing error={stage === "error"} onRetry={retry} />;
+  const signInHint = signedOutAs ? { username: signedOutAs, href: `/cuenta/entrar?volver=/jugar/${props.slug}` } : undefined;
+  if ((stage === "intro" || !start) && largada) {
+    return (
+      <LargadaIntro
+        game={game}
+        practice={!daily}
+        position={daily ? props.position : undefined}
+        closeHref={daily ? "/" : "/practicar"}
+        starting={starting || gridValue === undefined}
+        error={error}
+        onStart={begin}
+        grid={gridValue}
+        field={field}
+        onGroup={chooseGroup}
+        signInHint={signInHint}
+      />
+    );
+  }
   if (stage === "intro" || !start) {
     return (
       <GameIntro
@@ -166,7 +222,7 @@ function Runner(props: Props) {
         starting={starting}
         error={error}
         onStart={begin}
-        signInHint={signedOutAs ? { username: signedOutAs, href: `/cuenta/entrar?volver=/jugar/${props.slug}` } : undefined}
+        signInHint={signInHint}
       />
     );
   }
@@ -177,7 +233,8 @@ function Runner(props: Props) {
     <div style={gameStyle(game)}>
       {view.game === "seven-letters" && <SevenLettersPlay view={view} token={start.token} {...common} />}
       {view.game === "five-questions" && <FiveQuestionsPlay view={view} token={start.token} {...common} />}
-      {view.game === "reflexes" && <ReflexesPlay view={view} {...common} />}
+      {view.game === "reflexes" && view.version === "largada" && <LargadaPlay view={view} field={racing ?? raceField(null, me)} article={account?.article ?? "el"} {...common} />}
+      {view.game === "reflexes" && view.version !== "largada" && <ReflexesPlay view={view} {...common} />}
       {view.game === "sequence" && <SequencePlay view={view} token={start.token} record={practiceRecords().sequence?.best ?? null} {...common} />}
       <ExitDialog open={exitOpen} practice={!daily} onStay={() => setExitOpen(false)} onLeave={leave} />
     </div>

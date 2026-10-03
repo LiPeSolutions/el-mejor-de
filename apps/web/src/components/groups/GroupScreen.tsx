@@ -15,6 +15,7 @@ import type { PublicAccount } from "@/lib/account-types";
 import { groupsApi } from "@/lib/api";
 import { crownNotices, rememberHolders, type HolderNow } from "@/lib/crown-watch";
 import { formatDayMonth, formatNumber } from "@/lib/format";
+import { rememberGroup } from "@/lib/last-group";
 import { groupErrorText } from "@/lib/group-copy";
 import type { CrownView, GroupDetail, GroupDetailResponse, StandingRow } from "@/lib/group-types";
 import { useRequest } from "@/lib/use-request";
@@ -30,6 +31,11 @@ type View = "today" | "week";
 export function GroupScreen({ id, invite }: { id: string; invite: boolean }) {
   const account = useAccount();
   const request = useRequest(account ? `grupo:${id}:${account.id}` : null, () => groupsApi.detail(id));
+  // Largada races against the last group opened.
+  const opened = request.data !== undefined;
+  useEffect(() => {
+    if (opened) rememberGroup(id);
+  }, [opened, id]);
   if (account === undefined) return <Screen nav>{null}</Screen>;
   if (!account) {
     return (

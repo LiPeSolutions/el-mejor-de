@@ -10,6 +10,7 @@ import type {
 } from "./challenge-types";
 import type { GameSlug } from "./games";
 import type { Position } from "./geolocation";
+import type { LargadaGridResponse } from "./largada-types";
 import type {
   CrownsResponse,
   GroupCreatedResponse,
@@ -113,3 +114,8 @@ export const placesApi = {
 };
 
 export const levelSlug = (level: PlaceLevel) => LEVEL_SLUGS[level];
+
+export const largadaApi = {
+  /** Today's grid against `groupId` (or the first group), or the ghost without one. */
+  grid: (groupId: string | null) => send<LargadaGridResponse>(groupId ? `/api/largada?grupo=${encodeURIComponent(groupId)}` : "/api/largada"),
+};

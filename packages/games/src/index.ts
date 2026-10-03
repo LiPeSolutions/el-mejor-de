@@ -7,6 +7,7 @@ export * from './text';
 export * from './lineup';
 export * from './games/seven-letters';
 export * from './games/five-questions';
+export * from './games/largada';
 export * from './games/reflexes';
 export * from './games/sequence';
 

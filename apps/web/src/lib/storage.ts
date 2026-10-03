@@ -31,6 +31,8 @@ export interface PracticeRecord {
   /** Extra stat shown on the practice tile: best average ms, highest level… */
   best?: number;
   playedAt: number;
+  /** Reflexes: a record of Largada. The color-change game's ones went away with it. */
+  largada?: true;
 }
 
 const DAY_PREFIX = "emd:dia:";
@@ -179,7 +181,10 @@ export function weekSummary(today: string): { score: number; daysPlayed: number 
 }
 
 export function practiceRecords(): Partial<Record<GameId, PracticeRecord>> {
-  return read<Partial<Record<GameId, PracticeRecord>>>(PRACTICE_KEY) ?? {};
+  const records = read<Partial<Record<GameId, PracticeRecord>>>(PRACTICE_KEY) ?? {};
+  // Practice is Largada now: a record of the color-change game would compare different things.
+  if (records.reflexes && !records.reflexes.largada) delete records.reflexes;
+  return records;
 }
 
 /** Records a practice result. Returns the previous record, and whether this one beats it. */
@@ -189,7 +194,7 @@ export function savePracticeResult(date: string, result: ChallengeResult): { pre
   const best = practiceBest(result);
   const isRecord = !previous || result.score > previous.score;
   if (isRecord) {
-    records[result.game] = { score: result.score, best, playedAt: Date.now() };
+    records[result.game] = { score: result.score, best, playedAt: Date.now(), ...(result.game === "reflexes" && result.version === "largada" ? { largada: true as const } : {}) };
   } else if (best !== undefined && betterBest(result.game, best, previous.best)) {
     records[result.game] = { ...previous, best };
   }
