@@ -30,12 +30,16 @@ el-mejor-de/
 │   ├── games/          # @repo/games: lógica pura de los minijuegos (cliente y servidor)
 │   │                   #   y @repo/games/server: semillas secretas (solo servidor)
 │   ├── shared/         # @repo/shared: calendario argentino y reglas de la competencia
+│   ├── content/        # @repo/content: diccionario y preguntas de trivia
+│   ├── db/             # @repo/db: consultas a la base de datos (probadas con PGlite)
 │   └── truco/          # (etapa 2) Motor de reglas del truco
-├── supabase/           # (próximo) Migraciones SQL y datos iniciales
+├── supabase/
+│   ├── migrations/     # Migraciones SQL (formato de la CLI de Supabase)
+│   └── scripts/        # Cargas de datos, como los lugares de Georef
 └── docs/
 ```
 
-- **Pruebas:** Vitest en cada paquete (`pnpm test`).
+- **Pruebas:** Vitest en cada paquete (`pnpm test`). Las consultas a la base corren contra **PGlite** (Postgres en memoria) con todas las migraciones aplicadas.
 - **CI:** GitHub Actions corre `lint`, `typecheck`, `test` y `build` en cada push y PR.
 - **Marca:** el nombre y los colores provisorios viven en `apps/web/src/config/brand.ts`.
 - **Tipografías:** Outfit y Plus Jakarta Sans van incluidas en `apps/web/src/app/fonts` (licencia libre OFL), así el build no depende de Google Fonts.
@@ -67,25 +71,34 @@ Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron g
 3. `POST /api/daily/{fecha}/{slot}/finish` → el servidor valida con `packages/games`, calcula el puntaje (0–1.000) y corre los chequeos de plausibilidad.
 4. Si un intento no se termina, al vencer su tiempo máximo se cierra con lo que haya.
 
-### Lo que ya funciona: retos sin base de datos
+### Lo que ya funciona
 
-Mientras no esté Supabase, la API de los retos ya es autoritativa pero **no guarda nada**: todo lo que necesita viaja firmado.
+La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y cada intento del día se guarda en la base de datos.
 
 | Endpoint (`POST`) | Qué hace |
 |---|---|
 | `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`). Devuelve un **token firmado** y solo lo necesario para jugar. |
 | `/api/retos/palabra` | Siete Letras: dice si una palabra vale (el diccionario no se manda al celu). |
-| `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. |
+| `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. Si se pide de nuevo, conserva la hora de la primera vez. |
 | `/api/retos/respuesta` | Corrige la respuesta, mide el tiempo del lado del servidor y devuelve un **recibo firmado**. |
 | `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. |
-| `/api/retos/terminar` | Recibe el registro del juego, recalcula todo desde la semilla y devuelve el puntaje. |
+| `/api/retos/terminar` | Recibe el registro del juego, recalcula todo desde la semilla y devuelve el puntaje. Un reto se corrige **una sola vez**: si se manda de nuevo, vuelve el resultado guardado. |
 
-- **Token del intento:** juego, fecha, slot, jugador y hora de inicio, firmados con HMAC. El servidor regenera el contenido desde la semilla en cada pedido (con un caché en memoria), así que no hace falta guardarlo. Un token vencido (pasado el tiempo máximo del juego) se rechaza.
-- **Jugador:** hasta que haya cuentas, una cookie anónima `emd_uid` (httpOnly, un año) hace de identificador.
-- **Lo que recuerda el celu:** los intentos del día, la racha, la semana y los récords de práctica viven en el `localStorage` del navegador. Si un reto se corta a la mitad, al volver se corrige con lo que se llegó a jugar.
-- **Marcas de plausibilidad:** se registran en los logs del servidor como `suspicious-attempt`.
-- **Límite conocido:** "un solo intento" hoy lo controla el navegador; con otro navegador se puede repetir. No importa mientras no haya ranking: al sumar Supabase, cada intento se guarda en `attempts` y el servidor lo hace cumplir.
+- **Token del intento:** id del intento, juego, fecha, slot, jugador y hora de inicio, firmados con HMAC. El servidor regenera el contenido desde la semilla en cada pedido (con un caché en memoria), así que el contenido no se guarda. Un token vencido (pasado el tiempo máximo del juego más dos minutos) se rechaza.
+- **Jugador:** hasta que haya cuentas, una cookie anónima `emd_uid` (httpOnly, un año) hace de identificador del navegador.
+- **Un solo intento, en el servidor:** `empezar` registra el intento en `game.attempts`, que acepta uno por navegador (y, cuando haya cuentas, uno por cuenta) para cada fecha y slot. Si ya estaba, responde `409 already-played` con lo jugado, y el celu muestra el resultado guardado. Un intento empezado y abandonado se cierra con 0 cuando se vence.
+- **Lo que recuerda el celu:** los intentos del día, la racha, la semana y los récords de práctica también viven en el `localStorage`, para mostrarlos al instante. Si un reto se corta a la mitad, al volver se corrige con lo que se llegó a jugar.
+- **Marcas de plausibilidad:** se guardan con cada intento (`flags`) y también van a los logs del servidor como `suspicious-attempt`.
+- **Límite conocido:** sin cuentas, quien borra las cookies es un navegador nuevo y puede repetir. Por eso los rankings van a contar solo los intentos hechos con cuenta.
+- **Sin base de datos:** si no está `DATABASE_URL` (desarrollo local y CI), la API funciona igual pero no guarda nada, y "un solo intento" lo controla solo el navegador.
 - **Secreto:** la variable `CHALLENGE_SECRET` (32 caracteres o más) deriva las semillas y firma los tokens. En producción es obligatoria (sin ella la API no arranca); en desarrollo y en los previews se usa una de prueba.
+
+### La base de datos
+
+- **Esquema `game`**, que la API de datos de Supabase no publica: el navegador nunca lee ni escribe tablas directamente. El servidor entra con su propio rol, `app_server`, que solo puede leer lugares y leer, crear y actualizar intentos (no borrar). Además, todas las tablas tienen Row Level Security con permisos solo para ese rol.
+- **Conexión:** `DATABASE_URL` apunta al pooler de transacciones de Supabase (puerto 6543) con el rol `app_server`; el cliente es postgres.js sin prepared statements. La contraseña del rol se define fuera del repo.
+- **Región:** las funciones de Vercel corren en São Paulo (`gru1`, en `apps/web/vercel.json`), igual que la base: es lo más cerca de Argentina.
+- **Lugares:** `supabase/scripts/import-places.sql` carga provincias, departamentos y localidades desde Georef. Corre adentro de la base (extensión `http`) y se puede repetir para actualizar.
 
 **Contrato de cada juego** (`packages/games`):
 
@@ -120,8 +133,8 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 **Datos.** Provincias, departamentos/partidos, municipios y localidades de Argentina desde las fuentes oficiales de [datos.gob.ar](https://datos.gob.ar) (API Georef / INDEC), importados a PostGIS: polígonos para provincias, departamentos y municipios, y punto (centroide) para las localidades. *(Verificar licencia y atribución.)*
 
-**Tabla `places`**, con una jerarquía genérica para poder sumar otros países:
-`id, kind (country | province | department | locality | neighborhood), parent_id, name, slug, centroid, geom`.
+**Tabla `game.places`** (ya creada), con una jerarquía genérica para poder sumar otros países:
+`id, kind (country | province | department | locality), parent_id, name, search_name, lat, lon, radius_km`. Los ids son los de Georef con el país adelante (`ar-06217010000` es Chivilcoy). Para la primera versión alcanza con el centro de cada localidad y un radio (*R* = 12 km por defecto); los polígonos y los barrios llegan después.
 
 **Verificación:**
 
@@ -147,11 +160,11 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 | Tabla | Para qué |
 |---|---|
-| `places` | Jerarquía de lugares (país → provincia → departamento → localidad). |
+| `places` | **(Creada.)** Jerarquía de lugares (país → provincia → departamento → localidad). |
 | `profiles` | Apodo, avatar, localidad, fecha de verificación y fecha del último cambio de localidad. |
 | `location_verifications` | Resultado de cada verificación (sin coordenadas). |
 | `daily_challenges` | Los retos de cada día: fecha, slot, juego, referencia de la semilla y dificultad. |
-| `attempts` | Cada intento: usuario, reto, inicio, fin, resultado, puntaje, estado de verificación, lugar del momento y marcas. |
+| `attempts` | **(Creada.)** Cada intento: navegador, cuenta, fecha y slot, juego, inicio, fin, puntaje, resultado, marcas, progreso del servidor y lugar del momento. |
 | `daily_scores` / `weekly_scores` | Totales por día y por semana. |
 | `crowns` | Coronas ganadas: usuario, lugar, nivel, semana, puntaje y estado. |
 | `practice_records` | Récords personales del juego libre. |
@@ -161,7 +174,7 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | `reports` / `score_flags` | Reportes de usuarios y marcas automáticas para revisión. |
 | `trivia_questions` | Banco de preguntas con categoría, dificultad y estado de revisión. |
 
-**Row Level Security** en todas las tablas. Los puntajes y las coronas se escriben solo desde el servidor, nunca directamente desde el cliente.
+Las tablas viven en el esquema `game` (ver §4, "La base de datos"). **Row Level Security** en todas. Los puntajes y las coronas se escriben solo desde el servidor, nunca directamente desde el cliente.
 
 ## 8. Moderación y menores
 
@@ -179,8 +192,9 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 
 ## 10. Entornos y despliegue
 
-- **Supabase:** un proyecto `dev` (plan gratuito) y uno `prod` (Pro) para el lanzamiento. Migraciones versionadas en `supabase/migrations` con la CLI de Supabase.
-- **Vercel:** un preview automático por cada PR y producción desde `main` con el dominio propio.
+- **Supabase:** organización propia, "El Mejor de" (separada de otros proyectos), con un proyecto en São Paulo. Plan gratuito para empezar y Pro para el lanzamiento. Migraciones versionadas en `supabase/migrations`.
+- **Vercel:** proyecto `el-mejor-de-web` (Root Directory `apps/web`), que publica cada push a la rama principal. Mientras no esté el dominio propio, la dirección es `el-mejor-de-web.vercel.app`.
+- **Variables de entorno:** `CHALLENGE_SECRET` y `DATABASE_URL` (ver `apps/web/.env.example`).
 - **Secretos:** solo en variables de entorno de Vercel y Supabase; nunca en el repo.
 - **CI (GitHub Actions):** lint, chequeo de tipos, tests unitarios y un smoke test con Playwright en cada PR.
 

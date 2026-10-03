@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 2 de octubre de 2026 (diseño de Claude Design incorporado).
+> Última actualización: 3 de octubre de 2026 (base de datos para un solo intento de verdad).
 
 ## 1. La idea
 
@@ -37,7 +37,7 @@ Lo que la hace distinta:
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
 | Monetización | **Más adelante.** Idea inicial: comprar vidas. |
 | Primera versión | **MVP sin truco**, para salir rápido a probar con gente real. |
-| Infraestructura | Vercel Pro (ya está), Supabase para la base de datos y dominio propio. Presupuesto: USD 25–100 por mes. |
+| Infraestructura | Vercel Pro (ya está), Supabase para la base de datos y dominio propio. Presupuesto: USD 25–100 por mes. Supabase va en una **organización propia, "El Mejor de"**, separada de Yendo. |
 | Roles | La persona responsable del producto decide producto, diseño y negocio; Claude se encarga del desarrollo. |
 
 ## 3. Cómo se juega

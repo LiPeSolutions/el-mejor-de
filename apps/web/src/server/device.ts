@@ -12,7 +12,7 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
 export async function deviceId(): Promise<string> {
   const store = await cookies();
   const existing = store.get(COOKIE)?.value;
-  if (existing && /^[0-9a-f-]{36}$/.test(existing)) return existing;
+  if (existing && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(existing)) return existing;
   const id = randomUUID();
   store.set(COOKIE, id, {
     httpOnly: true,

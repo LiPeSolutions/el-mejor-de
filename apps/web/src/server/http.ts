@@ -6,6 +6,8 @@ export class HttpError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** Extra fields for the JSON body, next to `error`. */
+    readonly details?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -16,7 +18,9 @@ export async function handle(run: () => unknown): Promise<NextResponse> {
   try {
     return NextResponse.json(await run(), { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof HttpError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof HttpError) {
+      return NextResponse.json({ error: error.message, ...error.details }, { status: error.status, headers: { "Cache-Control": "no-store" } });
+    }
     if (error instanceof ZodError || error instanceof SyntaxError) {
       return NextResponse.json({ error: "invalid-request" }, { status: 400 });
     }

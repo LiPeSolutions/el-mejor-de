@@ -68,6 +68,14 @@ export type ChallengeResult =
     }
   | { game: "sequence"; score: number; levelReached: number; longestSequence: number };
 
+/** A daily challenge this player already took (the 409 "already-played" answer). */
+export interface PlayedAttempt {
+  date: string;
+  slot: number;
+  status: "started" | "finished";
+  result: ChallengeResult | null;
+}
+
 export interface FinishResponse {
   mode: ChallengeMode;
   date: string;

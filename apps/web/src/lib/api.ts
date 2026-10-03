@@ -12,6 +12,8 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
+    /** The rest of the error body, e.g. the attempt already played. */
+    readonly details: Record<string, unknown> = {},
   ) {
     super(code);
   }
@@ -23,8 +25,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = (await response.json().catch(() => ({}))) as { error?: string };
-  if (!response.ok) throw new ApiError(response.status, data.error ?? "network");
+  const data = (await response.json().catch(() => ({}))) as { error?: string } & Record<string, unknown>;
+  if (!response.ok) throw new ApiError(response.status, data.error ?? "network", data);
   return data as T;
 }
 

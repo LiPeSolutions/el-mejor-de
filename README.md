@@ -11,9 +11,10 @@
 - ✅ Plan del producto y brief de diseño.
 - ✅ Motor de los 4 minijuegos (generar retos, corregir, puntuar y detectar trampas) y reglas de la competencia, con pruebas automáticas.
 - ✅ Diseño de pantallas (Claude Design), guardado en [`docs/diseno/handoff`](docs/diseno/handoff/README.md).
-- ✅ Web app jugable: inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor; lo jugado se guarda en el celu.
-- ⏳ Base de datos (Supabase), cuentas, ubicación, rankings, grupos y corona.
-- ⏳ Publicación en Vercel (falta configurar `CHALLENGE_SECRET`).
+- ✅ Web app jugable y publicada en Vercel: inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor.
+- ✅ Base de datos diseñada y probada: un solo intento por reto controlado por el servidor, y la lista oficial de lugares lista para cargar.
+- ⏳ Crear el proyecto de Supabase y conectarlo.
+- ⏳ Cuentas, ubicación con GPS, rankings, grupos y corona.
 
 ## Documentos
 
@@ -38,3 +39,5 @@ pnpm build      # build de producción
 | `packages/games` | Motor de los minijuegos: lógica pura, igual en el servidor y en el navegador. |
 | `packages/shared` | Calendario argentino y reglas de la competencia (puntaje semanal, corona). |
 | `packages/content` | Diccionario de Siete Letras y preguntas de Cinco Preguntas ([revisar preguntas](docs/contenido/preguntas.md)). |
+| `packages/db` | Consultas a la base de datos, con pruebas sobre Postgres en memoria. |
+| `supabase` | Migraciones de la base de datos y la carga de lugares de Georef. |

@@ -183,12 +183,26 @@ export function startAttempt(input: StartInput, user: string, now = Date.now()) 
   return { token: signToken(claims), claims, view: startView(generate(claims)) };
 }
 
-/** Validates an attempt token; tokens expire a while after the game's maximum length. */
-export function readAttempt(token: unknown, now = Date.now()): AttemptClaims {
+/** How long an attempt stays playable: the game's maximum length plus two minutes of slack. */
+export function attemptLimitMs(game: GameId): number {
+  return getEngines()[game].maxDurationMs + 120_000;
+}
+
+export function isExpired(attempt: { game: GameId; startedAt: number }, now = Date.now()): boolean {
+  return now - attempt.startedAt > attemptLimitMs(attempt.game);
+}
+
+/** Checks an attempt token's signature, without looking at its age. */
+export function readAttemptClaims(token: unknown): AttemptClaims {
   const claims = readToken<AttemptClaims>(token);
   if (!claims || claims.v !== 1) throw new HttpError(401, "invalid-token");
-  const limit = getEngines()[claims.game].maxDurationMs + 120_000;
-  if (now - claims.startedAt > limit) throw new HttpError(410, "expired");
+  return claims;
+}
+
+/** Validates an attempt token that is still playable. */
+export function readAttempt(token: unknown, now = Date.now()): AttemptClaims {
+  const claims = readAttemptClaims(token);
+  if (isExpired(claims, now)) throw new HttpError(410, "expired");
   return claims;
 }
 
@@ -205,7 +219,8 @@ export function checkWord(claims: AttemptClaims, raw: string): WordCheckResponse
   return { word, status: solution.words.includes(word) ? "valid" : "invalid" };
 }
 
-export function serveQuestion(claims: AttemptClaims, index: number, now = Date.now()): QuestionResponse {
+/** `servedAt` is when the question was first shown in this attempt: its clock runs from then. */
+export function serveQuestion(claims: AttemptClaims, index: number, servedAt = Date.now()): QuestionResponse {
   const { content } = generatedFor(claims, "five-questions");
   const question = content.questions[index];
   if (!question) throw new HttpError(400, "invalid-question");
@@ -214,7 +229,7 @@ export function serveQuestion(claims: AttemptClaims, index: number, now = Date.n
     prompt: question.prompt,
     category: CATEGORY_LABELS[question.category],
     options: question.options,
-    questionToken: signToken({ v: 1, a: claims.id, i: index, servedAt: now } satisfies QuestionClaims),
+    questionToken: signToken({ v: 1, a: claims.id, i: index, servedAt } satisfies QuestionClaims),
   };
 }
 
@@ -269,81 +284,86 @@ function reportFlags(claims: AttemptClaims, flags: Flag[]) {
   );
 }
 
-export function finishAttempt(claims: AttemptClaims, log: unknown, now = Date.now()): ChallengeResult {
+export function gradeAttempt(claims: AttemptClaims, log: unknown, now = Date.now()): { result: ChallengeResult; flags: Flag[] } {
   const all = getEngines();
   const context = { serverElapsedMs: now - claims.startedAt };
   const generated = generate(claims);
+  let flags: Flag[] = [];
 
-  switch (generated.game) {
-    case "seven-letters": {
-      const result = all["seven-letters"].evaluate(generated.content, generated.solution, sevenLettersLog.parse(log), context);
-      reportFlags(claims, result.flags);
-      let points = 0;
-      let previous = 0;
-      const words = result.accepted.map((entry) => {
-        points += entry.points;
-        const score = sevenLettersScore(points, generated.solution.targetPoints);
-        const delta = score - previous;
-        previous = score;
-        return { word: entry.word, delta };
-      });
-      const longest = result.accepted.reduce<string | null>(
-        (best, entry) => (entry.word.length > (best?.length ?? 0) ? entry.word : best),
-        null,
-      );
-      return {
-        game: "seven-letters",
-        score: result.score,
-        words,
-        longest,
-        fullWords: generated.solution.fullWords,
-        foundFullWord: result.foundFullWord,
-      };
-    }
-    case "five-questions": {
-      const { receipts } = fiveQuestionsLog.parse(log);
-      const answers: Array<{ choice: number | null; elapsedMs: number }> = generated.content.questions.map(() => ({
-        choice: null,
-        elapsedMs: Number.POSITIVE_INFINITY,
-      }));
-      for (const receipt of receipts) {
-        const claim = readToken<ReceiptClaims>(receipt);
-        if (claim?.v === 1 && claim.a === claims.id && claim.i >= 0 && claim.i < answers.length) {
-          answers[claim.i] = { choice: claim.choice, elapsedMs: claim.elapsedMs };
-        }
+  const graded = ((): ChallengeResult => {
+    switch (generated.game) {
+      case "seven-letters": {
+        const result = all["seven-letters"].evaluate(generated.content, generated.solution, sevenLettersLog.parse(log), context);
+        flags = result.flags;
+        let points = 0;
+        let previous = 0;
+        const words = result.accepted.map((entry) => {
+          points += entry.points;
+          const score = sevenLettersScore(points, generated.solution.targetPoints);
+          const delta = score - previous;
+          previous = score;
+          return { word: entry.word, delta };
+        });
+        const longest = result.accepted.reduce<string | null>(
+          (best, entry) => (entry.word.length > (best?.length ?? 0) ? entry.word : best),
+          null,
+        );
+        return {
+          game: "seven-letters",
+          score: result.score,
+          words,
+          longest,
+          fullWords: generated.solution.fullWords,
+          foundFullWord: result.foundFullWord,
+        };
       }
-      const result = all["five-questions"].evaluate(generated.content, generated.solution, { answers }, context);
-      reportFlags(claims, result.flags);
-      return {
-        game: "five-questions",
-        score: result.score,
-        correctCount: result.correctCount,
-        questions: result.questions.map((question) => ({
-          correct: question.correct,
-          points: question.points,
-          seconds: question.elapsedMs === null ? null : answerSeconds(question.elapsedMs),
-        })),
-      };
+      case "five-questions": {
+        const { receipts } = fiveQuestionsLog.parse(log);
+        const answers: Array<{ choice: number | null; elapsedMs: number }> = generated.content.questions.map(() => ({
+          choice: null,
+          elapsedMs: Number.POSITIVE_INFINITY,
+        }));
+        for (const receipt of receipts) {
+          const claim = readToken<ReceiptClaims>(receipt);
+          if (claim?.v === 1 && claim.a === claims.id && claim.i >= 0 && claim.i < answers.length) {
+            answers[claim.i] = { choice: claim.choice, elapsedMs: claim.elapsedMs };
+          }
+        }
+        const result = all["five-questions"].evaluate(generated.content, generated.solution, { answers }, context);
+        flags = result.flags;
+        return {
+          game: "five-questions",
+          score: result.score,
+          correctCount: result.correctCount,
+          questions: result.questions.map((question) => ({
+            correct: question.correct,
+            points: question.points,
+            seconds: question.elapsedMs === null ? null : answerSeconds(question.elapsedMs),
+          })),
+        };
+      }
+      case "reflexes": {
+        const result = all.reflexes.evaluate(generated.content, null, reflexesLog.parse(log), context);
+        flags = result.flags;
+        return {
+          game: "reflexes",
+          score: result.score,
+          averageMs: result.averageMs,
+          rounds: result.rounds.map((round) => ({ outcome: round.outcome, reactionMs: round.reactionMs })),
+        };
+      }
+      case "sequence": {
+        const result = all.sequence.evaluate(generated.content, null, sequenceLog.parse(log), context);
+        flags = result.flags;
+        return {
+          game: "sequence",
+          score: result.score,
+          levelReached: result.levelReached,
+          longestSequence: result.longestSequence,
+        };
+      }
     }
-    case "reflexes": {
-      const result = all.reflexes.evaluate(generated.content, null, reflexesLog.parse(log), context);
-      reportFlags(claims, result.flags);
-      return {
-        game: "reflexes",
-        score: result.score,
-        averageMs: result.averageMs,
-        rounds: result.rounds.map((round) => ({ outcome: round.outcome, reactionMs: round.reactionMs })),
-      };
-    }
-    case "sequence": {
-      const result = all.sequence.evaluate(generated.content, null, sequenceLog.parse(log), context);
-      reportFlags(claims, result.flags);
-      return {
-        game: "sequence",
-        score: result.score,
-        levelReached: result.levelReached,
-        longestSequence: result.longestSequence,
-      };
-    }
-  }
+  })();
+  reportFlags(claims, flags);
+  return { result: graded, flags };
 }

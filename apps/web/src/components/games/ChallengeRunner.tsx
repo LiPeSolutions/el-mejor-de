@@ -6,7 +6,8 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { ApiError, api } from "@/lib/api";
-import type { ChallengeResult, StartResponse } from "@/lib/challenge-types";
+import { zeroResult } from "@/lib/challenge-results";
+import type { PlayedAttempt, StartResponse } from "@/lib/challenge-types";
 import { gameBySlug, gameStyle, type GameSlug } from "@/lib/games";
 import { useIsClient } from "@/lib/hooks";
 import { loadDay, practiceRecords, saveAttempt, savePracticeResult, updateAttempt } from "@/lib/storage";
@@ -33,20 +34,6 @@ function emptyLog(game: GameId): unknown {
       return { rounds: [] };
     case "sequence":
       return { levels: [] };
-  }
-}
-
-/** Result recorded when an attempt can no longer be graded (it expired): it counts as played, with 0. */
-function zeroResult(game: GameId): ChallengeResult {
-  switch (game) {
-    case "seven-letters":
-      return { game, score: 0, words: [], longest: null, fullWords: [], foundFullWord: false };
-    case "five-questions":
-      return { game, score: 0, correctCount: 0, questions: [] };
-    case "reflexes":
-      return { game, score: 0, averageMs: null, rounds: [] };
-    case "sequence":
-      return { game, score: 0, levelReached: 0, longestSequence: 0 };
   }
 }
 
@@ -125,7 +112,18 @@ function Runner(props: Props) {
       }
       setStart(response);
       setStage("playing");
-    } catch {
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.code === "already-played") {
+        // Played before (in another tab, or this browser forgot it): show what the server saved.
+        const played = cause.details.attempt as PlayedAttempt | undefined;
+        if (played?.status === "finished" && played.result) {
+          saveAttempt(played.date, { slot: played.slot, game: game.id, status: "finished", startedAt: Date.now(), result: played.result });
+          router.replace(resultHref);
+          return;
+        }
+        setError("Ya empezaste este reto en otra pestaña o en otro momento, y cuenta como jugado. En unos minutos vas a poder ver el resultado.");
+        return;
+      }
       setError("No pudimos arrancar el reto. Revisá tu conexión y probá de nuevo.");
     } finally {
       setStarting(false);
