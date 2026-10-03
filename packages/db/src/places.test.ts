@@ -10,12 +10,12 @@ beforeAll(async () => {
        ('ar', 'country', null, 'Argentina'),
        ('ar-06', 'province', 'ar', 'Buenos Aires'),
        ('ar-02', 'province', 'ar', 'Ciudad Autónoma de Buenos Aires'),
-       ('ar-06217', 'department', 'ar-06', 'Chivilcoy'),
-       ('ar-06217010000', 'locality', 'ar-06217', 'Chivilcoy'),
+       ('ar-06224', 'department', 'ar-06', 'Chivilcoy'),
+       ('ar-06224010', 'locality', 'ar-06224', 'Chivilcoy'),
        ('ar-06134', 'department', 'ar-06', 'Cañuelas'),
-       ('ar-06134010000', 'locality', 'ar-06134', 'Cañuelas'),
-       ('ar-06217020000', 'locality', 'ar-06217', 'Moquehuá'),
-       ('ar-02000010000', 'locality', 'ar-02', 'Villa Chivilcoy')`,
+       ('ar-06134010', 'locality', 'ar-06134', 'Cañuelas'),
+       ('ar-06224020', 'locality', 'ar-06224', 'Moquehuá'),
+       ('ar-02000010', 'locality', 'ar-02', 'Villa Chivilcoy')`,
   );
 });
 afterAll(async () => {
@@ -34,7 +34,7 @@ describe('searchLocalities', () => {
   it('finds localities without accents and puts prefix matches first', async () => {
     const results = await searchLocalities(db, 'chivil');
     expect(results.map((place) => place.name)).toEqual(['Chivilcoy', 'Villa Chivilcoy']);
-    expect(results[0]).toEqual({ id: 'ar-06217010000', name: 'Chivilcoy', department: 'Chivilcoy', province: 'Buenos Aires' });
+    expect(results[0]).toEqual({ id: 'ar-06224010', name: 'Chivilcoy', department: 'Chivilcoy', province: 'Buenos Aires' });
   });
 
   it('matches accented names typed without accents, and the other way around', async () => {

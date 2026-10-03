@@ -15,8 +15,8 @@ $$;
 -- ───────────── Places ─────────────
 -- A generic hierarchy (country → province → department → locality), so other
 -- countries can be added later. Argentine ids are Georef's (datos.gob.ar) with
--- the country in front: 'ar-06' (Buenos Aires), 'ar-06217' (Chivilcoy, the
--- department), 'ar-06217010000' (Chivilcoy, the town). Loaded by
+-- the country in front: 'ar-06' (Buenos Aires), 'ar-06224' (Chivilcoy, the
+-- department), 'ar-06224010' (Chivilcoy, the town). Loaded by
 -- supabase/scripts/import-places.sql.
 create table game.places (
   id text primary key,
