@@ -6,7 +6,11 @@ export interface User {
   /** Validated by the app (parseAvatar in @repo/shared). */
   avatar: unknown;
   article: 'el' | 'la';
+  /** The locality where they compete, and its name. */
   placeId: string | null;
+  placeName: string | null;
+  /** When the GPS last confirmed that locality (epoch ms); null if it never did. */
+  placeVerifiedAt: number | null;
   googleLinked: boolean;
   /** Epoch milliseconds. */
   createdAt: number;
@@ -18,6 +22,8 @@ interface UserRow {
   avatar: string;
   article: 'el' | 'la';
   place_id: string | null;
+  place_name: string | null;
+  place_verified_at: number | null;
   google_linked: boolean;
   created_at: number;
   password_hash?: string;
@@ -25,6 +31,8 @@ interface UserRow {
 
 // JSON as text and times as epoch milliseconds, like attempts.ts. `t` is a table alias.
 const userColumns = (t = '') => `${t}id, ${t}username, ${t}avatar::text as avatar, ${t}article, ${t}place_id,
+  (select pl.name from game.places pl where pl.id = ${t}place_id) as place_name,
+  floor(extract(epoch from ${t}place_verified_at) * 1000)::float8 as place_verified_at,
   ${t}google_sub is not null as google_linked, floor(extract(epoch from ${t}created_at) * 1000)::float8 as created_at`;
 const USER_COLUMNS = userColumns();
 
@@ -35,6 +43,8 @@ function toUser(row: UserRow): User {
     avatar: JSON.parse(row.avatar),
     article: row.article,
     placeId: row.place_id,
+    placeName: row.place_name,
+    placeVerifiedAt: row.place_verified_at,
     googleLinked: row.google_linked,
     createdAt: row.created_at,
   };

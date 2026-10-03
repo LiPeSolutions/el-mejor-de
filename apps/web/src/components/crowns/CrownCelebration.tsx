@@ -11,7 +11,7 @@ import { Cloud } from "@/components/ui/Cloud";
 import { Screen } from "@/components/ui/Screen";
 import { brand } from "@/config/brand";
 import { useAccount } from "@/lib/account";
-import { groupsApi } from "@/lib/api";
+import { groupsApi, levelSlug } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import type { CrownView } from "@/lib/group-types";
 import { shareOrCopy } from "@/lib/share";
@@ -29,11 +29,13 @@ const CONFETTI = Array.from({ length: 18 }, (_, i) => ({
 /** "1ª", "2ª", "3ª"… */
 const ordinal = (n: number) => `${n}ª`;
 
-/** "El Mejor de Los primos" with the group's name apart, to paint it gold. */
-function titleParts(title: string, article: "el" | "la"): { lead: string; name: string } {
-  const lead = article === "la" ? "La Mejor" : "El Mejor";
-  const withEl = /^el\s+(.+)$/i.exec(title);
-  return withEl ? { lead: `${lead} del`, name: withEl[1]! } : { lead: `${lead} de`, name: title };
+/** "El Mejor de Los primos" with the name apart, to paint it gold; a place's "la" goes with the lead ("de la Ciudad…"). */
+function titleParts(crown: CrownView): { lead: string; name: string } {
+  const lead = crown.winner.article === "la" ? "La Mejor" : "El Mejor";
+  const withEl = /^el\s+(.+)$/i.exec(crown.title);
+  if (withEl) return { lead: `${lead} del`, name: withEl[1]! };
+  const withLa = crown.kind === "group" ? null : /^la\s+(.+)$/.exec(crown.title);
+  return withLa ? { lead: `${lead} de la`, name: withLa[1]! } : { lead: `${lead} de`, name: crown.title };
 }
 
 /**
@@ -54,7 +56,7 @@ export function CrownCelebration({ id }: { id?: string }) {
     return (
       <Screen>
         <GroupsMessage title={account ? "No hay coronas nuevas" : "Entrá a tu cuenta"} face="wow">
-          {account ? "Cada lunes se corona a quien más sumó en cada grupo. ¡Que la próxima sea tuya!" : "Las coronas se guardan en tu cuenta."}
+          {account ? "Cada lunes se corona a quien más sumó en cada lugar y en cada grupo. ¡Que la próxima sea tuya!" : "Las coronas se guardan en tu cuenta."}
         </GroupsMessage>
         <div className="mt-auto flex flex-col gap-2.5 px-5 pt-6">
           <Button href="/">Ir a los retos de hoy</Button>
@@ -75,7 +77,7 @@ export function CrownCelebration({ id }: { id?: string }) {
 
 function Celebration({ crown, more, replay, onDone }: { crown: CrownView; more: number; replay: boolean; onDone: () => void }) {
   const [shared, setShared] = useState<string | null>(null);
-  const { lead, name } = titleParts(crown.title, crown.winner.article);
+  const { lead, name } = titleParts(crown);
   const look = avatarLook(crown.winner.avatar);
 
   // Seen once it's on screen: it won't open by itself again.
@@ -171,12 +173,16 @@ function Celebration({ crown, more, replay, onDone }: { crown: CrownView; more: 
             <Button variant="ghost" size="md" onClick={onDone} className="bg-brand-100 text-brand">
               {more === 1 ? "Ver tu otra corona" : `Ver tus otras ${more} coronas`}
             </Button>
-          ) : (
+          ) : crown.kind === "group" ? (
             crown.groupId && (
               <Button variant="ghost" size="md" href={`/grupos/${crown.groupId}`} className="bg-brand-100 text-brand">
                 Ver el grupo
               </Button>
             )
+          ) : (
+            <Button variant="ghost" size="md" href={`/ranking?nivel=${levelSlug(crown.kind)}`} className="bg-brand-100 text-brand">
+              Ver el ranking
+            </Button>
           )}
           <p className="pt-1 text-center text-xs font-semibold text-ink-700">
             Ya quedó en tu palmarés · la Semana {crown.weekNumber + 1} arranca de cero

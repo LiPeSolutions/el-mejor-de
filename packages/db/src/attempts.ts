@@ -63,6 +63,8 @@ export interface NewAttempt {
   slot: number;
   game: string;
   startedAt: number;
+  /** The locality whose ranking it counts for: the player's, once the GPS confirmed it. */
+  placeId?: string | null;
 }
 
 /**
@@ -74,15 +76,15 @@ export interface NewAttempt {
 export async function claimAttempt(db: Queryable, input: NewAttempt): Promise<{ created: boolean; attempt: Attempt }> {
   const userId = input.userId ?? null;
   const inserted = await db.query<AttemptRow>(
-    `insert into game.attempts (id, device_id, user_id, game_date, slot, game, started_at)
-     select $1::uuid, $2::uuid, $3::uuid, $4::date, $5::smallint, $6, to_timestamp($7::float8 / 1000)
+    `insert into game.attempts (id, device_id, user_id, game_date, slot, game, started_at, place_id)
+     select $1::uuid, $2::uuid, $3::uuid, $4::date, $5::smallint, $6, to_timestamp($7::float8 / 1000), $8
      where not exists (
        select 1 from game.attempts
        where device_id = $2::uuid and game_date = $4::date and slot = $5::smallint and user_id is null
      )
      on conflict do nothing
      returning ${COLUMNS}`,
-    [input.id, input.deviceId, userId, input.date, input.slot, input.game, input.startedAt],
+    [input.id, input.deviceId, userId, input.date, input.slot, input.game, input.startedAt, input.placeId ?? null],
   );
   if (inserted[0]) return { created: true, attempt: toAttempt(inserted[0]) };
 

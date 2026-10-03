@@ -1,18 +1,16 @@
+import type { PlaceLevel } from "@repo/shared";
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
-import { Personaje } from "@/components/personaje/Personaje";
+import { connection } from "next/server";
+import { RankingScreen } from "@/components/ranking/RankingScreen";
+import { todayInfo } from "@/server/today";
 
 export const metadata: Metadata = { title: "Ranking" };
 
-export default function RankingPage() {
-  return (
-    <ComingSoon
-      title="Ranking"
-      toGroups
-      character={<Personaje sp="pelusa" size={120} acc={["corona"]} c={{ main: "#FF7AA2", light: "#FFD6E3", dark: "#D9557F" }} anim="float" />}
-    >
-      Acá vas a ver quién es el mejor de tu pueblo, tu provincia, el país y el mundo. Mientras tanto, armá un grupo con los tuyos: tiene su propio
-      ranking y su corona.
-    </ComingSoon>
-  );
+const LEVELS: Record<string, PlaceLevel> = { localidad: "locality", provincia: "province", pais: "country" };
+
+/** The ranking of your barrio or town (`?nivel=localidad`), province or country. */
+export default async function RankingPage(props: PageProps<"/ranking">) {
+  await connection(); // the day number depends on the request date
+  const { nivel } = await props.searchParams;
+  return <RankingScreen today={todayInfo()} level={(typeof nivel === "string" && LEVELS[nivel]) || "locality"} />;
 }

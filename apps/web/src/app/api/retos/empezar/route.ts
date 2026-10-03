@@ -16,14 +16,16 @@ export function POST(request: Request) {
   return handle(async () => {
     const input = body.parse(await request.json());
     const device = await deviceId();
-    // Signed in, the daily challenge counts for the account (and its ranking).
-    const account = input.mode === "daily" ? ((await currentUser())?.id ?? null) : null;
+    // Signed in, the daily challenge counts for the account (and the ranking of its place, once verified).
+    const user = input.mode === "daily" ? await currentUser() : null;
+    const account = user?.id ?? null;
+    const placeId = user && user.placeVerifiedAt !== null ? user.placeId : null;
     const started =
       input.mode === "daily"
         ? startAttempt({ mode: "daily", slot: input.slot }, { device, account })
         : startAttempt({ mode: "practice", game: gameBySlug(input.game)!.id }, { device });
     // One attempt per daily challenge: fails with 409 if this player already took it.
-    await recordStart(started.claims);
+    await recordStart(started.claims, Date.now(), placeId);
     return {
       token: started.token,
       mode: started.claims.mode,

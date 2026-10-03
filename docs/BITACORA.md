@@ -12,7 +12,8 @@
    - Levantá un Postgres en memoria con un script de Node fuera del repo. Usa `@electric-sql/pglite` y `@electric-sql/pglite-socket`: crea los roles `anon` y `authenticated`, aplica en orden `supabase/migrations/*.sql` y escucha en `127.0.0.1:5433`.
    - Después, `DATABASE_URL=postgres://app_server@127.0.0.1:5433/postgres DATABASE_POOL_MAX=1 pnpm dev`, y abrir **`localhost`** (no `127.0.0.1`: Next.js bloquea ahí sus scripts de desarrollo).
    - Si las pruebas crean muchas cuentas, el límite de cuentas por conexión salta: en esa base local se borra `game.auth_events`.
-5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`).
+   - Esa base no trae los lugares (en Supabase se cargan con `import-places.sql`, que corre adentro de la base). Para probar Tu lugar y los rankings, cargá algunos: sirven los de `apps/web/src/server/places.test.ts`, con sus coordenadas reales.
+5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`). El GPS se simula con `geolocation: { latitude, longitude, accuracy }` y `permissions: ["geolocation"]` en el contexto; sin el permiso, el navegador lo niega.
 
 ## Estado actual (3/10/2026, tarde)
 
@@ -27,9 +28,13 @@
   - Las palabras se mandan sin esperar la verificación.
   - Ya está en la práctica. En el reto del día rige desde el 4/10; el 3/10 y los días anteriores siguen con 7 letras.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
-- **Pruebas:** 207 automáticas, todas pasan.
+- **Tu lugar y rankings por barrio, provincia y país: construidos, sin publicar todavía.**
+  - Elegir el lugar con el GPS o a mano, verificarlo, el ranking de cada nivel con su corona en vivo, las tarjetas del inicio y del resumen, y las coronas de lugar en el festejo y el palmarés.
+  - Está guardado en un commit de esta rama que **todavía no se subió**: cada push se publica solo, y este código necesita antes la migración `20261003170000_places.sql`, que no está aplicada en Supabase.
+  - Falta probarlo de punta a punta y publicarlo (ver la entrada del 3/10 en la [Cronología](#cronología) y los [Pendientes](#pendientes-y-próximos-pasos)).
+- **Pruebas:** 245 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** tu lugar con GPS (ya decidido cómo), rankings por lugar y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)). Ranking muestra "Muy pronto" y lleva a los grupos.
+- **Falta:** publicar Tu lugar y los rankings por lugar, rehacer el minijuego de reacción con lo que manda la responsable del producto, y vincular con Google (ver [Pendientes](#pendientes-y-próximos-pasos)). En la app publicada, Ranking todavía muestra "Muy pronto" y lleva a los grupos.
 
 ## Dónde está cada cosa
 
@@ -45,6 +50,40 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 3/10/2026 (tarde) — Tu lugar y rankings por barrio, provincia y país (en curso, sin publicar)
+
+- **Pedido de la responsable del producto:** competir por barrio, por provincia y por país, y que la corona diga el nombre: "Sos El Mejor de tu barrio, Caballito", "…de tu país, Argentina".
+- **Decisiones (consultadas):**
+  - Hay corona de **barrio o localidad, de provincia y de país**, cada una con su nombre ("¡Sos El Mejor de la Ciudad de Buenos Aires!"). Por ahora **se entregan solas**.
+  - Para **ganar la corona** de un lugar hay que haber **verificado la ubicación esa misma semana**. Si quien va primero no lo hizo, pasa al siguiente que sí.
+  - El lugar se **cambia cuando quieras**, con el GPS confirmando el nuevo. Lo jugado antes queda en el lugar viejo.
+  - Quedó en [PLAN.md](PLAN.md) (§2, §4, §5 y §6).
+- **Hecho y probado con pruebas automáticas:**
+  - **Reglas de ubicación** (`packages/shared/src/places.ts`):
+    - Vale estar a menos de 12 km del centro de la localidad. En el campo, que la localidad más cercana sea del mismo partido y esté a menos de 40 km.
+    - En la Ciudad de Buenos Aires, que el barrio sea uno de los 3 más cercanos y esté a menos de 4 km. La "Ciudad de Buenos Aires" genérica de Georef no se ofrece.
+    - Precisión de 5 km o menos, conexión desde Argentina y 20 intentos por hora como mucho.
+    - Los nombres de la corona: "la Ciudad de Buenos Aires", "Tierra del Fuego".
+  - **Base de datos:** migración `20261003170000_places.sql`, **todavía sin aplicar en Supabase**. Suma cuándo se verificó el lugar de cada cuenta (`users.place_verified_at`), el resultado de cada verificación (`location_checks`, nunca las coordenadas) y las semanas ya decididas de cada lugar (`place_weeks`).
+  - **Servidor y API** (detalle en [ARQUITECTURA §5 y §6](ARQUITECTURA.md#5-lugares-y-verificación-de-ubicación)):
+    - Elegir y verificar el lugar (`/api/lugar`, `/cercanos`, `/verificar`, `/buscar`, `/provincias`).
+    - El ranking de hoy y de la semana de cada nivel, con la corona en vivo (`/api/ranking`), y el puesto de hoy en los tres niveles (`/api/ranking/hoy`).
+    - El cierre de las coronas de lugar el lunes, al mirar, como en los grupos.
+    - Cada reto guarda el lugar al empezar, si está verificado. Al verificar, entra lo jugado esa semana.
+  - **Pantallas** (lo distinto del diseño, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md)):
+    - **Tu lugar** (`/cuenta/lugar`, diseños 19 a 23): primero "Usar mi ubicación" (las localidades de alrededor, y con un toque queda verificada) o "Buscar a mano". Pantallas de verificar, verificada, GPS denegado (con los pasos del iPhone o de Android), fuera de tu zona y otros casos: poca precisión, otro país, muchos intentos, sin localidades cerca.
+    - Es el **"Paso 2 de 2"** al crear la cuenta, salvo para quien viene de una invitación a un grupo. También se abre para cambiar el lugar y para el chequeo de la semana (`?verificar=1`).
+    - **Ranking** (24 y 25): chips de barrio o localidad, provincia y país, Hoy / Semana, podio con la corona en quien la tiene, tu fila fija y la tarjeta de "sos el único".
+    - **Inicio:** arriba el lugar (o "Elegí tu lugar"), y las tarjetas "Hoy en Chivilcoy #6 de 312" y "Semana 40 #9".
+    - **Resumen del día:** el puesto de hoy en los tres niveles.
+    - **Perfil:** "Tu lugar" con "Cambiar", y el palmarés con las coronas de lugares. El festejo de una corona de lugar lleva a "Ver el ranking".
+  - **Pruebas:** 245 automáticas (38 nuevas). Cubren la verificación con coordenadas reales de Georef, elegir y mudarse, el ranking de cada nivel con la corona del primero que verificó, los puestos del día y las coronas de barrio, ciudad y país con fechas simuladas.
+- **Falta para publicarlo**, en orden:
+  1. Probarlo de punta a punta en local, con lugares cargados en la base local (ver [Cómo retomar](#cómo-retomar)) y Playwright en 390 y 360 px con el GPS simulado. Todavía no se recorrieron las pantallas nuevas.
+  2. Aplicar la migración `places` en Supabase y renombrar el archivo con la versión con que quede registrada.
+  3. `pnpm check` y `pnpm build`, subir, y revisar Vercel, el CI y los avisos de Supabase.
+- **Ojo al subir:** el código ya usa las tablas nuevas. **No subir nada de esta rama antes de aplicar la migración**, o se rompen las cuentas en la app publicada. Esto vale también para lo que se haga después en la misma rama.
 
 ### 3/10/2026 (tarde) — Grupos y corona en vivo
 
@@ -160,8 +199,8 @@ En orden sugerido.
    - Salir y volver a entrar a la cuenta.
    - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
 2. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
-3. **Tu lugar con GPS** (pantallas 19 a 23), como "Paso 2 de 2" de la cuenta. Ya está decidido cómo (ver la entrada del 3/10, tarde, y [PLAN §5](PLAN.md#5-ubicación-y-verificación)). El buscador de localidades ya existe (`searchLocalities` en `packages/db`).
-4. **Rankings por lugar** del día y de la semana (pantallas 24 y 25), con la corona en vivo de cada localidad, provincia y país.
+3. **Cerrar Tu lugar y los rankings por lugar:** probar de punta a punta, aplicar la migración `places` en Supabase y publicar (ver la primera entrada de la [Cronología](#cronología)). Después, que la responsable del producto lo pruebe en el celu: elegir el lugar con el GPS, el ranking de los tres niveles y el chequeo de la semana.
+4. **Minijuego de reacción** (hoy Reflejos): la responsable del producto va a mandar un .zip para rehacerlo.
 5. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
@@ -180,6 +219,8 @@ En orden sugerido.
 
 Para no tropezar dos veces:
 
+- **iPhone y los campos de texto:** con letra de menos de 16 px, Safari hace zoom al tocar el campo. Los campos de búsqueda van en 16 px.
+- **País de la conexión:** Vercel lo manda en el encabezado `x-vercel-ip-country`. En local no viene, y entonces no se controla.
 - **Red de la sesión en la nube:**
   - No llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar).
   - La app publicada se revisa con las herramientas de Vercel, que no abren el dominio propio: hay que usar `el-mejor-de-web.vercel.app`.

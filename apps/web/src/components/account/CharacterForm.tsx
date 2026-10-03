@@ -26,6 +26,7 @@ import { saveAccount, useAccount } from "@/lib/account";
 import { accountErrorText, passwordProblemText, usernameProblemText } from "@/lib/account-copy";
 import type { PublicAccount } from "@/lib/account-types";
 import { ApiError, accountApi } from "@/lib/api";
+import { placePath } from "@/lib/paths";
 import { createAccount } from "@/lib/session";
 import { Choices, PasswordField, TextField } from "./fields";
 
@@ -212,6 +213,8 @@ interface Errors {
 
 function CreateAccount({ back }: { back: string }) {
   const router = useRouter();
+  // Step 2 is the place, except for whoever comes to join a group: that goes first.
+  const withPlace = !back.startsWith("/g/");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [article, setArticle] = useState<Article | null>(null);
@@ -243,7 +246,7 @@ function CreateAccount({ back }: { back: string }) {
     setErrors({});
     try {
       await createAccount({ username: local.username, password, avatar, article });
-      router.replace(back);
+      router.replace(withPlace ? placePath({ back, signup: true }) : back);
     } catch (cause) {
       const text = accountErrorText(cause);
       const code = cause instanceof ApiError ? cause.code : null;
@@ -267,7 +270,7 @@ function CreateAccount({ back }: { back: string }) {
           void submit();
         }}
       >
-        <Header back={back} label="Tu cuenta" />
+        <Header back={back} label={withPlace ? "Paso 1 de 2" : "Tu cuenta"} />
         <CharacterHero avatar={avatar} name={local.ok ? local.username : undefined} article={article} />
         <TextField
           label="Tu apodo"

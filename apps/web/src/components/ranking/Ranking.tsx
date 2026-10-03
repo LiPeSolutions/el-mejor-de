@@ -1,4 +1,4 @@
-import type { Avatar } from "@repo/shared";
+import { dayIndex, type Avatar } from "@repo/shared";
 import { Crown } from "lucide-react";
 import type { ReactNode } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
@@ -7,8 +7,8 @@ import { cx } from "@/components/ui/cx";
 import { formatNumber } from "@/lib/format";
 
 /*
- * Ranking pieces from the design system: podium, rows and "your row". Groups
- * use them today; the rankings by place will too.
+ * Ranking pieces from the design system: podium, rows and "your row", for
+ * the groups and the rankings by place.
  */
 
 export interface RankedPlayer {
@@ -17,6 +17,17 @@ export interface RankedPlayer {
   avatar: Avatar;
   score: number;
   isMe: boolean;
+  /** Has the live crown. Without it, the first one has it (groups). */
+  crown?: boolean;
+  /** A second line in gray, e.g. the locality in the ranking of the province. */
+  detail?: string;
+}
+
+/** "quedan 3 días" until Sunday at midnight. */
+export function daysLeftText(weekStart: string, today: string): string {
+  const left = 6 - (dayIndex(today) - dayIndex(weekStart));
+  if (left <= 0) return "hoy es el último día";
+  return left === 1 ? "queda 1 día" : `quedan ${left} días`;
 }
 
 function MeTag({ light = false }: { light?: boolean }) {
@@ -33,12 +44,13 @@ const PODIUM = [
   { place: 3, size: 50, block: "h-9 bg-white text-ink-500" },
 ] as const;
 
-/** The top 3 (second, first, third). `crowned` puts the crown on the first one. */
+/** The top 3 (second, first, third). `crowned` puts the crown on whoever has it (the first one, unless they say). */
 export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefined)[]; crowned: boolean }) {
   return (
     <div className="grid grid-cols-3 items-end gap-2.5 px-5">
       {PODIUM.map(({ place, size, block }) => {
         const entry = top[place - 1];
+        const crown = Boolean(entry && crowned && (entry.crown ?? place === 1));
         return (
           <div key={place} className="flex min-w-0 flex-col items-center gap-[3px]">
             {entry ? (
@@ -46,7 +58,7 @@ export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefin
                 <div style={{ height: size * 1.2 }} className="flex items-end">
                   <Personaje
                     {...avatarLook(entry.avatar)}
-                    acc={[...avatarLook(entry.avatar).acc!, ...(place === 1 && crowned ? (["corona"] as const) : [])]}
+                    acc={[...avatarLook(entry.avatar).acc!, ...(crown ? (["corona"] as const) : [])]}
                     size={size}
                     title={`El personaje de ${entry.name}`}
                   />
@@ -55,6 +67,7 @@ export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefin
                   <span className="truncate">{entry.name}</span>
                   {entry.isMe && <MeTag />}
                 </span>
+                {entry.detail && <span className="-mt-0.5 max-w-full truncate text-[11px] font-semibold text-ink-500">{entry.detail}</span>}
                 <span className="font-display text-[15px] leading-none font-extrabold tabular-nums">{formatNumber(entry.score)}</span>
               </>
             ) : (
@@ -91,10 +104,13 @@ export function RankingRow({ position, player, note }: { position: number | null
       <span className="shrink-0">
         <Personaje {...avatarLook(player.avatar)} size={30} />
       </span>
-      <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-bold">
-        <span className="truncate">{player.name}</span>
-        {player.isMe && <MeTag />}
-        {note}
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5 text-sm font-bold">
+          <span className="truncate">{player.name}</span>
+          {player.isMe && <MeTag />}
+          {note}
+        </span>
+        {player.detail && <span className="block truncate text-[11px] leading-tight font-semibold text-ink-500">{player.detail}</span>}
       </span>
       {position === null ? (
         <span className="shrink-0 text-xs font-semibold text-ink-500">{player.isMe ? "Todavía no jugaste" : "Todavía no jugó"}</span>

@@ -1,10 +1,10 @@
 "use client";
 
-import { addDays, crownTitle, dayIndex } from "@repo/shared";
+import { addDays, crownTitle } from "@repo/shared";
 import { ChevronLeft, Crown, Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CrownBand, MeBar, Podium, RankingRow, type RankedPlayer } from "@/components/ranking/Ranking";
+import { CrownBand, MeBar, Podium, RankingRow, daysLeftText, type RankedPlayer } from "@/components/ranking/Ranking";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
@@ -67,13 +67,6 @@ export function GroupScreen({ id, invite }: { id: string; invite: boolean }) {
 }
 
 const asPlayer = (row: StandingRow): RankedPlayer => ({ key: row.userId, name: row.username, avatar: row.avatar, score: row.score, isMe: row.isMe });
-
-/** "quedan 3 días" until Sunday at midnight. */
-function daysLeftText(weekStart: string, today: string): string {
-  const left = 6 - (dayIndex(today) - dayIndex(weekStart));
-  if (left <= 0) return "hoy es el último día";
-  return left === 1 ? "queda 1 día" : `quedan ${left} días`;
-}
 
 /** Last week's crown, at the top of the group on the new week. */
 function LastCrown({ crown, mine }: { crown: CrownView; mine: boolean }) {

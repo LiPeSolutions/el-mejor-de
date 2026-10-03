@@ -8,7 +8,11 @@ export interface PublicAccount {
   username: string;
   avatar: Avatar;
   article: Article;
+  /** The locality (in the city, the barrio) where they compete. */
   placeId: string | null;
+  placeName: string | null;
+  /** The GPS confirmed it: they're in its ranking. */
+  placeVerified: boolean;
   googleLinked: boolean;
 }
 

@@ -28,8 +28,12 @@ async function closeWithZero(db: Queryable, attempt: { id: string; game: GameId 
   return finishAttempt(db, attempt.id, { finishedAt: now, score: 0, result: zeroResult(attempt.game), flags: [ABANDONED] });
 }
 
-/** Takes today's slot for this player, or fails with 409 and what they already played. */
-export async function recordStart(claims: AttemptClaims, now = Date.now()): Promise<void> {
+/**
+ * Takes today's slot for this player, or fails with 409 and what they already
+ * played. `placeId` is the locality whose ranking it counts for: the
+ * player's, once the GPS confirmed it.
+ */
+export async function recordStart(claims: AttemptClaims, now = Date.now(), placeId: string | null = null): Promise<void> {
   const db = database();
   if (!db || claims.mode !== "daily") return;
   const { created, attempt } = await claimAttempt(db, {
@@ -40,6 +44,7 @@ export async function recordStart(claims: AttemptClaims, now = Date.now()): Prom
     slot: claims.slot,
     game: claims.game,
     startedAt: claims.startedAt,
+    placeId,
   });
   if (created) return;
   let current = attempt;

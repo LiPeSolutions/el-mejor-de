@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Crown, LogOut, Pencil } from "lucide-react";
+import { ChevronRight, Crown, LogOut, MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
@@ -17,6 +17,7 @@ import { groupsApi } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import { GAME_LIST, gameStyle } from "@/lib/games";
 import { useClientValue } from "@/lib/hooks";
+import { placePath } from "@/lib/paths";
 import { signOut } from "@/lib/session";
 import { currentStreak, playedDaysSummary, practiceRecords, weekSummary, type PracticeRecord } from "@/lib/storage";
 import type { TodayInfo } from "@/lib/today-types";
@@ -54,6 +55,9 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
   );
 }
 
+/** The crown's name on its card: "Los del laburo", "Caballito", "Ciudad de Buenos Aires". */
+const cardTitle = (crown: CrownView) => (crown.kind === "group" ? crown.title : crown.title.replace(/^la\s+/, ""));
+
 /** Palmarés: one gold card per crown, newest first. A tap shows the celebration again. */
 function Palmares({ crowns, crown }: { crowns: CrownView[] | undefined; crown: string }) {
   if (crowns && crowns.length > 0) {
@@ -63,8 +67,12 @@ function Palmares({ crowns, crown }: { crowns: CrownView[] | undefined; crown: s
           <li key={one.id} className="w-[118px] shrink-0">
             <Link href={`/corona?id=${one.id}`} className="block h-full rounded-[18px] bg-gold px-3 py-2.5 shadow-btn-gold transition active:scale-[.98]">
               <div className="flex items-center gap-1 text-[10px] font-extrabold tracking-[.04em] uppercase">
-                <Crown className="size-3 shrink-0 fill-current" strokeWidth={2.2} />
-                <span className="truncate">{one.title}</span>
+                {one.kind === "group" ? (
+                  <Crown className="size-3 shrink-0 fill-current" strokeWidth={2.2} />
+                ) : (
+                  <MapPin className="size-3 shrink-0" strokeWidth={2.6} />
+                )}
+                <span className="truncate">{cardTitle(one)}</span>
               </div>
               <div className="mt-1 font-display text-lg leading-[1.05] font-extrabold">Semana {one.weekNumber}</div>
               <div className="mt-0.5 text-[11px] font-bold text-gold-ink tabular-nums">{formatNumber(one.score)} pts</div>
@@ -81,10 +89,10 @@ function Palmares({ crowns, crown }: { crowns: CrownView[] | undefined; crown: s
       </span>
       <div className="min-w-0">
         <p className="text-[13px] leading-[1.4] font-semibold text-gold-ink">
-          Todavía no tenés coronas. Cada lunes, quien más sumó en cada grupo pasa a ser {crown} de ese grupo.
+          Todavía no tenés coronas. Cada lunes, quien más sumó en tu barrio o tu pueblo, tu provincia, el país y cada grupo pasa a ser {crown} de ahí.
         </p>
-        <Link href="/grupos" className="mt-1 inline-flex items-center gap-0.5 text-[13px] font-extrabold text-brand">
-          Ir a mis grupos
+        <Link href="/ranking" className="mt-1 inline-flex items-center gap-0.5 text-[13px] font-extrabold text-brand">
+          Ver el ranking
           <ChevronRight className="size-3.5" strokeWidth={2.8} />
         </Link>
       </div>
@@ -162,6 +170,20 @@ function SignedIn({ account, stats }: { account: PublicAccount; stats: Stats }) 
 
       <section className="px-5 pt-5">
         <Label>Tu cuenta</Label>
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-row bg-white px-4 py-3 shadow-sm">
+          <div className="min-w-0">
+            <div className="text-sm font-bold">Tu lugar</div>
+            <div className="truncate text-xs font-semibold text-ink-500">
+              {account.placeName ? `${account.placeName} · ${account.placeVerified ? "verificado" : "sin verificar"}` : "Todavía no lo elegiste"}
+            </div>
+          </div>
+          <Link
+            href={account.placeName && !account.placeVerified ? placePath({ verify: true, back: "/perfil" }) : placePath({ back: "/perfil" })}
+            className="shrink-0 rounded-full bg-brand-100 px-3 py-1.5 text-xs font-extrabold text-brand transition active:scale-95"
+          >
+            {!account.placeName ? "Elegir" : account.placeVerified ? "Cambiar" : "Verificar"}
+          </Link>
+        </div>
         <div className="mt-2 flex items-center justify-between gap-3 rounded-row bg-white px-4 py-3 shadow-sm">
           <div>
             <div className="text-sm font-bold">Vincular con Google</div>

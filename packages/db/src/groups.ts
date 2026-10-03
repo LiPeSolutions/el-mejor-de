@@ -361,6 +361,9 @@ export interface Crown {
   id: string;
   weekStart: string;
   groupId: string | null;
+  /** A place's crown: the place and whether it's a locality, a province or the country. */
+  placeId: string | null;
+  placeKind: 'locality' | 'province' | 'country' | null;
   userId: string;
   username: string;
   avatar: unknown;
@@ -380,6 +383,8 @@ interface CrownRow {
   id: string;
   week_start: string;
   group_id: string | null;
+  place_id: string | null;
+  place_kind: 'locality' | 'province' | 'country' | null;
   user_id: string;
   username: string;
   avatar: string;
@@ -396,19 +401,23 @@ interface CrownRow {
   seen_at: number | null;
 }
 
-const CROWN_SELECT = `select c.id, c.week_start::text as week_start, c.group_id, c.user_id, u.username, u.avatar::text as avatar, u.article,
+const CROWN_SELECT = `select c.id, c.week_start::text as week_start, c.group_id, c.place_id, pk.kind as place_kind,
+    c.user_id, u.username, u.avatar::text as avatar, u.article,
     c.score, c.days_played, c.players, c.runner_up_id, r.username as runner_up_name, c.runner_up_score, c.title,
     g.emblem, g.color, ${ms('c.seen_at', 'seen_at')}
   from game.crowns c
   join game.users u on u.id = c.user_id
   left join game.users r on r.id = c.runner_up_id
-  left join game.groups g on g.id = c.group_id`;
+  left join game.groups g on g.id = c.group_id
+  left join game.places pk on pk.id = c.place_id`;
 
 function toCrown(row: CrownRow): Crown {
   return {
     id: row.id,
     weekStart: row.week_start,
     groupId: row.group_id,
+    placeId: row.place_id,
+    placeKind: row.place_kind,
     userId: row.user_id,
     username: row.username,
     avatar: JSON.parse(row.avatar),
@@ -431,6 +440,12 @@ function toCrown(row: CrownRow): Crown {
 export async function userCrowns(db: Queryable, userId: string): Promise<Crown[]> {
   const rows = await db.query<CrownRow>(`${CROWN_SELECT} where c.user_id = $1::uuid order by c.week_start desc, c.created_at desc`, [userId]);
   return rows.map(toCrown);
+}
+
+/** The latest crown of a place (a locality, a province or the country). */
+export async function latestPlaceCrown(db: Queryable, placeId: string): Promise<Crown | null> {
+  const rows = await db.query<CrownRow>(`${CROWN_SELECT} where c.place_id = $1 order by c.week_start desc limit 1`, [placeId]);
+  return rows[0] ? toCrown(rows[0]) : null;
 }
 
 /** The latest crown of a group. */

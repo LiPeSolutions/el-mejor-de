@@ -1,4 +1,4 @@
-import type { Article, Avatar, GroupColor, GroupEmblem } from "@repo/shared";
+import type { Article, Avatar, GroupColor, GroupEmblem, PlaceLevel } from "@repo/shared";
 
 /** What the groups API answers (apps/web/src/server/groups.ts). */
 
@@ -75,8 +75,10 @@ export interface CrownView {
   /** Monday, YYYY-MM-DD. */
   weekStart: string;
   weekNumber: number;
+  /** A group's crown, or a place's: a locality (in the city, a barrio), a province or the country. */
+  kind: "group" | PlaceLevel;
   groupId: string | null;
-  /** The group's name that week. */
+  /** The group's name that week, or the place's as the crown names it ("la Ciudad de Buenos Aires"). */
   title: string;
   emblem: GroupEmblem | null;
   color: GroupColor | null;

@@ -192,46 +192,64 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 **Tabla `game.places`** (ya creada), con una jerarquía genérica para poder sumar otros países:
 `id, kind (country | province | department | locality), parent_id, name, search_name, lat, lon, radius_km`. Los ids son los de Georef con el país adelante (`ar-06224010` es Chivilcoy). Para la primera versión alcanza con el centro de cada localidad y un radio (*R* = 12 km por defecto); los polígonos llegan después.
 
-**Cómo se elige** (decidido el 3/10/2026, a construir):
+**Cómo se elige** (decidido el 3/10/2026; construido, falta publicarlo, ver la [bitácora](BITACORA.md)). El código está en `apps/web/src/server/places.ts` (reglas), `packages/db/src/places.ts` (consultas) y `packages/shared/src/places.ts` (cuándo una posición verifica una localidad, y los nombres).
 
-- **Con el GPS, en un toque:** el servidor busca las localidades más cercanas al punto y el jugador elige la suya, que ya queda verificada. Si no, la busca a mano (provincia y localidad) y la verifica después.
-- **El campo:** sin polígonos, vale estar cerca de cualquier localidad del mismo departamento o que la localidad más cercana sea de ese departamento.
-- **Ciudad de Buenos Aires:** se compite por barrio (Georef trae los 48 barrios como localidades, más una "Ciudad de Buenos Aires" genérica que no se ofrece). Con 12 km todos los barrios quedan cerca, así que ahí vale estar en el barrio o en uno de los vecinos (los centros más cercanos).
-- **Sin verificar:** jugás igual y los puntajes se guardan, pero no entrás al ranking del lugar; al verificar entra lo de esa semana.
+| Endpoint | Qué hace |
+|---|---|
+| `GET /api/lugar` | Dónde compito, si el GPS lo confirmó alguna vez y si lo confirmó esta semana. |
+| `POST /api/lugar/cercanos` | "Usar mi ubicación": las localidades que esa posición verifica (hasta 6, la más cercana primero). No guarda nada. |
+| `POST /api/lugar` | Elige la localidad. Con posición, el GPS la verifica en el momento (`verified` o `too-far`); sin posición, queda guardada sin verificar (`saved`). |
+| `POST /api/lugar/verificar` | Verifica la localidad ya elegida: la primera vez o la de cada semana para la corona. |
+| `GET /api/lugar/provincias` · `GET /api/lugar/buscar?q=&provincia=` | Para buscarla a mano. |
+
+- **Con el GPS, en un toque:** el servidor busca las localidades cercanas al punto y el jugador elige la suya, que ya queda verificada. Si no, la busca a mano (provincia y localidad) y la verifica después.
+- **El campo:** sin polígonos, vale que la localidad más cercana sea del mismo departamento y esté a menos de 40 km.
+- **Ciudad de Buenos Aires:** se compite por barrio (Georef trae los 48 barrios como localidades, más una "Ciudad de Buenos Aires" genérica, `ar-02014010`, que no se ofrece). Con 12 km todos los barrios quedan cerca, así que ahí vale estar a menos de 4 km del centro del barrio y que sea uno de los 3 más cercanos.
+- **Sin verificar:** jugás igual y los puntajes se guardan, pero no entrás al ranking del lugar; al verificar entra lo de esa semana (`assignUnplacedAttempts`).
+- **Mudanzas** (decidido el 3/10/2026): se cambia cuando quieras. Con el GPS, la nueva queda verificada; a mano, arranca sin verificar. Lo jugado antes queda en el lugar viejo.
 
 **Verificación:**
 
-1. El navegador pide la posición (`navigator.geolocation`, alta precisión).
+1. El navegador pide la posición solo después de un toque (`navigator.geolocation`, alta precisión, hasta 15 s y de hace un minuto como mucho).
 2. El servidor recibe `lat`, `lon` y `accuracy`, y chequea:
-   - que el punto caiga dentro del polígono del municipio o del departamento de la localidad elegida, o a menos de *R* km de su centroide (*R* según el tamaño de la localidad);
-   - que la precisión reportada sea razonable;
-   - que la región por IP sea coherente con la provincia.
-3. Se guarda **solo el resultado** en `location_verifications` (`user_id, place_id, result, reason, created_at`). Las coordenadas no se guardan.
+   - que la precisión sea de 5 km o menos (si no, `422 inaccurate-position`);
+   - que la conexión sea de Argentina, según Vercel (`x-vercel-ip-country`; si no, `403 outside-argentina`). Sin ese dato (en local) no se controla;
+   - que el punto esté a menos de *R* km del centro de la localidad (12 por defecto), o las reglas del campo y de la ciudad de arriba;
+   - 20 verificaciones por hora por cuenta como mucho (`429 too-many-checks`).
+3. Se guarda **solo el resultado**: `game.location_checks` (cuenta, lugar, `verified` o `too-far`, hora). Las coordenadas no se guardan. `game.users.place_verified_at` dice cuándo se verificó por última vez el lugar actual (vacío si nunca, o si se cambió a mano).
 
-**Re-verificación.** Un puntaje queda `pending` cuando el usuario entra al top 3 de algún nivel, cuando el puntaje es atípico para su historial (por ejemplo, más de 3 desvíos sobre su media) y antes de entregar coronas. Los puntajes `pending` no entran a los rankings por lugar hasta verificarse, con un plazo de 72 horas. *(Propuesta.)*
+**Para la corona** (decidido el 3/10/2026): hay que haber verificado esa misma semana en el lugar. Volver a pedir el GPS al entrar al podio o con un récord muy por encima de lo habitual queda para cuando aparezcan trampas. *(Propuesta.)*
 
-**Lugar congelado.** Cada puntaje guarda el `place_id` del momento en que se jugó, así una mudanza no cambia de ranking los puntajes viejos.
+**Lugar congelado.** Cada intento guarda el `place_id` del momento en que se empezó (si el lugar de la cuenta está verificado), así una mudanza no cambia de ranking los puntajes viejos.
 
 ## 6. Rankings y coronas
 
-- **Los grupos ya andan** (ver §4, "Grupos y corona semanal"): calculan el ranking en el momento, desde `attempts`, porque son de hasta 50 personas. Las mismas reglas (`packages/shared/src/competition.ts`) van a servir para los lugares.
-- **Para los lugares**, que pueden tener miles de jugadores: `attempts` → `daily_scores` (total del día por usuario) → `weekly_scores` (suma de los 5 mejores días, días jugados y cuándo se llegó al puntaje). Se actualizan al terminar cada intento.
-- Las posiciones salen de consultas con `rank() over (partition by place_id order by score desc, reached_at)` sobre tablas indexadas. Al principio alcanza con Postgres; si crece, se suma un caché con sorted sets (Redis).
-- **Corona en vivo y cierre:** como en los grupos, la tiene quien va primero y se decide al cerrar la semana (lunes 00:10). Para los lugares el cierre puede seguir siendo "al mirar" o pasar a un cron si hay muchos lugares. Las coronas de provincia y país quedan en revisión hasta que se aprueban en el panel. *(Propuesta.)*
+- **Los grupos ya andan** (ver §4, "Grupos y corona semanal"): calculan el ranking en el momento, desde `attempts`, porque son de hasta 50 personas.
+- **Los lugares** (construidos, falta publicarlos) también se calculan en el momento, con una consulta (`STANDINGS` en `packages/db/src/places.ts`):
+  - el área es la localidad (en la ciudad, el barrio), o todas las localidades de la provincia o del país;
+  - cuentan los retos del día terminados con cuenta y con ese lugar; la semana suma los 5 mejores días;
+  - con los mismos puntos va primero quien llegó antes a ese puntaje;
+  - cada jugador aparece con la localidad donde jugó por última vez (se ve en los rankings de provincia y país).
+- **Endpoints:** `GET /api/ranking?nivel=localidad|provincia|pais` devuelve el ranking de hoy y de la semana (los 50 primeros, más el jugador y quien tiene la corona) y la corona de la semana anterior. `GET /api/ranking/hoy` devuelve el puesto de hoy en los tres niveles, para el resumen del día.
+- **Cuando haya muchos jugadores:** totales por día y por semana (`daily_scores` y `weekly_scores`) que se actualizan al terminar cada intento, con índices, y si hace falta un caché (Redis).
+- **Corona en vivo de un lugar:** la tiene el primero del ranking de la semana que **verificó esa semana** en esa área (`verified_in_week`); si quien va primero no verificó, pasa al siguiente que sí. Tiene que haber sumado puntos.
+- **Cierre sin cron:** como en los grupos, una semana se decide la primera vez que alguien mira después del lunes a las 00:10: el ranking de ese lugar, o las coronas del jugador (`/api/coronas` revisa los lugares donde vive y donde jugó). `game.place_weeks` anota las semanas ya decididas de cada lugar, y la corona se graba en `game.crowns` con el `place_id` y su nombre ("Caballito", "la Ciudad de Buenos Aires", "Argentina"). Las fechas de las semanas están en `apps/web/src/server/weeks.ts`, compartidas con los grupos.
+- **Revisión:** por ahora las coronas de provincia y país se entregan solas (decidido el 3/10/2026). Revisarlas a mano llega con el panel de administración. *(Propuesta.)*
 
 ## 7. Modelo de datos (boceto)
 
 | Tabla | Para qué |
 |---|---|
 | `places` | **(Creada.)** Jerarquía de lugares (país → provincia → departamento → localidad). |
-| `users` | **(Creada.)** La cuenta: apodo, hash de la contraseña, personaje, El / La Mejor, localidad y, más adelante, Google vinculado. Falta: fecha de verificación y del último cambio de localidad. |
+| `users` | **(Creada.)** La cuenta: apodo, hash de la contraseña, personaje, El / La Mejor, localidad, cuándo se verificó (`place_verified_at`, migración `places`) y, más adelante, Google vinculado. |
 | `sessions` | **(Creada.)** Sesiones abiertas: hash del token, cuenta, navegador y vencimiento. |
 | `auth_events` | **(Creada.)** Cuentas nuevas e intentos fallidos de entrar, para los límites. |
-| `location_verifications` | Resultado de cada verificación (sin coordenadas). |
+| `location_checks` | **(En la migración `places`, sin aplicar todavía.)** Resultado de cada verificación con el GPS (sin coordenadas). |
+| `place_weeks` | **(En la migración `places`.)** Semanas ya decididas de la corona de cada lugar. |
 | `daily_challenges` | Los retos de cada día: fecha, slot, juego, referencia de la semilla y dificultad. |
 | `attempts` | **(Creada.)** Cada intento: navegador, cuenta, fecha y slot, juego, inicio, fin, puntaje, resultado, marcas, progreso del servidor y lugar del momento. |
 | `daily_scores` / `weekly_scores` | Totales por día y por semana. |
-| `crowns` | **(Creada.)** Coronas de cada semana: de un grupo (o, más adelante, de un lugar), ganador, puntaje, días jugados, cuántos jugaron, segundo, nombre del grupo ese día y si ya vio el festejo. |
+| `crowns` | **(Creada.)** Coronas de cada semana: de un grupo o de un lugar, ganador, puntaje, días jugados, cuántos jugaron, segundo, nombre del grupo o del lugar ese día y si ya vio el festejo. |
 | `practice_records` | Récords personales del juego libre. |
 | `groups` / `group_members` | **(Creadas.)** Grupos privados (nombre, emblema, color, quien lo administra e invitación actual) y sus miembros (con cuándo entraron, salieron o los sacaron). |
 | `group_code_failures` | **(Creada.)** Códigos de invitación equivocados, para los límites. |

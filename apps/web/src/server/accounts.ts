@@ -80,6 +80,8 @@ export function toPublicAccount(user: User): PublicAccount {
     avatar: parseAvatar(user.avatar) ?? { species: "hornero", color: "natural", accessory: null },
     article: user.article,
     placeId: user.placeId,
+    placeName: user.placeName,
+    placeVerified: user.placeVerifiedAt !== null,
     googleLinked: user.googleLinked,
   };
 }

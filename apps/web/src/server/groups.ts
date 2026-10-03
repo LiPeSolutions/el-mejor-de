@@ -20,7 +20,6 @@ import {
   updateGroup,
   userCrowns,
   userGroups,
-  type Crown,
   type Group,
   type MemberScores,
   type Queryable,
@@ -40,7 +39,6 @@ import {
   gameDayStart,
   inviteKey,
   invitePrefix,
-  isoWeekNumber,
   parseAvatar,
   rankStandings,
   toGameDate,
@@ -56,54 +54,30 @@ import type {
   GroupDetailResponse,
   GroupPlayer,
   GroupSummary,
-  GroupWeek,
   GroupsResponse,
   InvitePreview,
   StandingRow,
 } from "@/lib/group-types";
 import { HttpError } from "./http";
+import { crownViewOf, settlePlaceCrownsOf } from "./places";
+import { FIRST_CROWN_WEEK, MAX_WEEKS_PER_SETTLE, lastClosedWeek, weekInfo } from "./weeks";
 
 /*
  * Private groups (docs/PLAN.md §8): who can do what, their rankings and
  * their weekly crown. The crown is live: whoever leads the week has it. A
  * week is decided the first time someone looks at the group after it
- * closes (Monday 00:10), so no scheduled job is needed.
+ * closes (see weeks.ts).
  */
 
-/** The first week with a crown: it's given on Monday 12/10/2026. */
-export const FIRST_CROWN_WEEK = "2026-10-05";
-/** A challenge can last up to 7 minutes: by 00:10 Sunday's scores are all in. */
-export const CLOSE_GRACE_MS = 10 * 60_000;
+export { CLOSE_GRACE_MS, FIRST_CROWN_WEEK, lastClosedWeek, weekInfo } from "./weeks";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Weeks decided per request, if a group went unvisited for a long time. */
-const MAX_WEEKS_PER_SETTLE = 8;
 const CODE_FAILURE_LIMITS = { windowMs: 60 * 60_000, perAccount: 10, perConnection: 30 } as const;
 
 export interface GroupContext {
   now: number;
   /** Keyed hash of the connection's IP, or null when unknown. */
   ipHash: string | null;
-}
-
-/* ───────────── Weeks ───────────── */
-
-export function weekInfo(now: number): GroupWeek {
-  const start = weekStart(toGameDate(new Date(now)));
-  return {
-    start,
-    number: isoWeekNumber(start),
-    closesAt: gameDayStart(addDays(start, 7)).toISOString(),
-    hasCrown: start >= FIRST_CROWN_WEEK,
-    firstCrownOn: addDays(FIRST_CROWN_WEEK, 7),
-  };
-}
-
-/** The Monday of the latest week that can be decided, or null before the first one. */
-export function lastClosedWeek(now: number): string | null {
-  const thisWeek = weekStart(toGameDate(new Date(now)));
-  const settled = now >= gameDayStart(thisWeek).getTime() + CLOSE_GRACE_MS;
-  const last = addDays(thisWeek, settled ? -7 : -14);
-  return last >= FIRST_CROWN_WEEK ? last : null;
 }
 
 /* ───────────── Rankings ───────────── */
@@ -226,30 +200,13 @@ export async function settleCrowns(db: Queryable, groups: readonly Group[], now:
   }
 }
 
-function crownView(crown: Crown, nth: number): CrownView {
-  return {
-    id: crown.id,
-    weekStart: crown.weekStart,
-    weekNumber: isoWeekNumber(crown.weekStart),
-    groupId: crown.groupId,
-    title: crown.title,
-    emblem: crown.emblem as GroupEmblem | null,
-    color: crown.color as GroupColor | null,
-    winner: player(crown),
-    score: crown.score,
-    daysPlayed: crown.daysPlayed,
-    players: crown.players,
-    runnerUp: crown.runnerUp ? { username: crown.runnerUp.username, score: crown.runnerUp.score } : null,
-    seen: crown.seenAt !== null,
-    nth,
-  };
-}
 
 /** A player's crowns, newest first, after deciding the weeks their groups owe. */
 export async function crownsOf(db: Queryable, user: User, now: number): Promise<CrownView[]> {
   await settleCrowns(db, await userGroups(db, user.id), now);
+  await settlePlaceCrownsOf(db, user, now);
   const crowns = await userCrowns(db, user.id);
-  return crowns.map((crown, index) => crownView(crown, crowns.length - index));
+  return crowns.map((crown, index) => crownViewOf(crown, crowns.length - index));
 }
 
 export async function markCelebrationSeen(db: Queryable, user: User, crownId: string): Promise<void> {
@@ -333,7 +290,7 @@ export async function groupDetail(db: Queryable, user: User, groupId: string, co
     week: weekInfo(context.now),
     today,
     standings: { week: weekRows(members, user.id), today: todayRows(members, user.id, today) },
-    lastCrown: last ? crownView(last, 0) : null,
+    lastCrown: last ? crownViewOf(last, 0) : null,
   };
 }
 

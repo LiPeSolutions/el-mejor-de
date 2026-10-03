@@ -17,7 +17,7 @@ import { dayShareText, shareOrCopy } from "@/lib/share";
 export function StreakPill({ streak }: { streak: number }) {
   return (
     <div
-      className="flex h-[38px] items-center gap-[5px] rounded-full bg-gold px-3.5 text-sm font-extrabold shadow-[0_6px_16px_rgba(255,197,61,.4)]"
+      className="flex h-[38px] shrink-0 items-center gap-[5px] rounded-full bg-gold px-3.5 text-sm font-extrabold shadow-[0_6px_16px_rgba(255,197,61,.4)]"
       aria-label={`Racha de ${streak} ${streak === 1 ? "día" : "días"}`}
     >
       <Flame className="size-4 fill-letras text-ink" strokeWidth={2.2} />
@@ -74,9 +74,11 @@ export function TodayTile({ game, result, unfinished, compact }: TodayTileProps)
   );
 }
 
-export function StatCard({ label, value, note, gold }: { label: ReactNode; value: ReactNode; note: ReactNode; gold?: boolean }) {
+export function StatCard({ label, value, note, gold, className }: { label: ReactNode; value: ReactNode; note: ReactNode; gold?: boolean; className?: string }) {
   return (
-    <div className={cx("rounded-tile px-3.5 py-3", gold ? "bg-gold shadow-[0_8px_20px_rgba(255,197,61,.3)]" : "bg-white shadow-[0_8px_20px_rgba(35,38,58,.06)]")}>
+    <div
+      className={cx("rounded-tile px-3.5 py-3", gold ? "bg-gold shadow-[0_8px_20px_rgba(255,197,61,.3)]" : "bg-white shadow-[0_8px_20px_rgba(35,38,58,.06)]", className)}
+    >
       <div className={cx("flex items-center gap-1 text-[11px] font-bold uppercase tracking-[.06em]", gold ? "text-ink" : "text-ink-500")}>{label}</div>
       <div className="mt-[5px] font-display text-2xl leading-none font-extrabold">{value}</div>
       <div className="mt-[5px] text-xs font-semibold">{note}</div>

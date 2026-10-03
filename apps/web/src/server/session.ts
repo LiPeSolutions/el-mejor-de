@@ -69,3 +69,8 @@ export async function requireUser(): Promise<User> {
 export function groupContext(request: Request): { now: number; ipHash: string | null } {
   return { now: Date.now(), ipHash: clientIpHash(request) };
 }
+
+/** The moment and the connection's country (Vercel sets it), for the location checks. */
+export function placeContext(request: Request): { now: number; ipCountry: string | null } {
+  return { now: Date.now(), ipCountry: request.headers.get("x-vercel-ip-country")?.trim().toUpperCase() || null };
+}

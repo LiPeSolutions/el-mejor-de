@@ -12,11 +12,15 @@ import { Logo } from "@/components/ui/Logo";
 import { Screen } from "@/components/ui/Screen";
 import { useAccount } from "@/lib/account";
 import type { PublicAccount } from "@/lib/account-types";
+import { placesApi } from "@/lib/api";
 import { useNewCrowns } from "@/lib/crowns";
 import { daySlots, pendingSlots, type DaySlot } from "@/lib/day";
 import { useClientValue } from "@/lib/hooks";
 import { currentStreak, hasAnyHistory, loadDay, weekSummary } from "@/lib/storage";
+import type { RankingResponse } from "@/lib/place-types";
 import type { TodayInfo } from "@/lib/today-types";
+import { useRequest } from "@/lib/use-request";
+import { PlacePill, PlaceStats } from "./PlaceCards";
 import { Countdown, CountdownCard, Hero, ShareDayButton, StreakCard, StreakPill, TodayTiles, WeekCard } from "./parts";
 
 interface HomeState {
@@ -41,12 +45,54 @@ export function HomeScreen({ today }: { today: TodayInfo }) {
     `${today.date}:${account?.id ?? ""}`,
   );
 
+  // With the place checked by the GPS, the cards tell where you stand in it.
+  const ranking = useRequest(account?.placeVerified ? `inicio:${account.id}:${account.placeId}:${today.date}` : null, () => placesApi.ranking("locality"));
+  const local = ranking.data?.status === "ok" && ranking.data.periods ? ranking.data : null;
+
   // What this browser played lives in localStorage: render once it's read.
   if (!state || account === undefined) return <Screen>{null}</Screen>;
   const pending = pendingSlots(state.slots);
   if (state.firstVisit && !account) return <FirstVisit next={pending[0] ?? state.slots[0]!} />;
-  if (pending.length > 0) return <TodayPending today={today} state={state} pending={pending} account={account} />;
-  return <TodayDone today={today} state={state} account={account} />;
+  if (pending.length > 0) return <TodayPending today={today} state={state} pending={pending} account={account} local={local} />;
+  return <TodayDone today={today} state={state} account={account} local={local} />;
+}
+
+/** The place's pill when signed in; the logo otherwise. */
+function TopBar({ account, streak }: { account: PublicAccount | null; streak: number }) {
+  return (
+    <header className="flex items-center justify-between gap-3 px-5">
+      {account ? <PlacePill account={account} /> : <Logo />}
+      <StreakPill streak={streak} />
+    </header>
+  );
+}
+
+/** Where you stand in your place, or the streak and the week until there's a ranking. */
+function Stats({
+  state,
+  weekNumber,
+  account,
+  local,
+  playedToday,
+}: {
+  state: HomeState;
+  weekNumber: number;
+  account: PublicAccount | null;
+  local: RankingResponse | null;
+  playedToday: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2.5 px-5 pt-3.5 short:order-last">
+      {account && local ? (
+        <PlaceStats ranking={local} account={account} />
+      ) : (
+        <>
+          <StreakCard streak={state.streak} playedToday={playedToday} />
+          <WeekCard weekNumber={weekNumber} score={state.week.score} daysPlayed={state.week.daysPlayed} />
+        </>
+      )}
+    </div>
+  );
 }
 
 /** The player's own character when signed in; the hornero otherwise. */
@@ -116,7 +162,7 @@ function FirstVisit({ next }: { next: DaySlot }) {
   );
 }
 
-/* ───────────── Challenges still to play (design 2a, without rankings yet) ───────────── */
+/* ───────────── Challenges still to play (design 2a) ───────────── */
 
 const HOME_CLOUDS = [
   "-left-[54px] top-[150px] w-[150px] opacity-95",
@@ -133,9 +179,22 @@ function Names({ slots }: { slots: readonly DaySlot[] }) {
   ));
 }
 
-function TodayPending({ today, state, pending, account }: { today: TodayInfo; state: HomeState; pending: DaySlot[]; account: PublicAccount | null }) {
+function TodayPending({
+  today,
+  state,
+  pending,
+  account,
+  local,
+}: {
+  today: TodayInfo;
+  state: HomeState;
+  pending: DaySlot[];
+  account: PublicAccount | null;
+  local: RankingResponse | null;
+}) {
   const next = pending[0]!;
   const played = state.slots.length - pending.length;
+  const position = local?.periods?.today.rows.find((row) => row.isMe)?.position;
   let bubble: ReactNode;
   if (played === 0) {
     bubble = (
@@ -146,17 +205,14 @@ function TodayPending({ today, state, pending, account }: { today: TodayInfo; st
   } else {
     bubble = (
       <>
-        {pending.length === 1 ? "Te falta" : "Te faltan"} <Names slots={pending} /> para cerrar el día.
+        {pending.length === 1 ? "Te falta" : "Te faltan"} <Names slots={pending} /> para cerrar el día.{position ? ` ¡Dale que vas #${position}!` : ""}
       </>
     );
   }
 
   return (
     <Screen clouds={HOME_CLOUDS} nav>
-      <header className="flex items-center justify-between px-5">
-        <Logo />
-        <StreakPill streak={state.streak} />
-      </header>
+      <TopBar account={account} streak={state.streak} />
       <Hero
         title={account ? `¡Buenas, ${account.username}!` : "¡Buenas!"}
         subtitle={played === 0 ? `${dayLabel(today)}tenés 3 retos nuevos` : `${dayLabel(today)}jugaste ${played} de 3 retos`}
@@ -165,10 +221,7 @@ function TodayPending({ today, state, pending, account }: { today: TodayInfo; st
         {bubble}
       </Hero>
       <TodayTiles slots={state.slots} />
-      <div className="grid grid-cols-2 gap-2.5 px-5 pt-3.5 short:order-last">
-        <StreakCard streak={state.streak} playedToday={played > 0} />
-        <WeekCard weekNumber={today.weekNumber} score={state.week.score} daysPlayed={state.week.daysPlayed} />
-      </div>
+      <Stats state={state} weekNumber={today.weekNumber} account={account} local={local} playedToday={played > 0} />
       <div className="mt-auto px-5 pt-3.5">
         <Button href={playHref(next)}>
           <Play className="size-5 fill-current" />
@@ -185,13 +238,10 @@ function TodayPending({ today, state, pending, account }: { today: TodayInfo; st
 
 /* ───────────── Day done (design 26) ───────────── */
 
-function TodayDone({ today, state, account }: { today: TodayInfo; state: HomeState; account: PublicAccount | null }) {
+function TodayDone({ today, state, account, local }: { today: TodayInfo; state: HomeState; account: PublicAccount | null; local: RankingResponse | null }) {
   return (
     <Screen clouds={HOME_CLOUDS} nav>
-      <header className="flex items-center justify-between px-5">
-        <Logo />
-        <StreakPill streak={state.streak} />
-      </header>
+      <TopBar account={account} streak={state.streak} />
       <Hero
         title={account ? `Hoy ya está, ${account.username}` : "Hoy ya está"}
         subtitle={`${dayLabel(today)}jugaste los 3 retos`}
@@ -200,10 +250,7 @@ function TodayDone({ today, state, account }: { today: TodayInfo; state: HomeSta
         Volvé mañana y seguí la racha. Mientras, podés practicar.
       </Hero>
       <TodayTiles slots={state.slots} compact />
-      <div className="grid grid-cols-2 gap-2.5 px-5 pt-3.5 short:order-last">
-        <StreakCard streak={state.streak} playedToday />
-        <WeekCard weekNumber={today.weekNumber} score={state.week.score} daysPlayed={state.week.daysPlayed} />
-      </div>
+      <Stats state={state} weekNumber={today.weekNumber} account={account} local={local} playedToday />
       <CountdownCard target={today.nextResetAt} />
       <div className="mt-auto grid grid-cols-2 gap-2.5 px-5 pt-3">
         <ShareDayButton dayNumber={today.dayNumber} slots={state.slots} />

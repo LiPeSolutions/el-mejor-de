@@ -1,4 +1,4 @@
-import type { Article, Avatar, GroupColor, GroupEmblem } from "@repo/shared";
+import type { Article, Avatar, GroupColor, GroupEmblem, PlaceLevel } from "@repo/shared";
 import type { AccountResponse, AvailabilityResponse } from "./account-types";
 import type {
   AnswerResponse,
@@ -9,6 +9,7 @@ import type {
   WordCheckResponse,
 } from "./challenge-types";
 import type { GameSlug } from "./games";
+import type { Position } from "./geolocation";
 import type {
   CrownsResponse,
   GroupCreatedResponse,
@@ -17,6 +18,15 @@ import type {
   InvitePreview,
   JoinResponse,
 } from "./group-types";
+import type {
+  ChooseResponse,
+  NearbyResponse,
+  PlaceStatus,
+  ProvincesResponse,
+  RankingResponse,
+  SearchResponse,
+  TodayStandingsResponse,
+} from "./place-types";
 
 export class ApiError extends Error {
   constructor(
@@ -85,3 +95,21 @@ export const groupsApi = {
   crowns: () => send<CrownsResponse>("/api/coronas"),
   crownSeen: (id: string) => send<{ ok: true }>("/api/coronas/vista", { id }),
 };
+
+const LEVEL_SLUGS = { locality: "localidad", province: "provincia", country: "pais" } as const;
+
+export const placesApi = {
+  status: () => send<PlaceStatus>("/api/lugar"),
+  nearby: (position: Position) => send<NearbyResponse>("/api/lugar/cercanos", position),
+  /** Chooses a locality: with a position the GPS checks it now. */
+  choose: (placeId: string, position?: Position) => send<ChooseResponse>("/api/lugar", { placeId, ...position }),
+  verify: (position: Position) => send<ChooseResponse>("/api/lugar/verificar", position),
+  provinces: () => send<ProvincesResponse>("/api/lugar/provincias"),
+  search: (text: string, provinceId: string | null) =>
+    send<SearchResponse>(`/api/lugar/buscar?q=${encodeURIComponent(text)}${provinceId ? `&provincia=${encodeURIComponent(provinceId)}` : ""}`),
+  ranking: (level: PlaceLevel) => send<RankingResponse>(`/api/ranking?nivel=${LEVEL_SLUGS[level]}`),
+  /** Today's position in the locality, the province and the country. */
+  today: () => send<TodayStandingsResponse>("/api/ranking/hoy"),
+};
+
+export const levelSlug = (level: PlaceLevel) => LEVEL_SLUGS[level];
