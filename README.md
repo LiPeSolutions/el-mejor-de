@@ -17,6 +17,7 @@
 
 ## Documentos
 
+- [Bitácora](docs/BITACORA.md): qué se hizo, dónde está cada cosa y qué sigue. Es lo primero para retomar.
 - [Plan del proyecto](docs/PLAN.md): la idea, las reglas del juego, qué entra en cada etapa y las preguntas abiertas.
 - [Arquitectura técnica](docs/ARQUITECTURA.md): cómo se va a construir (tecnologías, datos, anti-trampa y costos).
 - [Brief de diseño](docs/diseno/BRIEF-DISENO.md): qué pantallas diseñar y cómo, con los [prompts para Claude Design](docs/diseno/PROMPTS-CLAUDE-DESIGN.md).
