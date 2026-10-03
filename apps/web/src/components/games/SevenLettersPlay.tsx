@@ -1,7 +1,7 @@
 "use client";
 
 import { sevenLettersScore, sevenLettersWordPoints, type SevenLettersLog } from "@repo/games";
-import { Check, Clock, Delete, RotateCcw, Send, Shuffle, WifiOff, X } from "lucide-react";
+import { Clock, Delete, RotateCcw, Send, Shuffle, Sparkles, WifiOff, X } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Label } from "@/components/ui/Chip";
 import { cx } from "@/components/ui/cx";
@@ -21,6 +21,17 @@ interface Props {
   onExit: () => void;
 }
 
+/** A sent word: it shows up at once, and the server's answer marks it later. */
+interface SentWord {
+  word: string;
+  status: "checking" | "valid" | "invalid" | "unverified";
+  /** Points it added to the score, once it's valid. */
+  delta?: number;
+}
+
+/** Network hiccups get a few more tries; after that the final grading decides. */
+const RETRY_DELAYS_MS = [1_000, 2_000, 4_000];
+
 function shuffled<T>(items: readonly T[]): T[] {
   const result = [...items];
   for (let i = result.length - 1; i > 0; i--) {
@@ -34,13 +45,14 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const startRef = useRef(0);
   const [tiles, setTiles] = useState(() => view.letters.map((letter, id) => ({ id, letter })));
   const [selected, setSelected] = useState<number[]>([]);
-  const [found, setFound] = useState<Array<{ word: string; delta: number }>>([]);
+  // Newest first, so the last word sent is always in sight.
+  const [sent, setSent] = useState<SentWord[]>([]);
   const [score, setScore] = useState(0);
   const [left, setLeft] = useState(view.durationMs);
-  const [checking, setChecking] = useState(false);
   const [toast, showToast] = useToast();
   const pointsRef = useRef(0);
   const scoreRef = useRef(0);
+  const sentWords = useRef(new Set<string>());
   const submissions = useRef<SevenLettersLog["submissions"]>([]);
   const finishedRef = useRef(false);
 
@@ -65,7 +77,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
   const word = selected.map((id) => tiles.find((tile) => tile.id === id)?.letter ?? "").join("");
 
   const tap = (id: number) => {
-    if (checking || selected.includes(id)) return;
+    if (selected.includes(id)) return;
     setSelected((current) => [...current, id]);
   };
   const erase = () => setSelected((current) => current.slice(0, -1));
@@ -74,46 +86,49 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
     setTiles((current) => shuffled(current));
   };
 
-  const send = async () => {
-    if (checking || finishedRef.current || word.length === 0) return;
+  const mark = (word: string, change: Partial<SentWord>) =>
+    setSent((current) => current.map((entry) => (entry.word === word ? { ...entry, ...change } : entry)));
+
+  /** Asks the server whether the word is valid, while the player keeps going. */
+  const check = async (word: string, attempt = 0): Promise<void> => {
+    try {
+      const response = await api.checkWord(token, word);
+      if (response.status !== "valid") return mark(word, { status: "invalid" });
+      pointsRef.current += sevenLettersWordPoints(response.word);
+      const next = sevenLettersScore(pointsRef.current, view.targetPoints);
+      const delta = next - scoreRef.current;
+      scoreRef.current = next;
+      setScore(next);
+      mark(word, { status: "valid", delta });
+      if (response.word.length === view.letters.length) {
+        showToast({ tone: "success", icon: <Sparkles className="size-3.5" strokeWidth={2.6} />, text: `¡${response.word}! La de 7 letras +${delta}` });
+      }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 410) return finish();
+      const retryable = !(error instanceof ApiError) || error.status >= 500;
+      const delay = RETRY_DELAYS_MS[attempt];
+      if (!retryable || delay === undefined || finishedRef.current) return mark(word, { status: "unverified" });
+      await new Promise((resolve) => window.setTimeout(resolve, delay));
+      return check(word, attempt + 1);
+    }
+  };
+
+  const send = () => {
+    if (finishedRef.current || word.length === 0) return;
     if (word.length < view.minWordLength) {
       showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: `Tiene que tener ${view.minWordLength} letras o más` });
       return;
     }
-    if (found.some((entry) => entry.word === word)) {
-      showToast({ tone: "gold", icon: <RotateCcw className="size-3.5" strokeWidth={3} />, text: `${word} ya la tenés` });
-      setSelected([]);
+    setSelected([]);
+    if (sentWords.current.has(word)) {
+      showToast({ tone: "gold", icon: <RotateCcw className="size-3.5" strokeWidth={3} />, text: `${word} ya la mandaste` });
       return;
     }
-    const entry = { word, atMs: Math.round(performance.now() - startRef.current) };
-    submissions.current = [...submissions.current, entry];
+    sentWords.current.add(word);
+    submissions.current = [...submissions.current, { word, atMs: Math.round(performance.now() - startRef.current) }];
     onProgress({ submissions: submissions.current });
-    setChecking(true);
-    try {
-      const response = await api.checkWord(token, word);
-      if (response.status === "valid") {
-        pointsRef.current += sevenLettersWordPoints(response.word);
-        const next = sevenLettersScore(pointsRef.current, view.targetPoints);
-        const delta = next - scoreRef.current;
-        scoreRef.current = next;
-        setScore(next);
-        setFound((current) => [...current, { word: response.word, delta }]);
-        showToast({ tone: "success", icon: <Check className="size-3.5" strokeWidth={3} />, text: `¡${response.word}! +${delta}` });
-      } else {
-        showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: `${word} no está en el diccionario` });
-      }
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 410) {
-        finish();
-      } else {
-        // Not checked, so let the player send it again.
-        submissions.current = submissions.current.filter((item) => item !== entry);
-        showToast({ tone: "danger", icon: <WifiOff className="size-3.5" strokeWidth={3} />, text: "Sin conexión: probá de nuevo" });
-      }
-    } finally {
-      setChecking(false);
-      setSelected([]);
-    }
+    setSent((current) => [{ word, status: "checking" }, ...current]);
+    void check(word);
   };
 
   // Physical keyboard: letters, Backspace and Enter.
@@ -151,7 +166,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
           </div>
         }
       />
-      <ScoreRow score={score} label="Palabras" value={found.length} />
+      <ScoreRow score={score} label="Palabras" value={sent.filter((entry) => entry.status === "valid").length} />
 
       <div className="relative mx-5 mt-4">
         <FloatingToast toast={toast} className="-top-3.5" />
@@ -199,8 +214,7 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
         <button
           type="button"
           onClick={send}
-          disabled={checking}
-          className="flex h-12 items-center justify-center gap-2 rounded-full bg-letras font-display text-[15px] font-extrabold text-white shadow-[0_10px_20px_rgba(255,107,74,.35)] active:scale-[.98] disabled:opacity-70"
+          className="flex h-12 items-center justify-center gap-2 rounded-full bg-letras font-display text-[15px] font-extrabold text-white shadow-[0_10px_20px_rgba(255,107,74,.35)] active:scale-[.98]"
         >
           <Send className="size-4" strokeWidth={2.4} />
           Enviar
@@ -208,18 +222,49 @@ export function SevenLettersPlay({ view, token, onProgress, onFinish, onExit }: 
       </div>
 
       <div className="px-5 pt-[18px]">
-        <Label className="mb-2">Encontradas</Label>
+        <Label className="mb-2">Tus palabras</Label>
         <ul className="flex flex-wrap gap-1.5">
-          {found.map((entry) => (
-            <li key={entry.word} className="flex items-baseline gap-[5px] rounded-full bg-white px-2.5 py-1.5 text-xs font-extrabold">
-              {entry.word}
-              <span className="font-semibold text-ink-500">+{entry.delta}</span>
-            </li>
+          {sent.map((entry) => (
+            <WordChip key={entry.word} entry={entry} />
           ))}
         </ul>
       </div>
 
       <p className="mt-auto px-5 pt-4 text-center text-xs font-semibold text-ink-500">La de 7 letras tiene premio</p>
     </Screen>
+  );
+}
+
+const STATUS_LABELS: Record<SentWord["status"], string> = {
+  checking: "verificando",
+  valid: "vale",
+  invalid: "no vale",
+  unverified: "sin verificar todavía",
+};
+
+/** White chip: gray with dots while checking, "+N" when valid, a red circle when not. */
+function WordChip({ entry }: { entry: SentWord }) {
+  const { word, status, delta } = entry;
+  return (
+    <li
+      aria-label={status === "valid" ? `${word}: +${delta}` : `${word}: ${STATUS_LABELS[status]}`}
+      className="flex items-center gap-[5px] rounded-full bg-white px-2.5 py-1.5 text-xs font-extrabold"
+    >
+      {status === "invalid" && (
+        <span aria-hidden className="grid size-3.5 place-items-center rounded-full bg-danger text-white">
+          <X className="size-2.5" strokeWidth={4} />
+        </span>
+      )}
+      <span className={cx(status !== "valid" && "text-ink-500")}>{word}</span>
+      {status === "valid" && <span className="font-semibold text-ink-500">+{delta}</span>}
+      {status === "checking" && (
+        <span aria-hidden className="flex gap-0.5">
+          {[0, 150, 300].map((delayMs) => (
+            <span key={delayMs} className="size-1 animate-pulse rounded-full bg-ink-300" style={{ animationDelay: `${delayMs}ms` }} />
+          ))}
+        </span>
+      )}
+      {status === "unverified" && <WifiOff aria-hidden className="size-3 text-ink-300" strokeWidth={2.6} />}
+    </li>
   );
 }

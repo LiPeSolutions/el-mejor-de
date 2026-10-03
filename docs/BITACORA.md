@@ -32,6 +32,13 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 
 ## Cronología
 
+### 3/10/2026 — Siete Letras sin esperar la verificación
+
+- **Pedido de la responsable del producto:** jugando con conexión lenta, Siete Letras no dejaba seguir hasta que el servidor confirmaba cada palabra.
+- **Cambio:** la palabra aparece al instante en "Tus palabras" (la última, primera), en gris con puntitos, y se puede seguir armando otras. Cuando llega la respuesta muestra sus puntos o un círculo rojo si no vale.
+- **Avisos:** arriba quedan solo los instantáneos ("muy corta" y "ya la mandaste") y el festejo de la de 7 letras.
+- **Sin conexión:** la palabra se vuelve a verificar sola (hasta 3 veces). Si no se pudo, cuenta igual al final, porque el puntaje lo calcula el servidor con todo lo enviado. Probado con una conexión lenta simulada y con la conexión cortada.
+
 ### 3/10/2026 (noche) — Cuentas y dirección propia
 
 - **Decisiones de la responsable del producto:**

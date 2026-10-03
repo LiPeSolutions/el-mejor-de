@@ -78,7 +78,7 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 | Endpoint (`POST`) | Qué hace |
 |---|---|
 | `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`). Devuelve un **token firmado** y solo lo necesario para jugar. |
-| `/api/retos/palabra` | Siete Letras: dice si una palabra vale (el diccionario no se manda al celu). |
+| `/api/retos/palabra` | Siete Letras: dice si una palabra vale (el diccionario no se manda al celu). El celu no espera la respuesta para seguir: la palabra aparece al instante y se marca cuando llega (si falla la conexión, reintenta). El puntaje final sale de todo lo enviado, verificado o no. |
 | `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. Si se pide de nuevo, conserva la hora de la primera vez. |
 | `/api/retos/respuesta` | Corrige la respuesta, mide el tiempo del lado del servidor y devuelve un **recibo firmado**. |
 | `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. |
