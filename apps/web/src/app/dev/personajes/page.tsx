@@ -11,7 +11,10 @@ import { RowBadge } from "@/components/ranking/Ranking";
  * In production it doesn't exist.
  */
 
-export const metadata: Metadata = { title: "Hoja de modelos", robots: { index: false } };
+/** In production the page is a 404, without its title. */
+export function generateMetadata(): Metadata {
+  return process.env.NODE_ENV === "production" ? { robots: { index: false } } : { title: "Hoja de modelos", robots: { index: false } };
+}
 
 /** Each column, and its reference file's name in the handoff's svg/ folder. */
 const COLUMNS: { name: string; where: string; file: string; props: Partial<PersonajeProps> }[] = [
