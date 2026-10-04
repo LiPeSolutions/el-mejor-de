@@ -117,7 +117,8 @@ export function LevelWin(props: LevelWinProps) {
           </Chip>
         </div>
         <div className={cx("flex justify-center", tablet ? "mt-5" : short ? "mt-2" : "mt-4")}>
-          <Personaje {...game.mascot} face={game.resultFace} size={tablet ? 112 : short ? 64 : 84} />
+          {/* A level passed: the mascot jumps. */}
+          <Personaje {...game.mascot} face={game.resultFace} pose="jump" size={tablet ? 112 : short ? 64 : 84} />
         </div>
         <div className="mt-1.5 text-center" aria-live="polite">
           <div className="text-sm font-bold text-ink-500">{game.praise}</div>

@@ -7,7 +7,7 @@ import { CAR } from "@/components/largada/Car";
 import type { Racer } from "@/components/largada/field";
 import { Track, carScaleFor, laneHeightFor, type ChipSpec, type ChipTone, type TrackLane } from "@/components/largada/Track";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import { IconButton } from "@/components/ui/IconButton";
 import { Screen } from "@/components/ui/Screen";
@@ -205,7 +205,7 @@ export function BattleLargada({ phase, round, total, lights, t, field, starts, t
               <li key={row.face.key} className="flex min-w-0 flex-1 flex-col items-center">
                 <span className="relative">
                   <span className={cx("grid size-9 place-items-center rounded-full bg-surface-2", row.face.isMe && "ring-2 ring-brand")}>
-                    <Personaje {...avatarLook(row.face.avatar)} size={28} />
+                    <Personaje {...badgeLook(row.face.avatar)} size={36} />
                   </span>
                   <span
                     className={cx(

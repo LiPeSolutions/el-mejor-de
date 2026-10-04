@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
 import { avatarLook } from "@/components/personaje/avatar";
+import { PODIUM_POSES } from "@/components/ranking/Ranking";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -137,7 +138,7 @@ const STEPS = {
 function Step({ row, place }: { row: Standing; place: 1 | 2 | 3 }) {
   return (
     <li className="flex min-w-0 flex-col items-center">
-      <Personaje {...avatarLook(row.avatar)} size={place === 1 ? 54 : 46} face={place === 1 ? "joy" : "happy"} />
+      <Personaje {...avatarLook(row.avatar)} {...PODIUM_POSES[place]} size={place === 1 ? 54 : 46} />
       <div className={cx("mt-0.5 flex max-w-full items-center gap-1 text-[13px] font-extrabold", row.me && "text-brand")}>
         <span className="truncate">{row.name}</span>
         {row.crown && <Crown aria-label="tiene la corona" className="size-3.5 shrink-0 fill-gold text-gold-dark" strokeWidth={2.2} />}

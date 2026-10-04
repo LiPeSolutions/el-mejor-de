@@ -142,32 +142,150 @@ export function checkPassword(password: string, username = ''): PasswordProblem 
 
 /* ───────────── Characters ───────────── */
 
-export const AVATAR_SPECIES = ['carpincho', 'hornero', 'pinguino', 'zorro', 'rana', 'llama', 'pelusa', 'nioqui'] as const;
+/** The first 8 came with the app; the other 9, with characters 2.0 (docs/diseno/handoff-personajes). */
+export const AVATAR_SPECIES = [
+  'carpincho',
+  'hornero',
+  'pinguino',
+  'zorro',
+  'rana',
+  'llama',
+  'pelusa',
+  'nioqui',
+  'yaguarete',
+  'tero',
+  'mulita',
+  'condor',
+  'nandu',
+  'oso',
+  'vizcacha',
+  'perro',
+  'gato',
+] as const;
 /** "natural" keeps the species' own colors. */
 export const AVATAR_COLORS = ['natural', 'dorado', 'coral', 'verde', 'azul', 'violeta', 'rosa', 'gris'] as const;
-/** The crown isn't here: it's earned. */
+/** The first version's single accessory: still read, each one drawn in its zone. The crown isn't here: it's earned. */
 export const AVATAR_ACCESSORIES = ['boina', 'gorra', 'anteojos', 'bufanda', 'mate'] as const;
+/** The first one is the default. */
+export const AVATAR_EYES = ['redondos', 'grandes', 'almendra', 'pestanas', 'dormilon', 'brillo'] as const;
+export const AVATAR_HAIR = ['copete', 'jopo', 'rulos', 'cresta', 'pluma', 'flequillo'] as const;
+export const AVATAR_MARKS = ['manchas', 'rayas', 'pecas', 'antifaz', 'parche'] as const;
+export const AVATAR_OUTFITS = ['remera', 'camiseta', 'rayada', 'buzo'] as const;
+/** One thing per zone: head, face, neck and hand. */
+export const AVATAR_HEADWEAR = ['boina', 'gorra', 'gorro', 'vincha', 'auriculares', 'mono', 'sombrero'] as const;
+export const AVATAR_FACEWEAR = ['anteojos', 'lentes', 'curita', 'pintura'] as const;
+export const AVATAR_NECKWEAR = ['bufanda', 'panuelo', 'monito', 'collar'] as const;
+export const AVATAR_HELD = ['mate', 'pelota', 'celu', 'termo', 'banderin'] as const;
+/** The shirt number goes from 0 to 99; without one, the 10. */
+export const AVATAR_NUMBER = { min: 0, max: 99, fallback: 10 } as const;
 
 export type AvatarSpecies = (typeof AVATAR_SPECIES)[number];
 export type AvatarColor = (typeof AVATAR_COLORS)[number];
+/** A color of the palette, without "natural": for details, clothes and the badge's background. */
+export type AvatarPaletteColor = Exclude<AvatarColor, 'natural'>;
 export type AvatarAccessory = (typeof AVATAR_ACCESSORIES)[number];
+export type AvatarEyes = (typeof AVATAR_EYES)[number];
+export type AvatarHair = (typeof AVATAR_HAIR)[number];
+export type AvatarMarks = (typeof AVATAR_MARKS)[number];
+export type AvatarOutfit = (typeof AVATAR_OUTFITS)[number];
+export type AvatarHeadwear = (typeof AVATAR_HEADWEAR)[number];
+export type AvatarFacewear = (typeof AVATAR_FACEWEAR)[number];
+export type AvatarNeckwear = (typeof AVATAR_NECKWEAR)[number];
+export type AvatarHeld = (typeof AVATAR_HELD)[number];
 
+/** A player's character. Every field after `accessory` can be missing: then it has its default (see each one). */
 export interface Avatar {
   species: AvatarSpecies;
   color: AvatarColor;
+  /** The first version's accessory, drawn in its zone when that zone isn't set. */
   accessory: AvatarAccessory | null;
+  /** The detail color (ears, wings, marks, hair). Missing: the character's own dark tone. */
+  detail?: AvatarPaletteColor | null;
+  /** Missing: "redondos". */
+  eyes?: AvatarEyes;
+  hair?: AvatarHair | null;
+  marks?: AvatarMarks | null;
+  outfit?: AvatarOutfit | null;
+  /** Missing: "azul". */
+  outfitColor?: AvatarPaletteColor;
+  /** Only shown on the "camiseta". Missing: 10. */
+  number?: number;
+  head?: AvatarHeadwear | null;
+  face?: AvatarFacewear | null;
+  neck?: AvatarNeckwear | null;
+  hand?: AvatarHeld | null;
+  /** The round badge's background. Missing: the brand's light blue. */
+  background?: AvatarPaletteColor;
 }
 
 export const DEFAULT_AVATAR: Avatar = { species: 'hornero', color: 'natural', accessory: 'anteojos' };
 
-/** A valid character, or null. For what comes from the browser or the database. */
+const PALETTE_COLORS = AVATAR_COLORS.filter((color): color is AvatarPaletteColor => color !== 'natural');
+
+/** The optional fields: the values each one takes, and whether it can be null ("nothing"). */
+const OPTIONAL_FIELDS = {
+  detail: { values: PALETTE_COLORS, nullable: true },
+  eyes: { values: AVATAR_EYES, nullable: false },
+  hair: { values: AVATAR_HAIR, nullable: true },
+  marks: { values: AVATAR_MARKS, nullable: true },
+  outfit: { values: AVATAR_OUTFITS, nullable: true },
+  outfitColor: { values: PALETTE_COLORS, nullable: false },
+  head: { values: AVATAR_HEADWEAR, nullable: true },
+  face: { values: AVATAR_FACEWEAR, nullable: true },
+  neck: { values: AVATAR_NECKWEAR, nullable: true },
+  hand: { values: AVATAR_HELD, nullable: true },
+  background: { values: PALETTE_COLORS, nullable: false },
+} as const satisfies Partial<Record<keyof Avatar, { values: readonly string[]; nullable: boolean }>>;
+
+/**
+ * A valid character, or null. For what comes from the browser or the database.
+ * The first version's shape (species, color and accessory) is still valid; a
+ * missing optional field keeps its default, but one with a wrong value makes
+ * the whole character invalid. Unknown fields are dropped.
+ */
 export function parseAvatar(value: unknown): Avatar | null {
   if (typeof value !== 'object' || value === null) return null;
-  const { species, color, accessory } = value as Record<string, unknown>;
+  const raw = value as Record<string, unknown>;
+  const { species, color, accessory } = raw;
   if (!AVATAR_SPECIES.includes(species as AvatarSpecies)) return null;
   if (!AVATAR_COLORS.includes(color as AvatarColor)) return null;
   if (accessory !== null && !AVATAR_ACCESSORIES.includes(accessory as AvatarAccessory)) return null;
-  return { species: species as AvatarSpecies, color: color as AvatarColor, accessory: accessory as AvatarAccessory | null };
+  const avatar: Record<string, unknown> = { species, color, accessory };
+  for (const [field, rule] of Object.entries(OPTIONAL_FIELDS)) {
+    const option = raw[field];
+    if (option === undefined) continue;
+    if (option === null ? !rule.nullable : !(rule.values as readonly unknown[]).includes(option)) return null;
+    avatar[field] = option;
+  }
+  const { number } = raw;
+  if (number !== undefined) {
+    if (!Number.isInteger(number) || (number as number) < AVATAR_NUMBER.min || (number as number) > AVATAR_NUMBER.max) return null;
+    avatar.number = number;
+  }
+  return avatar as unknown as Avatar;
+}
+
+/** Which zone each first-version accessory goes to. */
+export const ACCESSORY_ZONE = { boina: 'head', gorra: 'head', anteojos: 'face', bufanda: 'neck', mate: 'hand' } as const satisfies Record<
+  AvatarAccessory,
+  'head' | 'face' | 'neck' | 'hand'
+>;
+
+/** What a character wears in each zone: a set zone wins; a missing one takes the first version's accessory, if it goes there. */
+export function avatarWear(avatar: Avatar): {
+  head: AvatarHeadwear | null;
+  face: AvatarFacewear | null;
+  neck: AvatarNeckwear | null;
+  hand: AvatarHeld | null;
+} {
+  const old = avatar.accessory;
+  const zone = old ? ACCESSORY_ZONE[old] : null;
+  return {
+    head: avatar.head !== undefined ? avatar.head : zone === 'head' ? (old as AvatarHeadwear) : null,
+    face: avatar.face !== undefined ? avatar.face : zone === 'face' ? (old as AvatarFacewear) : null,
+    neck: avatar.neck !== undefined ? avatar.neck : zone === 'neck' ? (old as AvatarNeckwear) : null,
+    hand: avatar.hand !== undefined ? avatar.hand : zone === 'hand' ? (old as AvatarHeld) : null,
+  };
 }
 
 /** How the crown names the player: "El Mejor de…" or "La Mejor de…". */

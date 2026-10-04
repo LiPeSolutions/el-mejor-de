@@ -5,7 +5,7 @@ import type { Avatar } from "@repo/shared";
 import { Check, LoaderCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import { Personaje, type PersonajeProps } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 
 /*
@@ -51,10 +51,10 @@ export function FacePile({ faces, size = 30, max = 4, ring = "white" }: { faces:
       {shown.map((face, i) => (
         <span
           key={face.key}
-          className={cx("grid place-items-center overflow-hidden rounded-full", ring === "white" ? "bg-white ring-2 ring-white" : "bg-white ring-2 ring-brand", i > 0 && "-ml-2.5")}
+          className={cx("grid place-items-center rounded-full", ring === "white" ? "bg-white ring-2 ring-white" : "bg-white ring-2 ring-brand", i > 0 && "-ml-2.5")}
           style={{ width: size + 6, height: size + 6 }}
         >
-          <Personaje {...avatarLook(face.avatar)} size={size} />
+          <Personaje {...badgeLook(face.avatar)} size={size + 6} />
         </span>
       ))}
       {more > 0 && (
@@ -75,7 +75,7 @@ export function FaceTile({ face, size = 40, badge, dim = false, label }: { face:
     <div className={cx("flex min-w-0 flex-col items-center gap-1 transition-opacity", dim && "opacity-45")}>
       <div className="relative">
         <span className={cx("grid place-items-center rounded-full bg-white shadow-sm", face.isMe && "ring-2 ring-brand")} style={{ width: size + 10, height: size + 10 }}>
-          <Personaje {...avatarLook(face.avatar)} size={size} />
+          <Personaje {...badgeLook(face.avatar)} size={size + 10} />
         </span>
         {badge && <span className="absolute -right-1 -bottom-1">{badge}</span>}
       </div>

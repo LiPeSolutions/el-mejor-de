@@ -4,7 +4,7 @@ import { Clock, Timer } from "lucide-react";
 import { GameHeader, ScoreRow, type ToastState } from "@/components/games/chrome";
 import { LetterKeys, WordChip, type LetterKeysState, type SentWord } from "@/components/games/letters";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { Label } from "@/components/ui/Chip";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
@@ -57,7 +57,7 @@ function LiveScores({ rows }: { rows: readonly LettersLiveRow[] }) {
         {rows.map(({ face, place, points }) => (
           <li key={face.key} className="flex w-[54px] shrink-0 flex-col items-center gap-0.5">
             <span className={cx("relative grid size-[38px] place-items-center rounded-full bg-white shadow-sm", face.isMe && "ring-2 ring-brand")}>
-              <Personaje {...avatarLook(face.avatar)} size={28} />
+              <Personaje {...badgeLook(face.avatar)} size={38} />
               {place === 1 && points > 0 && (
                 <span className="absolute -top-1 -right-1.5 grid size-[18px] place-items-center rounded-full bg-gold font-display text-[10px] font-extrabold text-ink ring-2 ring-white">1</span>
               )}

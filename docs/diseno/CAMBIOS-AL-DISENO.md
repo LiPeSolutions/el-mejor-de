@@ -55,7 +55,7 @@ El diseño de Largada está en [`handoff-largada/`](handoff-largada/LARGADA.md).
 | Tema | En el diseño | Lo que se implementa | Por qué |
 |---|---|---|---|
 | Esperas (§2) | Las mismas para todos ese día | **Distintas para cada jugador** (de 0,2 a 3 s). Los tiempos se comparan igual, porque se miden desde que se apagan las luces | Decisión de producto (3/10/2026): quien ya jugó no puede avisarle a otro cuándo se apagan |
-| Color de los autos (§13) | El auto del color del equipo | Cada auto con **el color de su personaje**. El pingüino natural, con el naranja del pico, porque su negro se pierde en el asfalto. El fantasma, gris al 62 % | Decisión de producto (3/10/2026) |
+| Color de los autos (§13) | El auto del color del equipo | Cada auto con **el color de su personaje**. El pingüino natural, con el naranja del pico, porque su negro se pierde en el asfalto; el cóndor natural (personajes 2.0), por lo mismo, con el color de su cabeza. El fantasma, gris al 62 % | Decisión de producto (3/10/2026) |
 | Grupo (§13) | El último grupo que abrió el jugador | Igual, y en la parrilla un chip para elegir otro si tenés más de uno | Decisión de producto (3/10/2026) |
 | Sin rivales (§9) | El fantasma "El mejor de Chivilcoy" | El mejor del día de tu localidad, si la verificaste; si no, del país ("El mejor de Argentina"). Si no jugó nadie, corren los bots. En la parrilla, "El mejor de" va arriba del nombre del lugar | Lo que hay en los datos |
 | Bots | No están en el diseño | Rayo, Chispa, Turbo y Tortuga, cada uno con su nivel y su auto. En la práctica completan la pista hasta 5 autos; en el reto del día corren solo si no hay nadie más. En la parrilla llevan "bot" arriba del nombre, y el texto dice "Hoy corrés contra los bots" (o "…contra los tiempos que hizo tu grupo y los bots") | Decisión de producto (3/10/2026): que la práctica no sea una largada en solitario |
@@ -88,4 +88,24 @@ El diseño de Tubitos está en [`handoff-tubitos/`](handoff-tubitos/TUBITOS.md) 
 | Mínimo de movimientos (§11.1) | Solver con tope de nodos | La solución más corta, con A*; se comprobó contra una búsqueda completa y tarda milisegundos. Los tableros demasiado fáciles (un mínimo de menos de 10, 16 y 22 movimientos) se descartan | Que los niveles del día sean parejos |
 | Baldosa en Práctica | No está dibujada con 5 juegos | Con 5 juegos, la de Tubitos ocupa toda la fila | Que no quede un hueco |
 | Música | No está en el diseño | Una canción propia, "Laboratorio": tranquila y burbujeante, a 92 por minuto, como cada juego tiene la suya | Decisión de producto (4/10/2026) |
-| Batallas en vivo | No están en esta versión | Tubitos todavía no está en las batallas | Queda para más adelante (PLAN §13) |
+| Batallas en vivo | No están en esta versión | Los mismos 3 tableros del reto para todos, uno detrás del otro, cada uno en su versión y con los puntos del reto (ver [BATALLAS.md](../BATALLAS.md)) | Decisión de producto (4/10/2026) |
+
+## Personajes 2.0
+
+El diseño está en [`handoff-personajes/`](handoff-personajes/PERSONAJES.md) (estilo 1a, "Pulido"). El dibujo se portó tal cual de `fuente/personajes.js`, y una prueba lo compara pieza por pieza con los 200 SVG de referencia. Al implementarlo, estas cosas cambian respecto de esa guía:
+
+| Tema | En el diseño | Lo que se implementa | Por qué |
+|---|---|---|---|
+| Dónde va cada pose (§9) | Propuesta para confirmar | Toda la propuesta, con sus animaciones cortas | Decisión de producto (4/10/2026) |
+| La "z" del dormido (§4.4) | La guía y las notas de la hoja la piden, pero `personajes.js` no la dibuja | Se dibuja, como antes | Así lo dicen la guía y la hoja |
+| Inicio con el día hecho | No está en la guía | El personaje del inicio duerme en vez de saludar | Ya dormía ahí, y saludar dormido no tiene sentido |
+| Invitación a una batalla | No está en la guía | El personaje de quien invita saluda | Es un saludo, como "al entrar a un grupo" en las notas de la hoja (no hay una pantalla de grupo con personaje) |
+| Tu fila del ranking (la barra azul) | No está en la guía | El avatar redondo despierto, aunque todavía no hayas jugado | Dormido y al 45 % no se lee sobre el azul |
+| Festejo (§11, opcional) | Pasar de quieto a festejo en 300 ms con el "pop" | Los brazos suben desde donde descansan en 300 ms, con la curva del "pop", y lo que tienen en la mano sube con ellos | Así se ve que festeja |
+| Salto (§11, opcional) | De −10 a 0 con rebote | El cuerpo llega desde 10 más arriba hasta la pose del salto, con un rebote | La pose ya está en el aire |
+| Animaciones | — | Solo fuera del avatar redondo, y apagadas si el celu pide menos movimiento | Que las listas no se muevan |
+| Número de la camiseta | Outfit; sin número, el 10, y el 0 también da 10 | Outfit, la letra de la app; el 0 es 0 | El 0 es un número válido |
+| Nombres de las props (§7) | `pose`, `view`, `facing`, `badge` | Esos, más `badgeColor`, `crown` (la corona en la cabeza) y `faceWear` para el accesorio de la cara | `face` ya es la expresión |
+| Los datos de ejemplo | Sin `color` ni `accessory`, y con `hasCrown` | Los campos que faltan valen "natural" y nada; `hasCrown` no se guarda | La corona no se guarda: se gana |
+| Editor (§11) | Fuera de este paquete | La pantalla de personaje de hoy ofrece los 17 bichos, en tres filas de seis; color y accesorio, como antes | Decisión de producto (4/10/2026): el editor llega en otro paquete |
+

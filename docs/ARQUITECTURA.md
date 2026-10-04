@@ -200,6 +200,16 @@ Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLA
 - **Juego limpio:** nada que suene da información que la pantalla no muestre. La señal de Largada no suena: el motor arranca después del toque, y la música baja al prenderse las luces, no al apagarse.
 - **Pruebas:** `synth.test.ts` y `music.test.ts` revisan con un contexto de mentira (`lib/testing/fake-audio.ts`) que cada sonido y cada compás arranque cuando debe y no rompa Web Audio (una rampa exponencial a cero da error). Cómo suenan se escucha en las páginas de sonidos y de música.
 
+### Personajes
+
+Los personajes 2.0 (17 bichos, tres cuartos, 6 poses y avatar redondo) se dibujan en SVG con código, sin imágenes. El diseño y su fuente están en [`docs/diseno/handoff-personajes`](diseno/handoff-personajes/PERSONAJES.md); lo que cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md#personajes-20).
+
+- **Los datos** (`packages/shared/src/accounts.ts`): `Avatar` guarda el bicho, el color y el accesorio de la primera versión, y los campos nuevos son opcionales (segundo color, ojos, pelo, marcas, ropa con su color y número, un accesorio por zona y el fondo del avatar). Un campo que falta vale su valor de base, así lo guardado sigue valiendo; uno con un valor inválido rechaza todo el personaje (`parseAvatar`). `avatarWear` pone el accesorio viejo en su zona (la boina y la gorra en la cabeza, los anteojos en la cara, la bufanda en el cuello y el mate en la mano). La corona no se guarda: la suman el podio y el festejo.
+- **El dibujo** (`apps/web/src/components/personaje/`): `rig.ts` tiene el esqueleto de cada bicho (sus piezas y sus anclas, en una grilla de 100 × 120); `pieces.ts`, la cara, el pelo, las marcas, la ropa y los accesorios; `draw.ts` los arma con la vista y la pose y devuelve un árbol SVG simple, sin React, y `Personaje.tsx` lo dibuja. Portados de `fuente/personajes.js` (solo el estilo "Pulido"), con sus mismos números.
+- **Uso:** `avatarLook` da las props de un jugador y `badgeLook`, las del avatar redondo. Las props de antes siguen andando (`acc`, `prop` de las mascotas, `scarf`, `frame` del casco de Largada); las nuevas son `pose`, `view`, `facing`, `badge`, `badgeColor`, `crown` y una por cada opción. Cada personaje usa `useId` para sus recortes, así dos en la misma pantalla no se pisan.
+- **Movimiento:** el festejo sube los brazos y el salto aterriza (`animate-pj-swing` y `animate-pj-land` en `globals.css`). Fuera del avatar redondo, y apagado si el celu pide menos movimiento.
+- **Pruebas:** `draw.test.ts` compara cada bicho en cada vista y pose, los 8 ejemplos y cada opción con los 200 SVG de referencia, pieza por pieza. En el navegador, `/dev/personajes` (solo en desarrollo) muestra la hoja de modelos, y `scripts/qa/personajes.cjs` la compara píxel por píxel con esos SVG.
+
 ### Batallas en vivo
 
 Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su celu (decisiones en [PLAN §8](PLAN.md#batallas-en-vivo-decidido-el-4102026)). El detalle, las trampas que ya pisamos y el paso a paso para sumar un juego están en [BATALLAS.md](BATALLAS.md). El código está en:

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, Hourglass, X } from "lucide-react";
 import { TimerRing } from "@/components/games/FiveQuestionsPlay";
 import { GameHeader } from "@/components/games/chrome";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { formatNumber } from "@/lib/format";
@@ -130,7 +130,7 @@ export function BattleQuestion({ question, phase, outcomes, secondsLeft, fractio
               >
                 <span className={cx("w-6 shrink-0 font-display text-sm font-extrabold tabular-nums", row.face.isMe ? "text-gold" : "text-ink-500")}>{row.place}</span>
                 <span className="shrink-0">
-                  <Personaje {...avatarLook(row.face.avatar)} size={28} />
+                  <Personaje {...badgeLook(row.face.avatar)} size={32} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-extrabold">{row.face.isMe ? "Vos" : row.face.name}</span>

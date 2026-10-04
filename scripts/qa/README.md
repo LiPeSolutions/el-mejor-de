@@ -2,7 +2,7 @@
 
 Estos scripts juegan la app en celus simulados, con Playwright y tocando la pantalla como una persona. Corren contra la app levantada en tu máquina, con una base local.
 
-No son parte de `pnpm check`: se corren a mano después de tocar las batallas o Tubitos. Las capturas quedan en `scripts/qa/out/`, que no se sube al repo.
+No son parte de `pnpm check`: se corren a mano después de tocar las batallas, Tubitos o los personajes. Las capturas quedan en `scripts/qa/out/`, que no se sube al repo.
 
 | Script | Qué prueba |
 |---|---|
@@ -13,6 +13,7 @@ No son parte de `pnpm check`: se corren a mano después de tocar las batallas o 
 | `battle-tubitos.cjs` | Una batalla de Tubitos con 3 celus: los mismos 3 tableros, cada celu con su versión, quién ya lo resolvió, la tabla de cada tablero, alguien que se va a mitad del último (cierra sin esperarlo) y el podio. Lee los tubos de la pantalla y los resuelve con el motor del juego. |
 | `battle-ten.cjs` | Una sala llena: 10 cuentas, con el celu del anfitrión en pantalla durante Cinco Preguntas y Tubitos. Revisa que la página no se salga del ancho y que la tira "En vivo" se deslice de costado. Pensada para 360 × 740. |
 | `battle-edges.cjs` | Los casos raros: una batalla suelta desde Práctica, quien llega con la partida empezada (mira y juega la revancha), alguien que se va a mitad de una pregunta y el anfitrión que se va (pasa el mando). Al final, quien se fue ve "No estás en esta batalla". |
+| `personajes.cjs` | La hoja de modelos de los personajes (`/dev/personajes`, solo en desarrollo) contra los SVG de referencia de Claude Design, píxel por píxel: los 17 bichos en cada vista y pose, y los 8 ejemplos. Revisa también que cada recorte del dibujo exista y no se repita. No necesita la base. |
 | `tubitos.cjs` | La práctica de Tubitos: levantar, "Ahí no", deshacer, reiniciar, resolver, la victoria, repetir, el siguiente nivel y el récord. Con `DAILY=1`, el reto del día con sus 3 niveles y el resultado. |
 | `tubitos-edges.cjs` | El reto de Tubitos dejado a mitad: salir en la victoria de un nivel (cuenta lo resuelto) y cerrar la app a mitad de un nivel (cuenta como jugado). |
 | `helpers.cjs` · `tubitos-board.cjs` | Piezas compartidas:<br>• los celus, las cuentas, las capturas y el informe;<br>• leer los tubos de la pantalla y resolverlos con el motor del juego, empaquetado con esbuild en cada corrida;<br>• las palabras válidas de Diez Letras, con el diccionario de verdad, empaquetado igual. |
@@ -54,6 +55,7 @@ node scripts/qa/battle-letters.cjs 390 844
 node scripts/qa/battle-sequence.cjs 360 740
 node scripts/qa/battle-tubitos.cjs 390 844
 node scripts/qa/battle-ten.cjs 360 740
+node scripts/qa/personajes.cjs
 node scripts/qa/tubitos.cjs 390 844
 REDUCED=1 node scripts/qa/tubitos.cjs 360 740
 DAILY=1 node scripts/qa/tubitos.cjs

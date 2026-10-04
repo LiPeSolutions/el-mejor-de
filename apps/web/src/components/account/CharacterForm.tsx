@@ -92,11 +92,13 @@ function CharacterHero({ avatar, name, article }: { avatar: Avatar; name?: strin
 function CharacterPicker({ avatar, onChange }: { avatar: Avatar; onChange: (avatar: Avatar) => void }) {
   return (
     <>
+      {/* 17 species: three rows of six. */}
       <Choices
         label="Elegí tu bicho"
         options={AVATAR_SPECIES}
         value={avatar.species}
         onChange={(species) => onChange({ ...avatar, species })}
+        rowClassName="grid grid-cols-6 gap-x-1.5 gap-y-2"
         render={(species) => ({
           label: SPECIES_NAMES[species],
           content: (

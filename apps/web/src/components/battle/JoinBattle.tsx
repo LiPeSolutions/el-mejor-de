@@ -40,7 +40,8 @@ export function JoinBattle({ host, game, players, signedIn, playing, onJoin, joi
         <div className="relative">
           <div aria-hidden className="absolute top-[54%] left-1/2 size-[150px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="relative">
-            <Personaje {...host.look} size={120} face="joy" anim="float" />
+            {/* The host waves hello. */}
+            <Personaje {...host.look} size={120} face="joy" pose="wave" anim="float" />
           </div>
         </div>
         <h1 className="mt-5 font-display text-[28px] leading-[1.1] font-extrabold tracking-[-.02em]">{host.name} te invitó a una batalla</h1>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
@@ -79,7 +79,7 @@ function GroupCard({ group, week, account }: { group: GroupSummary; week: GroupW
           <div className="mt-1 flex items-center gap-1.5">
             {group.leader && (
               <span className="shrink-0">
-                <Personaje {...avatarLook(group.leader.avatar)} size={22} />
+                <Personaje {...badgeLook(group.leader.avatar)} size={24} />
               </span>
             )}
             <span className="line-clamp-2 text-xs leading-[1.3] font-semibold text-ink-700">{standingText(group, week, account)}</span>

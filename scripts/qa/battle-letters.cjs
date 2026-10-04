@@ -80,7 +80,9 @@ async function type(p, word) {
 
   const juliText = await juli.page.locator("main").innerText();
   check("Juli sees Pato's points live", /Vos/.test(juliText) && (await juli.page.getByLabel("Puntos en vivo").innerText()).includes(`Pato${run}`.slice(0, 4)));
-  check("Juli doesn't see Pato's own words while playing", patoWords.slice(1).every((word) => !juliText.includes(word)));
+  // Whole words: one of Juli's can contain one of Pato's (EROTISMOS and EROTISMO).
+  const juliSees = new Set(juliText.split(/[^A-ZÑ]+/));
+  check("Juli doesn't see Pato's own words while playing", patoWords.slice(1).every((word) => !juliSees.has(word)));
   check("Toto's wrong word shows as not valid", (await toto.page.getByLabel(`${wrong}: no vale`).count()) === 1);
   check("all of Pato's words count", (await pato.page.locator('li[aria-label$="+120"], li[aria-label$="+160"], li[aria-label$="+220"]').count()) === patoWords.length);
 

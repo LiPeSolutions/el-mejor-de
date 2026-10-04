@@ -24,8 +24,9 @@ export const GHOST_COLORS: CarColors = { main: "#999EAC", dark: "#7D818D", light
 
 /** The team's color is the character's color. */
 export function carColors(avatar: Avatar): CarColors {
-  // The penguin's own colors are almost the asphalt's: its car takes the beak's.
+  // The penguin's and the cóndor's own colors are almost the asphalt's: their cars take the beak's and the head's.
   if (avatar.color === "natural" && avatar.species === "pinguino") return { main: "#F5A623", dark: "#C27C0E", light: "#FFD58A" };
+  if (avatar.color === "natural" && avatar.species === "condor") return { main: "#C77B6B", dark: "#9A5548", light: "#EBB9AE" };
   const c = avatar.color === "natural" ? SPECIES[avatar.species].c : AVATAR_PALETTE[avatar.color];
   return { main: c.main, dark: c.dark, light: c.light };
 }
@@ -59,7 +60,8 @@ function Visor({ avatar }: { avatar: Avatar | null }) {
       </clipPath>
       <g clipPath={`url(#${clip})`}>
         <rect x="7.3" y="10.2" width="24" height="12" fill="#E8EEFB" />
-        <Personaje {...look} acc={look.acc?.filter((one) => one === "anteojos")} frame={{ x: 7.3, y: 10.2, width: 24, height: 12, viewBox: `22 ${eyeY - 12} 56 28` }} />
+        {/* The helmet covers the head and the neck; only the face looks out. */}
+        <Personaje {...look} head={null} hair={null} neck={null} hand={null} frame={{ x: 7.3, y: 10.2, width: 24, height: 12, viewBox: `22 ${eyeY - 12} 56 28` }} />
         <rect x="8.6" y="11.2" width="5" height="1" rx="0.5" fill="#FFFFFF" fillOpacity="0.6" />
       </g>
     </>

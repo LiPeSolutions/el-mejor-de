@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { GroupEmblem } from "@/components/groups/Emblem";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { Podium, RankingRow, type RankedPlayer } from "@/components/ranking/Ranking";
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
@@ -86,7 +86,7 @@ export function BattlePodium({ game, rows, winnerDetail, host, hostName, history
             <div className="mt-1 flex items-center gap-3">
               {history.wins.slice(0, 3).map(({ face, wins }) => (
                 <span key={face.key} className="flex min-w-0 items-center gap-1">
-                  <Personaje {...avatarLook(face.avatar)} size={22} />
+                  <Personaje {...badgeLook(face.avatar)} size={24} />
                   <span className={cx("truncate text-[13px] font-extrabold", face.isMe && "text-brand")}>{face.isMe ? "Vos" : face.name}</span>
                   <span className="font-display text-[13px] font-extrabold text-ink-500 tabular-nums">{wins}</span>
                 </span>

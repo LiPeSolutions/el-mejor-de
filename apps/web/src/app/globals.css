@@ -84,6 +84,9 @@
   --animate-fade-in-again: fade-in-again 0.15s ease-out both;
   --animate-breathe: breathe 1.4s ease-in-out infinite;
   --animate-fill-up: fill-up 0.3s linear both;
+  /* Characters: the arms going up to cheer (from where each one rests, in --pj-from) and the jump landing. */
+  --animate-pj-swing: pj-swing 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-pj-land: pj-land 0.55s ease-out both;
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -92,6 +95,15 @@
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
+  }
+  @keyframes pj-swing {
+    from { transform: var(--pj-from); }
+  }
+  @keyframes pj-land {
+    0% { transform: translateY(-10px); }
+    55% { transform: translateY(1.5px); }
+    78% { transform: translateY(-0.8px); }
+    100% { transform: translateY(0); }
   }
   @keyframes pop {
     0% { transform: translateY(-90px) scale(0.5); opacity: 0; }

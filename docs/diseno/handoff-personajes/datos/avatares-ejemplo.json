@@ -1,0 +1,98 @@
+[
+  {
+    "name": "nico",
+    "avatar": {
+      "species": "hornero",
+      "hair": "copete",
+      "face": "anteojos",
+      "neck": "bufanda",
+      "hand": "mate",
+      "background": "azul"
+    }
+  },
+  {
+    "name": "tincho",
+    "avatar": {
+      "species": "carpincho",
+      "eyes": "dormilon",
+      "outfit": "camiseta",
+      "outfitColor": "azul",
+      "number": 9,
+      "background": "dorado",
+      "hasCrown": true
+    }
+  },
+  {
+    "name": "juli",
+    "avatar": {
+      "species": "gato",
+      "color": "violeta",
+      "detail": "rosa",
+      "eyes": "pestanas",
+      "marks": "rayas",
+      "head": "mono",
+      "hand": "celu",
+      "background": "rosa"
+    }
+  },
+  {
+    "name": "caro",
+    "avatar": {
+      "species": "yaguarete",
+      "eyes": "almendra",
+      "outfit": "buzo",
+      "outfitColor": "coral",
+      "head": "auriculares",
+      "background": "coral"
+    }
+  },
+  {
+    "name": "sofi",
+    "avatar": {
+      "species": "rana",
+      "color": "verde",
+      "detail": "dorado",
+      "eyes": "brillo",
+      "marks": "pecas",
+      "head": "vincha",
+      "hand": "pelota",
+      "background": "verde"
+    }
+  },
+  {
+    "name": "pato",
+    "avatar": {
+      "species": "pinguino",
+      "eyes": "grandes",
+      "hair": "jopo",
+      "neck": "monito",
+      "hand": "termo",
+      "background": "gris"
+    }
+  },
+  {
+    "name": "laflor",
+    "avatar": {
+      "species": "llama",
+      "color": "rosa",
+      "detail": "violeta",
+      "eyes": "pestanas",
+      "head": "sombrero",
+      "neck": "panuelo",
+      "background": "violeta"
+    }
+  },
+  {
+    "name": "colo_88",
+    "avatar": {
+      "species": "perro",
+      "color": "dorado",
+      "marks": "parche",
+      "outfit": "rayada",
+      "outfitColor": "azul",
+      "head": "gorra",
+      "hand": "banderin",
+      "background": "azul"
+    }
+  }
+]

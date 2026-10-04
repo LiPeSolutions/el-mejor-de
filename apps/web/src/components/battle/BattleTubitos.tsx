@@ -4,7 +4,7 @@ import { Check, Clock, Hourglass } from "lucide-react";
 import type { ReactNode } from "react";
 import { GameHeader, ScoreRow } from "@/components/games/chrome";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { formatClock, formatNumber } from "@/lib/format";
@@ -124,7 +124,7 @@ export function BattleTubitosTable({ index, total, par, rows, nextIn, onExit }: 
           <li key={row.face.key} className={cx("flex min-h-[50px] items-center gap-2.5 rounded-row py-1.5 pr-3 pl-3", ROW_SHADOW, row.face.isMe ? "bg-brand text-white" : "bg-white")}>
             <span className={cx("w-6 shrink-0 font-display text-sm font-extrabold tabular-nums", row.face.isMe ? "text-gold" : "text-ink-500")}>{row.place}</span>
             <span className="shrink-0">
-              <Personaje {...avatarLook(row.face.avatar)} size={28} />
+              <Personaje {...badgeLook(row.face.avatar)} size={32} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-extrabold">{row.face.isMe ? "Vos" : row.face.name}</span>

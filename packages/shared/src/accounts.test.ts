@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_AVATAR, checkPassword, checkUsername, isUsernameBlocked, parseAvatar, usernameKey } from './accounts';
+import { AVATAR_SPECIES, DEFAULT_AVATAR, avatarWear, checkPassword, checkUsername, isUsernameBlocked, parseAvatar, usernameKey, type Avatar } from './accounts';
 
 describe('usernameKey', () => {
   it('ignores case and accents, like the database', () => {
@@ -71,9 +71,48 @@ describe('checkPassword', () => {
 });
 
 describe('parseAvatar', () => {
-  it('accepts a valid character', () => {
+  /** Juli, from the design's examples: every new field set. */
+  const JULI: Avatar = {
+    species: 'gato',
+    color: 'violeta',
+    accessory: null,
+    detail: 'rosa',
+    eyes: 'pestanas',
+    hair: null,
+    marks: 'rayas',
+    outfit: 'camiseta',
+    outfitColor: 'azul',
+    number: 0,
+    head: 'mono',
+    face: null,
+    neck: null,
+    hand: 'celu',
+    background: 'rosa',
+  };
+
+  it('accepts the first version\'s shape, as it is saved', () => {
     expect(parseAvatar(DEFAULT_AVATAR)).toEqual(DEFAULT_AVATAR);
     expect(parseAvatar({ species: 'rana', color: 'azul', accessory: null })).toEqual({ species: 'rana', color: 'azul', accessory: null });
+  });
+
+  it('accepts the 17 species', () => {
+    expect(AVATAR_SPECIES).toHaveLength(17);
+    for (const species of AVATAR_SPECIES) expect(parseAvatar({ species, color: 'natural', accessory: null })?.species).toBe(species);
+  });
+
+  it('accepts the new fields, and leaves out the missing ones', () => {
+    expect(parseAvatar(JULI)).toEqual(JULI);
+    expect(parseAvatar({ species: 'perro', color: 'dorado', accessory: null, marks: 'parche', number: 99 })).toEqual({
+      species: 'perro',
+      color: 'dorado',
+      accessory: null,
+      marks: 'parche',
+      number: 99,
+    });
+  });
+
+  it('drops what it doesn\'t know, like the crown flag of the design\'s examples', () => {
+    expect(parseAvatar({ ...DEFAULT_AVATAR, hasCrown: true })).toEqual(DEFAULT_AVATAR);
   });
 
   it('rejects anything else, including the crown', () => {
@@ -82,5 +121,42 @@ describe('parseAvatar', () => {
     expect(parseAvatar({ species: 'rana', color: 'fucsia', accessory: null })).toBeNull();
     expect(parseAvatar({ species: 'rana', color: 'azul', accessory: 'corona' })).toBeNull();
     expect(parseAvatar({ species: 'rana', color: 'azul' })).toBeNull();
+    expect(parseAvatar({ ...JULI, head: 'corona' })).toBeNull();
+  });
+
+  it('rejects a new field with a wrong value', () => {
+    expect(parseAvatar({ ...JULI, eyes: 'tristes' })).toBeNull();
+    expect(parseAvatar({ ...JULI, detail: 'natural' })).toBeNull();
+    expect(parseAvatar({ ...JULI, outfit: 'frac' })).toBeNull();
+    expect(parseAvatar({ ...JULI, hand: 'anteojos' })).toBeNull();
+    expect(parseAvatar({ ...JULI, background: 'negro' })).toBeNull();
+    // These have a default, not a "nothing".
+    expect(parseAvatar({ ...JULI, eyes: null })).toBeNull();
+    expect(parseAvatar({ ...JULI, outfitColor: null })).toBeNull();
+    expect(parseAvatar({ ...JULI, background: null })).toBeNull();
+  });
+
+  it('takes shirt numbers from 0 to 99, whole', () => {
+    expect(parseAvatar({ ...JULI, number: 100 })).toBeNull();
+    expect(parseAvatar({ ...JULI, number: -1 })).toBeNull();
+    expect(parseAvatar({ ...JULI, number: 9.5 })).toBeNull();
+    expect(parseAvatar({ ...JULI, number: '9' })).toBeNull();
+  });
+});
+
+describe('avatarWear', () => {
+  it('puts the first version\'s accessory in its zone', () => {
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'boina' })).toEqual({ head: 'boina', face: null, neck: null, hand: null });
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'gorra' }).head).toBe('gorra');
+    expect(avatarWear(DEFAULT_AVATAR)).toEqual({ head: null, face: 'anteojos', neck: null, hand: null });
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'bufanda' }).neck).toBe('bufanda');
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'mate' }).hand).toBe('mate');
+  });
+
+  it('lets a set zone win over the old accessory, even when it says "nothing"', () => {
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'boina', head: 'vincha', hand: 'celu' })).toEqual({ head: 'vincha', face: null, neck: null, hand: 'celu' });
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'anteojos', face: null }).face).toBeNull();
+    // A zone the old accessory doesn't go to doesn't touch it.
+    expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'anteojos', head: null }).face).toBe('anteojos');
   });
 });

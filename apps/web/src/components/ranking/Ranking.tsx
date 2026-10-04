@@ -1,8 +1,8 @@
 import { dayIndex, type Avatar } from "@repo/shared";
 import { Crown } from "lucide-react";
 import type { ReactNode } from "react";
-import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { Personaje, type PersonajeProps } from "@/components/personaje/Personaje";
+import { avatarLook, badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import { formatNumber } from "@/lib/format";
 
@@ -44,6 +44,13 @@ const PODIUM = [
   { place: 3, size: 50, block: "h-9 bg-white text-ink-500" },
 ] as const;
 
+/** On the podium the first one jumps, and the other two look at them. */
+export const PODIUM_POSES: Record<1 | 2 | 3, Pick<PersonajeProps, "pose" | "view" | "facing">> = {
+  1: { pose: "jump" },
+  2: { view: "threeQuarter", facing: "right" },
+  3: { view: "threeQuarter", facing: "left" },
+};
+
 /** The top 3 (second, first, third). `crowned` puts the crown on whoever has it (the first one, unless they say). */
 export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefined)[]; crowned: boolean }) {
   return (
@@ -56,12 +63,7 @@ export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefin
             {entry ? (
               <>
                 <div style={{ height: size * 1.2 }} className="flex items-end">
-                  <Personaje
-                    {...avatarLook(entry.avatar)}
-                    acc={[...avatarLook(entry.avatar).acc!, ...(crown ? (["corona"] as const) : [])]}
-                    size={size}
-                    title={`El personaje de ${entry.name}`}
-                  />
+                  <Personaje {...avatarLook(entry.avatar)} {...PODIUM_POSES[place]} crown={crown} size={size} title={`El personaje de ${entry.name}`} />
                 </div>
                 <span className="flex max-w-full items-center gap-1 text-[13px] font-extrabold">
                   <span className="truncate">{entry.name}</span>
@@ -96,14 +98,22 @@ export function Podium({ top, crowned }: { top: readonly (RankedPlayer | undefin
   );
 }
 
+/** A player's round avatar in a row; asleep, faded and with a dashed ring if they haven't played yet. */
+export function RowBadge({ avatar, played = true, size = 36 }: { avatar: Avatar; played?: boolean; size?: number }) {
+  if (played) return <Personaje {...badgeLook(avatar)} size={size} className="shrink-0" />;
+  return (
+    <span className="grid shrink-0 place-items-center rounded-full border-2 border-dashed border-ink-300" style={{ width: size, height: size }}>
+      <Personaje {...badgeLook(avatar)} badgeColor="gris" pose="sleep" size={size - 6} className="opacity-45" />
+    </span>
+  );
+}
+
 /** One ranking row (50 px). Without a position, they haven't played in this period. */
 export function RankingRow({ position, player, note }: { position: number | null; player: RankedPlayer; note?: ReactNode }) {
   return (
     <li className={cx("flex h-[50px] items-center gap-2.5 rounded-row pr-3.5 pl-3 shadow-sm", position === null ? "bg-white/70" : "bg-white")}>
       <span className="w-[22px] shrink-0 font-display text-sm font-extrabold text-ink-500 tabular-nums">{position ?? "–"}</span>
-      <span className="shrink-0">
-        <Personaje {...avatarLook(player.avatar)} size={30} />
-      </span>
+      <RowBadge avatar={player.avatar} played={position !== null} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-sm font-bold">
           <span className="truncate">{player.name}</span>
@@ -126,9 +136,7 @@ export function MeBar({ position, player, detail }: { position: number | null; p
   return (
     <div className="flex items-center gap-2.5 rounded-[20px] bg-brand px-3.5 py-2.5 text-white shadow-btn">
       <span className="shrink-0 font-display text-sm font-extrabold text-gold tabular-nums">{position ? `#${position}` : "–"}</span>
-      <span className="shrink-0">
-        <Personaje {...avatarLook(player.avatar)} size={28} />
-      </span>
+      <RowBadge avatar={player.avatar} size={32} />
       <div className="min-w-0 flex-1 leading-tight">
         <p className="truncate text-sm font-extrabold">Vos · {player.name}</p>
         <p className="truncate text-xs text-white/80">{detail}</p>

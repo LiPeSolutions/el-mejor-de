@@ -3,7 +3,7 @@
 import { Clock, Gamepad2, Lock, LogIn, Play, Trophy, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Personaje, type Face } from "@/components/personaje/Personaje";
+import { Personaje } from "@/components/personaje/Personaje";
 import { avatarLook } from "@/components/personaje/avatar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
@@ -95,10 +95,10 @@ function Stats({
   );
 }
 
-/** The player's own character when signed in; the hornero otherwise. */
-function HeroCharacter({ account, face }: { account: PublicAccount | null; face?: Face }) {
+/** The player's own character when signed in, the hornero otherwise: waving hello, or asleep once the day is done. */
+function HeroCharacter({ account, pose }: { account: PublicAccount | null; pose: "wave" | "sleep" }) {
   const look = account ? avatarLook(account.avatar) : { sp: "hornero" as const, acc: ["anteojos" as const] };
-  return <Personaje {...look} face={face} size={116} anim="bob" className="size-full" />;
+  return <Personaje {...look} pose={pose} size={116} anim="bob" className="size-full" />;
 }
 
 const dayLabel = (today: TodayInfo) => (today.dayNumber > 0 ? `Día ${today.dayNumber} · ` : "");
@@ -216,7 +216,7 @@ function TodayPending({
       <Hero
         title={account ? `¡Buenas, ${account.username}!` : "¡Buenas!"}
         subtitle={played === 0 ? `${dayLabel(today)}tenés 3 retos nuevos` : `${dayLabel(today)}jugaste ${played} de 3 retos`}
-        character={<HeroCharacter account={account} />}
+        character={<HeroCharacter account={account} pose="wave" />}
       >
         {bubble}
       </Hero>
@@ -245,7 +245,7 @@ function TodayDone({ today, state, account, local }: { today: TodayInfo; state: 
       <Hero
         title={account ? `Hoy ya está, ${account.username}` : "Hoy ya está"}
         subtitle={`${dayLabel(today)}jugaste los 3 retos`}
-        character={<HeroCharacter account={account} face="sleep" />}
+        character={<HeroCharacter account={account} pose="sleep" />}
       >
         Volvé mañana y seguí la racha. Mientras, podés practicar.
       </Hero>

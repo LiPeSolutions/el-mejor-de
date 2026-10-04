@@ -392,7 +392,7 @@ function Character({ account, face }: { account: PublicAccount; face: Face }) {
   return <Personaje {...avatarLook(account.avatar)} face={face} size={120} anim="float" title={`El personaje de ${account.username}`} />;
 }
 
-/** Design 21: the player's character, happy, among sparkles. */
+/** Design 21: the player's character, cheering among sparkles. */
 function Celebrating({ account }: { account: PublicAccount }) {
   return (
     <div className="relative px-10">
@@ -401,7 +401,7 @@ function Celebrating({ account }: { account: PublicAccount }) {
       <span aria-hidden className="absolute top-2 right-6 size-2.5 rotate-45 rounded-[2px] bg-reflejos" />
       <span aria-hidden className="absolute bottom-10 left-3 size-2.5 rotate-12 rounded-[2px] bg-letras" />
       <span aria-hidden className="absolute right-3 bottom-6 size-2.5 -rotate-12 rounded-[2px] bg-preguntas" />
-      <Personaje {...avatarLook(account.avatar)} face="joy" size={150} anim="float" title={`El personaje de ${account.username}`} />
+      <Personaje {...avatarLook(account.avatar)} pose="cheer" size={150} anim="float" title={`El personaje de ${account.username}`} />
     </div>
   );
 }

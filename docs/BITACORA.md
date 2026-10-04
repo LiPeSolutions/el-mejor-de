@@ -22,6 +22,9 @@
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, los juegos que descansan, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
+- **Personajes 2.0** (diseñados con Claude Design): 17 bichos, vista de tres cuartos, 6 poses y avatar redondo.
+  - Saludan en el inicio, abrazan la corona en su festejo y en los podios el 1º salta. En las filas y las batallas va el avatar redondo, y quien todavía no jugó, dormido.
+  - Ojos, pelo, marcas, ropa y un accesorio por zona ya se dibujan, pero se van a elegir con el **editor nuevo**, que llega en otro paquete. Mientras, la pantalla de personaje ofrece los 17 bichos.
 - **Grupos privados** con su ranking del día y de la semana y su **corona en vivo**:
   - Crear un grupo, invitar por WhatsApp o con el código, sumarse (también creando la cuenta desde el link), sacar a alguien e irse.
   - La corona la tiene quien va primero, y pasa a quien lo supera, con aviso.
@@ -49,9 +52,9 @@
   - Se juegan **los cinco juegos**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
   - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate. En Tubitos, los 3 tableros del reto, cada uno en su versión.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 427 automáticas, todas pasan.
+- **Pruebas:** 690 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** el editor de personaje (llega en otro paquete de Claude Design), vincular con Google y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -68,6 +71,41 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Personajes 2.0
+
+- **Lo decidido:**
+  - El editor nuevo (Bicho, Cara, Ropa y Accesorios, con "Al azar") llega en otro paquete de Claude Design. Mientras, la pantalla de personaje de hoy ofrece los 17 bichos.
+  - Toda la propuesta de dónde va cada pose, con animaciones cortas.
+  - Se publica directo, sin capturas antes.
+- **Qué se hizo:**
+  - El dibujo nuevo, portado tal cual del diseño ("Pulido"). Los 8 bichos de antes tienen las terminaciones más parejas (la cola del hornero ahora nace detrás del cuerpo), y hay 9 nuevos: yaguareté, tero, mulita, cóndor, ñandú, oso hormiguero, vizcacha, perro y gato.
+  - Vista de tres cuartos hacia los dos lados, 6 poses (quieto, saludo, festejo, salto, abrazando la corona y dormido) y el avatar redondo.
+  - Toda la personalización ya se dibuja: segundo color, ojos, pelo, marcas, ropa con color y número, y un accesorio por zona (cabeza, cara, cuello y mano). Se va a poder elegir con el editor.
+  - Lo que ya estaba guardado se ve igual: el accesorio de antes pasa a su zona.
+  - **Dónde va cada pose:**
+    - saluda en el inicio, y duerme cuando el día está hecho;
+    - abraza la corona en su festejo;
+    - en los podios (ranking, grupos, Largada y batallas) el 1º salta y los otros dos lo miran de tres cuartos;
+    - festeja al verificar el lugar;
+    - la mascota salta al pasar un nivel de Tubitos y al batir un récord en la práctica;
+    - la mascota del juego que descansa duerme, y quien te invita a una batalla te saluda.
+  - **Avatar redondo** en las filas del ranking, de los grupos y de las batallas, en las tiras "En vivo" y en los chips. Quien todavía no jugó aparece dormido, en gris y con borde punteado.
+  - **Animaciones:** en el festejo los brazos suben, y en el salto el personaje aterriza con un rebote. Se apagan si el celu pide menos movimiento.
+  - Una página de desarrollo con la hoja de modelos (`/dev/personajes`), que en producción no existe.
+  - El diseño quedó en [`docs/diseno/handoff-personajes`](diseno/handoff-personajes/PERSONAJES.md), y lo que cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md#personajes-20).
+- **Lo que resolvió Claude:**
+  - Dormido conserva la "z" de antes: la guía la pide, pero los dibujos de referencia no la traen.
+  - En tu fila del ranking (la barra azul) el avatar queda despierto aunque no hayas jugado: dormido no se lee sobre el azul.
+  - Una camiseta con el 0 dice 0 (en el diseño, decía 10).
+- **Probado:**
+  - 263 pruebas automáticas nuevas. Los datos: la forma vieja, la nueva y los valores inválidos. El dibujo: comparado pieza por pieza con los 200 SVG de referencia del diseño (los 17 bichos en cada vista y pose, los 8 ejemplos y cada opción); coinciden todos.
+  - En el navegador, `scripts/qa/personajes.cjs`: las 201 celdas de la hoja se ven como las de referencia. La que más difiere, un 0,24 %, es por la letra del número de la camiseta.
+  - Las pantallas: la de personaje con los 17, el inicio, el perfil y guardar un bicho nuevo. Las batallas: grupo 8 de 8, Diez Letras 12 de 12 y la sala de 10, 5 de 5. Tubitos, 15 de 15.
+- **Corregido de paso:**
+  - la prueba de Diez Letras fallaba si a un jugador le tocaba una palabra que contiene la de otro (EROTISMOS y EROTISMO);
+  - en los cambios al diseño de Tubitos todavía decía que no estaba en las batallas.
+- **Pendiente:** el editor de personaje, cuando llegue su paquete.
 
 ### 4/10/2026 — Batallas: Tubitos como el reto
 
@@ -462,6 +500,7 @@ En orden sugerido.
    - Una de Cinco Preguntas, una de Largada y una de Diez Letras. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende, si la música suena junta y si en Diez Letras se entienden los puntos en vivo y las palabras del podio.
    - Y una de Secuencia (que los colores salgan a la vez en los dos celus, que se entienda quién quedó afuera y el desempate) y una de Tubitos (si los tiempos máximos de cada tablero están bien).
 2. **Probar en el celu** (responsable del producto):
+   - **Personajes 2.0:** elegir uno de los bichos nuevos en Perfil → tu personaje, y mirar el saludo del inicio, los podios y las filas del ranking.
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
    - Salir y volver a entrar a la cuenta.
@@ -470,15 +509,16 @@ En orden sugerido.
 4. **Probar Largada en el celu** (responsable del producto): ya está en Practicar, y el lunes 5/10 sale el primer reto del día. Mirar el sonido de las luces, que se lea la señal y que "Contale al grupo" mande la foto por WhatsApp.
    - Para una segunda vuelta: la tarjeta "Pato todavía no largó · Desafiá a Pato" (opción 1c del diseño).
 5. **Probar Tu lugar en el celu** (responsable del producto): en Perfil → Tu lugar, "Usar mi ubicación", y después el ranking de los tres niveles.
-6. **Vincular con Google** (botón "Muy pronto" en el perfil):
+6. **El editor de personaje** (cuando llegue su paquete de Claude Design): las 4 pestañas para elegir ojos, pelo, marcas, ropa, el accesorio de cada zona y el fondo del avatar. El dibujo y los datos ya están.
+7. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
-7. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
+8. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
-8. **Antes de abrir al público:**
+9. **Antes de abrir al público:**
    - Términos y privacidad.
    - Consulta legal sobre menores.
    - Modo sin conexión (PWA).

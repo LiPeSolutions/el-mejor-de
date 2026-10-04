@@ -1,7 +1,7 @@
 "use client";
 
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import { gameStyle, type GameTheme } from "@/lib/games";
 import type { BattleFace } from "./parts";
@@ -32,7 +32,7 @@ export function BattleCountdown({ game, seconds, faces }: { game: GameTheme; sec
         {faces.map((face) => (
           <li key={face.key} className="flex w-14 flex-col items-center gap-1">
             <span className={cx("grid size-12 place-items-center rounded-full bg-white", face.isMe && "ring-4 ring-white/60")}>
-              <Personaje {...avatarLook(face.avatar)} size={36} />
+              <Personaje {...badgeLook(face.avatar)} size={48} />
             </span>
             <span className="max-w-full truncate text-[11px] font-extrabold">{face.isMe ? "Vos" : face.name}</span>
           </li>

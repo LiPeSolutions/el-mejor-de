@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/outfit-latin.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: url('fonts/plus-jakarta-sans-latin.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
+    body { margin: 0; background: #F1F2FA; color: #23263A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+    a { color: #4F6BFF; text-decoration: none; } a:hover { color: #3F58E6; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  </style>
+  <script src="personajes.js"></script>
+</helmet>
+<section id="finales" data-screen-label="Personajes finales" style="padding:72px 72px 120px;display:flex;flex-direction:column;gap:56px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#23263A">
+
+  <div style="max-width:900px;display:flex;flex-direction:column;gap:16px">
+    <div style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#6C7191">Personajes · modelos finales · estilo 1a Pulido</div>
+    <h1 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:60px;line-height:1;font-weight:800;letter-spacing:-.03em">Los 17, listos para implementar</h1>
+    <p style="margin:0;font-size:16px;line-height:1.55;font-weight:500;color:#4B5070">Cada bicho de frente, en tres cuartos para los dos lados, en las seis poses y como avatar redondo. Todo sale del mismo dibujo por especie: la pose y la vista son ajustes sobre ese dibujo, no ilustraciones aparte.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5"><div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">{{ c }}</div></sc-for>
+    </div>
+  </div>
+
+  <div id="hoja" data-screen-label="Hoja de modelos" style="width:1240px;box-sizing:border-box;padding:28px 28px 16px;border-radius:28px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 18px">
+      <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:30px;font-weight:800;letter-spacing:-.02em">Hoja de modelos</h2>
+      <span style="font-size:13px;font-weight:700;color:#6C7191">colores naturales, sin accesorios</span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px repeat(9,minmax(0,1fr));gap:0 6px;padding:0 0 12px;border-bottom:2px solid #EDEFF8">
+      <span></span>
+      <sc-for list="{{ cols }}" as="col" hint-placeholder-count="9">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center">
+          <span style="font-family:Outfit,system-ui,sans-serif;font-size:15px;font-weight:800">{{ col.name }}</span>
+          <span style="font-size:10.5px;line-height:1.3;font-weight:600;color:#6C7191">{{ col.where }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <sc-for list="{{ rows }}" as="row" hint-placeholder-count="17">
+      <div style="display:grid;grid-template-columns:140px repeat(9,minmax(0,1fr));gap:0 6px;align-items:end;padding:10px 0 6px;border-bottom:1px solid #EDEFF8">
+        <div style="display:flex;flex-direction:column;gap:4px;padding:0 0 30px 6px">
+          <span style="font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800">{{ row.name }}</span>
+          <sc-if value="{{ row.isNew }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;border-radius:999px;background:#FFF3D6;color:#9A6200;padding:2px 8px;font-size:10px;font-weight:800">nuevo</span></sc-if>
+        </div>
+        <sc-for list="{{ row.cells }}" as="p" hint-placeholder-count="9">
+          <div style="display:flex;justify-content:center;align-items:flex-end;height:112px">
+            <em-pj sp="{{ p.sp }}" estilo="fiel" size="{{ p.size }}" pose="{{ p.pose }}" vista="{{ p.vista }}" mirar="{{ p.mirar }}" marco="{{ p.marco }}" fondo="{{ p.fondo }}" face="{{ p.face }}"></em-pj>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div id="chivi" data-screen-label="Personalizados" style="width:1240px;box-sizing:border-box;padding:28px;border-radius:28px;background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%);box-shadow:0 8px 20px rgba(35,38,58,.08)">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 14px">
+      <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:30px;font-weight:800;letter-spacing:-.02em">Con todo puesto</h2>
+      <span style="font-size:13px;font-weight:700;color:#4B5070">los del Chivi: colores, ojos, pelo, marcas, ropa y accesorios por zona, en cada vista y pose</span>
+    </div>
+    <div style="display:grid;grid-template-columns:150px repeat(6,minmax(0,1fr));gap:0 8px;padding-bottom:8px">
+      <span></span>
+      <sc-for list="{{ castCols }}" as="cc" hint-placeholder-count="6"><span style="text-align:center;font-family:Outfit,system-ui,sans-serif;font-size:15px;font-weight:800">{{ cc }}</span></sc-for>
+    </div>
+    <sc-for list="{{ cast }}" as="row" hint-placeholder-count="8">
+      <div style="display:grid;grid-template-columns:150px repeat(6,minmax(0,1fr));gap:0 8px;align-items:end;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.7)">
+        <div style="display:flex;flex-direction:column;gap:3px;padding:0 0 34px 6px">
+          <span style="font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800">{{ row.name }}</span>
+          <span style="font-size:11px;line-height:1.35;font-weight:600;color:#4B5070">{{ row.desc }}</span>
+        </div>
+        <sc-for list="{{ row.cells }}" as="p" hint-placeholder-count="6">
+          <div style="display:flex;justify-content:center;align-items:flex-end;height:128px">
+            <em-pj sp="{{ p.sp }}" estilo="fiel" size="{{ p.size }}" pose="{{ p.pose }}" vista="{{ p.vista }}" mirar="{{ p.mirar }}" marco="{{ p.marco }}" fondo="{{ p.fondo }}" face="{{ p.face }}" color="{{ p.color }}" detalle="{{ p.detalle }}" ojos="{{ p.ojos }}" pelo="{{ p.pelo }}" marcas="{{ p.marcas }}" ropa="{{ p.ropa }}" ropa-color="{{ p.ropaColor }}" numero="{{ p.numero }}" cabeza="{{ p.cabeza }}" cara="{{ p.cara }}" cuello="{{ p.cuello }}" mano="{{ p.mano }}" corona="{{ p.corona }}"></em-pj>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div id="en-la-app" data-screen-label="En la app" style="display:flex;flex-direction:column;gap:18px;width:1240px">
+    <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:30px;font-weight:800;letter-spacing:-.02em">Dónde va cada pose</h2>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 24px;align-items:start;width:1240px">
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="position:relative;display:flex;min-height:176px;align-items:flex-end;justify-content:space-between;overflow:hidden;border-radius:28px;padding:18px 18px 0;color:#FFFFFF;background-image:linear-gradient(165deg,#6280FF 0%,#4F6BFF 60%,#4560F0 100%);box-shadow:0 16px 32px rgba(79,107,255,.28)">
+          <span style="position:absolute;inset:0;background-image:radial-gradient(120% 80% at 85% -10%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%)"></span>
+          <div style="position:relative;padding-bottom:20px">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.85)">Sábado 4 de octubre</div>
+            <div style="margin-top:6px;font-family:Outfit,system-ui,sans-serif;font-size:30px;line-height:1.05;font-weight:800;letter-spacing:-.02em">¡Buenas, Nico!</div>
+            <div style="margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.9)">Te esperan 3 retos</div>
+          </div>
+          <div style="position:relative;margin-right:2px;flex:none"><em-pj sp="{{ nico.sp }}" estilo="fiel" size="132" pose="saludo" anim="bob" color="{{ nico.color }}" detalle="{{ nico.detalle }}" ojos="{{ nico.ojos }}" pelo="{{ nico.pelo }}" marcas="{{ nico.marcas }}" ropa="{{ nico.ropa }}" ropa-color="{{ nico.ropaColor }}" numero="{{ nico.numero }}" cabeza="{{ nico.cabeza }}" cara="{{ nico.cara }}" cuello="{{ nico.cuello }}" mano="{{ nico.mano }}"></em-pj></div>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Saludo</b> en el inicio y al entrar a un grupo. Levanta un brazo; lo que tenga en la otra mano queda abajo.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:18px 20px 0;border-radius:28px;background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%);box-shadow:0 8px 20px rgba(35,38,58,.08)">
+          <span style="font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800">Podio de hoy</span>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:10px;padding:0 70px">
+            <sc-for list="{{ podium }}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                <em-pj sp="{{ q.sp }}" estilo="fiel" size="{{ q.size }}" pose="{{ q.pose }}" vista="{{ q.vista }}" mirar="{{ q.mirar }}" color="{{ q.color }}" detalle="{{ q.detalle }}" ojos="{{ q.ojos }}" pelo="{{ q.pelo }}" marcas="{{ q.marcas }}" ropa="{{ q.ropa }}" ropa-color="{{ q.ropaColor }}" numero="{{ q.numero }}" cabeza="{{ q.cabeza }}" cara="{{ q.cara }}" cuello="{{ q.cuello }}" mano="{{ q.mano }}" corona="{{ q.corona }}"></em-pj>
+                <span style="font-size:13px;font-weight:800">{{ q.name }}</span>
+                <div style="margin-top:4px;display:grid;place-items:center;width:100%;height:{{ q.block }}px;border-radius:16px 16px 0 0;background:{{ q.blockBg }};font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800;color:{{ q.blockInk }}">{{ q.place }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Salto</b> para el 1º, y <b style="color:#23263A">tres cuartos</b> para el 2º y el 3º, mirando hacia el centro. También va el salto al batir un récord o pasar un nivel.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;overflow:hidden;padding:22px 20px 22px;border-radius:28px;color:#FFFFFF;background-image:linear-gradient(180deg,#3B4FD8 0%,#4F6BFF 55%,#8FA6FF 100%);box-shadow:0 16px 32px rgba(79,107,255,.28)">
+          <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="12"><span style="position:absolute;left:{{ c.l }};top:{{ c.t }}px;width:{{ c.w }}px;height:{{ c.h }}px;border-radius:2px;background:{{ c.c }};transform:{{ c.r }}"></span></sc-for>
+          <span style="position:relative;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.85">La corona de la semana</span>
+          <div style="position:relative;filter:drop-shadow(0 14px 18px rgba(20,28,90,.35))"><em-pj sp="{{ tincho.sp }}" estilo="fiel" size="128" pose="corona" anim="float" color="{{ tincho.color }}" detalle="{{ tincho.detalle }}" ojos="{{ tincho.ojos }}" pelo="{{ tincho.pelo }}" marcas="{{ tincho.marcas }}" ropa="{{ tincho.ropa }}" ropa-color="{{ tincho.ropaColor }}" numero="{{ tincho.numero }}" cabeza="{{ tincho.cabeza }}" cara="{{ tincho.cara }}" cuello="{{ tincho.cuello }}"></em-pj></div>
+          <span style="position:relative;font-family:Outfit,system-ui,sans-serif;font-size:28px;line-height:1.05;font-weight:800;letter-spacing:-.02em">¡Tincho es el mejor!</span>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Corona</b> solo en el festejo de la corona: la abraza en vez de llevarla puesta. Después, en el resto de la app, la lleva en la cabeza mientras le dure.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:24px;background:linear-gradient(180deg,#DAE1F6 0%,#E8EAF6 100%);box-shadow:0 8px 20px rgba(35,38,58,.08)">
+          <sc-for list="{{ rank }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;height:52px;align-items:center;gap:10px;border-radius:16px;background:{{ r.rowBg }};padding:0 14px 0 12px;box-shadow:0 6px 16px rgba(35,38,58,.06)">
+              <span style="width:20px;flex:none;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800;color:#6C7191">{{ r.pos }}</span>
+              <sc-if value="{{ r.played }}" hint-placeholder-val="{{ true }}"><em-pj sp="{{ r.sp }}" estilo="fiel" size="36" marco="circulo" fondo="{{ r.fondo }}" color="{{ r.color }}" detalle="{{ r.detalle }}" ojos="{{ r.ojos }}" pelo="{{ r.pelo }}" marcas="{{ r.marcas }}" ropa="{{ r.ropa }}" ropa-color="{{ r.ropaColor }}" numero="{{ r.numero }}" cabeza="{{ r.cabeza }}" cara="{{ r.cara }}" cuello="{{ r.cuello }}" corona="{{ r.corona }}"></em-pj></sc-if>
+              <sc-if value="{{ r.notPlayed }}" hint-placeholder-val="{{ false }}"><span style="display:grid;place-items:center;width:36px;height:36px;box-sizing:border-box;border-radius:999px;border:2px dashed #B8BDD6"><em-pj sp="{{ r.sp }}" estilo="fiel" size="30" marco="circulo" fondo="gris" pose="dormido" style="opacity:.45"></em-pj></span></sc-if>
+              <span style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700">{{ r.name }}<sc-if value="{{ r.vos }}" hint-placeholder-val="{{ false }}"><span style="border-radius:999px;background:#E6EAFF;color:#4F6BFF;padding:2px 7px;font-size:10px;font-weight:800">vos</span></sc-if></span>
+              <span style="font-family:Outfit,system-ui,sans-serif;font-size:15px;font-weight:800;color:{{ r.scoreInk }}">{{ r.score }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Avatar redondo</b> en el ranking, los chips y los grupos. Quien todavía no jugó aparece <b style="color:#23263A">dormido</b>, en gris y con borde punteado.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;width:1240px;box-sizing:border-box;padding:26px 28px;border-radius:22px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+    <h3 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:24px;font-weight:800;letter-spacing:-.02em">Reglas de las vistas y las poses</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 32px">
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="8">
+        <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">{{ r.k }}</b> {{ r.v }}</p>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SPECIES = [
+  ['carpincho', 'Carpincho', 0], ['hornero', 'Hornero', 0], ['pinguino', 'Pingüino', 0], ['zorro', 'Zorro', 0], ['rana', 'Rana', 0], ['llama', 'Llama', 0], ['pelusa', 'Pelusa', 0], ['nioqui', 'Ñoqui', 0],
+  ['yaguarete', 'Yaguareté', 1], ['tero', 'Tero', 1], ['mulita', 'Mulita', 1], ['condor', 'Cóndor', 1], ['nandu', 'Ñandú', 1], ['oso', 'Oso hormiguero', 1], ['vizcacha', 'Vizcacha', 1], ['perro', 'Perro', 1], ['gato', 'Gato', 1],
+];
+const COLS = [
+  { name: 'Frente', where: 'listas, perfil y editor', pose: 'quieto' },
+  { name: '¾ derecha', where: 'podio y escenas', pose: 'quieto', vista: 'tres', mirar: 'der' },
+  { name: '¾ izquierda', where: 'podio y escenas', pose: 'quieto', vista: 'tres', mirar: 'izq' },
+  { name: 'Saludo', where: 'inicio y grupos', pose: 'saludo' },
+  { name: 'Festejo', where: 'resultados', pose: 'festejo' },
+  { name: 'Salto', where: 'récord, nivel y 1º', pose: 'salto' },
+  { name: 'Corona', where: 'festejo de la corona', pose: 'corona' },
+  { name: 'Dormido', where: 'no jugó hoy', pose: 'dormido' },
+  { name: 'Avatar', where: 'ranking, chips y grupos', pose: 'quieto', marco: 'circulo' },
+];
+const CAST = [
+  { name: 'Nico', vos: true, sp: 'hornero', pelo: 'copete', cara: 'anteojos', cuello: 'bufanda', mano: 'mate', fondo: 'azul', desc: 'Hornero · copete · anteojos · bufanda · mate' },
+  { name: 'Tincho', sp: 'carpincho', ojos: 'dormilon', ropa: 'camiseta', ropaColor: 'azul', numero: '9', corona: 'true', fondo: 'dorado', desc: 'Carpincho · dormilón · camiseta 9 · tiene la corona' },
+  { name: 'Juli', sp: 'gato', color: 'violeta', detalle: 'rosa', ojos: 'pestanas', marcas: 'rayas', cabeza: 'mono', mano: 'celu', fondo: 'rosa', desc: 'Gato violeta con rosa · pestañas · rayas · moño · celu' },
+  { name: 'Caro', sp: 'yaguarete', ojos: 'almendra', ropa: 'buzo', ropaColor: 'coral', cabeza: 'auriculares', fondo: 'coral', desc: 'Yaguareté · almendra · buzo coral · auriculares' },
+  { name: 'Sofi', sp: 'rana', color: 'verde', detalle: 'dorado', ojos: 'brillo', marcas: 'pecas', cabeza: 'vincha', mano: 'pelota', fondo: 'verde', desc: 'Rana verde con dorado · brillo · pecas · vincha · pelota' },
+  { name: 'Pato', sp: 'pinguino', ojos: 'grandes', pelo: 'jopo', cuello: 'monito', mano: 'termo', fondo: 'gris', desc: 'Pingüino · ojos grandes · jopo · moñito · termo' },
+  { name: 'LaFlor', sp: 'llama', color: 'rosa', detalle: 'violeta', ojos: 'pestanas', cabeza: 'sombrero', cuello: 'panuelo', fondo: 'violeta', desc: 'Llama rosa con violeta · sombrero · pañuelo' },
+  { name: 'Colo_88', sp: 'perro', color: 'dorado', marcas: 'parche', ropa: 'rayada', ropaColor: 'azul', cabeza: 'gorra', mano: 'banderin', fondo: 'azul', desc: 'Perro dorado · parche · rayada · gorra · banderín' },
+];
+const KEYS = ['sp', 'pose', 'vista', 'mirar', 'marco', 'fondo', 'face', 'color', 'detalle', 'ojos', 'pelo', 'marcas', 'ropa', 'ropaColor', 'numero', 'cabeza', 'cara', 'cuello', 'mano', 'corona'];
+const look = (...parts) => { const o = Object.assign({}, ...parts); const out = {}; for (const k of KEYS) out[k] = o[k] === undefined ? '' : String(o[k]); return out; };
+const by = (n) => CAST.find((c) => c.name === n);
+const CONF = ['#FFC53D', '#FF6B4A', '#2EC4B6', '#8B6CFF', '#FFFFFF', '#FF7AA2'];
+
+class Component extends DCLogic {
+  renderVals() {
+    const rows = SPECIES.map(([sp, name, isNew]) => ({
+      name, isNew: !!isNew,
+      cells: COLS.map((c) => ({ ...look({ sp }, c), size: c.marco ? 76 : 84 })),
+    }));
+    const castPoses = [
+      { pose: 'quieto' }, { pose: 'quieto', vista: 'tres', mirar: 'der' }, { pose: 'saludo' }, { pose: 'salto' }, { pose: 'corona' }, { pose: 'quieto', marco: 'circulo' },
+    ];
+    const cast = CAST.map((c) => ({ name: c.name, desc: c.desc, cells: castPoses.map((p) => ({ ...look(c, p, p.marco ? {} : { fondo: '' }), size: p.marco ? 84 : 96 })) }));
+    const podium = [['Caro', 2, 74, 52, '#FFFFFF', '#6C7191', 'quieto', 'tres', 'der'], ['Tincho', 1, 88, 74, '#FFC53D', '#23263A', 'salto', '', ''], ['Sofi', 3, 70, 38, '#FFFFFF', '#6C7191', 'quieto', 'tres', 'izq']]
+      .map(([n, place, size, block, blockBg, blockInk, pose, vista, mirar]) => ({ ...look(by(n), { pose, vista, mirar }), name: n, place, size, block, blockBg, blockInk }));
+    const rank = [['1', 'Tincho', '2.340'], ['2', 'Nico', '2.310'], ['3', 'Juli', '2.105'], ['–', 'Pato', 'todavía no']]
+      .map(([pos, n, score]) => ({ ...look(by(n)), pos, name: n, score, vos: n === 'Nico', played: n !== 'Pato', notPlayed: n === 'Pato', rowBg: n === 'Pato' ? 'rgba(255,255,255,.7)' : '#FFFFFF', scoreInk: n === 'Pato' ? '#6C7191' : '#23263A' }));
+    const confetti = Array.from({ length: 12 }, (_, i) => { const w = 7 + (i % 3) * 3; return { l: `${(i * 37 + 11) % 100}%`, t: 14 + ((i * 53) % 170), w, h: Math.round(w * 0.6), c: CONF[i % 6], r: `rotate(${(i * 47) % 180}deg)` }; });
+    const rules = [
+      { k: 'Frente.', v: 'Es la vista de siempre y la que se guarda en el perfil. Va en listas, chips, perfil y editor.' },
+      { k: 'Tres cuartos.', v: 'Cara, pico, panza y accesorios de la cabeza y el cuello se corren hacia el lado que mira; los ojos se juntan un poco. La cola, las orejas y el cuerpo no se mueven.' },
+      { k: 'Saludo.', v: 'Levanta el brazo izquierdo (el de la derecha de la pantalla queda con su objeto) y la cabeza se inclina 4°.' },
+      { k: 'Festejo.', v: 'Los dos brazos arriba y la cabeza inclinada −5°. Lo que tenga en la mano sube con el brazo. Cara de alegría.' },
+      { k: 'Salto.', v: 'Como el festejo, con todo el cuerpo 10 unidades más arriba y la sombra del piso más chica y más clara.' },
+      { k: 'Corona.', v: 'Abraza una corona grande contra el pecho. Mientras tanto no lleva la corona en la cabeza ni nada en la mano. La llama, que no tiene brazos, la tiene parada adelante.' },
+      { k: 'Dormido.', v: 'Ojos cerrados, la «z» y la cabeza inclinada 7°. En el ranking va con fondo gris, opacidad 45 % y borde punteado.' },
+      { k: 'Avatar redondo.', v: 'Medio cuerpo dentro de un círculo con el fondo elegido. Orejas, crestas y gorros pueden salirse por arriba; abajo y a los costados se recorta.' },
+    ];
+    return {
+      chips: ['17 bichos (9 nuevos)', 'De frente y en tres cuartos', '6 poses', 'Avatar redondo', 'Todo con la personalización'],
+      cols: COLS, rows, castCols: ['Frente', '¾ derecha', 'Saludo', 'Salto', 'Corona', 'Avatar'], cast,
+      nico: look(by('Nico')), tincho: look(by('Tincho')), podium, rank, confetti, rules,
+    };
+  }
+}
+</script>
+</body>
+</html>

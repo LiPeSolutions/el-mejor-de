@@ -3,7 +3,7 @@
 import { ChevronDown, Star } from "lucide-react";
 import { useState } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { cx } from "@/components/ui/cx";
 import type { LettersFoundWord } from "@/lib/battle-types";
 import type { BattleFace } from "./parts";
@@ -50,7 +50,7 @@ export function BattleLettersWords({ rows }: { rows: readonly LettersWordsRow[] 
                 className="flex w-full items-center gap-2.5 py-2 text-left disabled:cursor-default"
               >
                 <span className="shrink-0">
-                  <Personaje {...avatarLook(face.avatar)} size={26} />
+                  <Personaje {...badgeLook(face.avatar)} size={30} />
                 </span>
                 <span className={cx("min-w-0 flex-1 truncate text-sm font-extrabold", face.isMe && "text-brand")}>{face.isMe ? "Vos" : face.name}</span>
                 <span className="shrink-0 text-xs font-bold text-ink-500">{count(words.length)}</span>

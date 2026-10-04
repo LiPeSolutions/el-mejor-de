@@ -1,0 +1,87 @@
+[
+  {
+    "id": "carpincho",
+    "name": "Carpincho",
+    "isNew": false
+  },
+  {
+    "id": "hornero",
+    "name": "Hornero",
+    "isNew": false
+  },
+  {
+    "id": "pinguino",
+    "name": "Pingüino",
+    "isNew": false
+  },
+  {
+    "id": "zorro",
+    "name": "Zorro",
+    "isNew": false
+  },
+  {
+    "id": "rana",
+    "name": "Rana",
+    "isNew": false
+  },
+  {
+    "id": "llama",
+    "name": "Llama",
+    "isNew": false
+  },
+  {
+    "id": "pelusa",
+    "name": "Pelusa",
+    "isNew": false
+  },
+  {
+    "id": "nioqui",
+    "name": "Ñoqui",
+    "isNew": false
+  },
+  {
+    "id": "yaguarete",
+    "name": "Yaguareté",
+    "isNew": true
+  },
+  {
+    "id": "tero",
+    "name": "Tero",
+    "isNew": true
+  },
+  {
+    "id": "mulita",
+    "name": "Mulita",
+    "isNew": true
+  },
+  {
+    "id": "condor",
+    "name": "Cóndor",
+    "isNew": true
+  },
+  {
+    "id": "nandu",
+    "name": "Ñandú",
+    "isNew": true
+  },
+  {
+    "id": "oso",
+    "name": "Oso hormiguero",
+    "isNew": true
+  },
+  {
+    "id": "vizcacha",
+    "name": "Vizcacha",
+    "isNew": true
+  },
+  {
+    "id": "perro",
+    "name": "Perro",
+    "isNew": true
+  },
+  {
+    "id": "gato",
+    "name": "Gato",
+    "isNew": true
+  }
+]

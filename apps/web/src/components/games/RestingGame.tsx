@@ -32,7 +32,7 @@ export function RestingGame({ slug, date }: { slug: GameSlug; date: string }) {
         <div className="relative">
           <div aria-hidden className="absolute top-[54%] left-1/2 size-[150px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="relative">
-            <Personaje {...game.mascot} prop={undefined} face="sleep" size={130} anim="bob" />
+            <Personaje {...game.mascot} prop={undefined} pose="sleep" size={130} anim="bob" />
           </div>
         </div>
         <h1 className="mt-6 font-display text-[30px] leading-[1.05] font-extrabold tracking-[-.03em] text-balance">{title}</h1>

@@ -4,7 +4,7 @@ import { ChevronLeft, LogOut, Pencil, UserMinus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Personaje } from "@/components/personaje/Personaje";
-import { avatarLook } from "@/components/personaje/avatar";
+import { badgeLook } from "@/components/personaje/avatar";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Chip";
 import { IconButton } from "@/components/ui/IconButton";
@@ -101,7 +101,7 @@ function Settings({ data, meId, reload }: { data: GroupDetailResponse; meId: str
         <ul className="mt-2 flex flex-col gap-2">
           {members.map((member) => (
             <li key={member.userId} className="flex h-[54px] items-center gap-2.5 rounded-row bg-white pr-2 pl-3 shadow-sm">
-              <Personaje {...avatarLook(member.avatar)} size={32} />
+              <Personaje {...badgeLook(member.avatar)} size={36} />
               <span className="min-w-0 flex-1 truncate text-sm font-bold">
                 {member.username}
                 {member.isMe && <span className="text-ink-500"> (vos)</span>}

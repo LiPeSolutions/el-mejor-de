@@ -267,7 +267,8 @@ export function GameResultView(props: Props) {
         </Chip>
       </div>
       <div className="mt-4 flex justify-center">
-        <Personaje {...game.mascot} face={game.resultFace} size={84} />
+        {/* A new record: the mascot jumps. */}
+        <Personaje {...game.mascot} face={game.resultFace} pose={props.practice && props.isRecord ? "jump" : undefined} size={84} />
       </div>
       <div className="mt-1.5 text-center">
         {props.practice && props.isRecord ? (

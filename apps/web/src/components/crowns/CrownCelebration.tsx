@@ -141,7 +141,8 @@ function Celebration({ crown, more, replay, onDone }: { crown: CrownView; more: 
 
       <div className="relative z-10 flex flex-col items-center px-6 pt-6 text-center">
         <div className="animate-pop drop-shadow-[0_18px_22px_rgba(20,28,90,.35)]">
-          <Personaje {...look} acc={[...look.acc!, "corona"]} face="joy" size={170} anim="float" title={`El personaje de ${crown.winner.username}`} />
+          {/* Hugging the crown, instead of wearing it. */}
+          <Personaje {...look} pose="hugCrown" size={170} anim="float" title={`El personaje de ${crown.winner.username}`} />
         </div>
         <p className="mt-4 text-[13px] font-extrabold tracking-[.08em] uppercase opacity-85">{crown.winner.username}</p>
         <h1 className="mt-1 font-display text-[40px] leading-[1.02] font-extrabold tracking-[-.03em] text-balance [overflow-wrap:anywhere]">
