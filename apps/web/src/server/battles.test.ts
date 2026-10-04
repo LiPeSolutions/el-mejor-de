@@ -589,6 +589,28 @@ describe("a battle of Secuencia", () => {
     expect(next.match.current).toMatchObject({ index: 1, level: 2, length: 4, players: [pato.id, juli.id], colors: colors.slice(0, 4) });
     expect(await failure(battleRepeat(db, toto, battleId, { round: 1, inputs: colors.slice(0, 4) }, ctx(inputAtOf(nextAt, 4) + 1_000)))).toMatchObject({ status: 403, code: "out" });
   });
+  it("isn't written down early by the group's history while it's still on", async () => {
+    const [pato, juli] = await Promise.all([player("Pato"), player("Juli")]);
+    const group = await newGroup(db, pato, { name: "Los primos", emblem: "casa", color: "coral" }, ctx(T - 60_000));
+    await db.query("insert into game.group_members (group_id, user_id, joined_at) values ($1::uuid, $2::uuid, now())", [group.id, juli.id]);
+    const { battleId } = await openRoom(db, pato, { groupId: group.id, game: "sequence" }, ctx(T));
+    await joinFromGroup(db, juli, battleId, ctx(T + 500));
+    await startMatch(db, pato, battleId, ctx(T + 1_000));
+    const { sequence: colors } = (await latestMatch(db, battleId))!.content as BattleSequenceContent;
+    // Two good players who take their time: more than 10 minutes and still going.
+    let showAt = T + 1_000 + countdownMs;
+    let round = 0;
+    while (showAt < T + 11 * 60_000) {
+      const length = 3 + round;
+      const inputAt = inputAtOf(showAt, length);
+      for (const user of [pato, juli]) await battleRepeat(db, user, battleId, { round, inputs: colors.slice(0, length) }, ctx(inputAt + length * 1_000));
+      showAt = inputAt + length * 1_000 + revealMs;
+      round++;
+    }
+    await groupBattles(db, pato, group.id, ctx(showAt + 100));
+    expect((await latestMatch(db, battleId))?.endedAt).toBeNull();
+    expect((await battleState(db, juli, battleId, ctx(showAt + 200))).stage).toBe("match");
+  });
 });
 
 describe("a battle of Tubitos", () => {

@@ -58,7 +58,7 @@ En Vercel cada pedido corre en una función que nace y muere con él, así que n
   - La ronda siguiente arranca a una hora fija después del cierre.
 - **El resultado se escribe una sola vez:**
   - Cuando `now ≥ endsAt`, el primer pedido que llega lo escribe: `current()` llama a `settle()`, que llama a `endMatch`, y esta solo escribe si `ended_at is null`.
-  - Si nadie miró el final (se fueron todos antes del podio), lo escribe el historial del grupo (`groupBattles`, con partidas empezadas hace más de 10 minutos). Las salas sueltas no tienen historial, así que ahí no hace falta.
+  - Si nadie miró el final (se fueron todos antes del podio), lo escribe el historial del grupo (`groupBattles`, con partidas empezadas hace más de 10 minutos que ya terminaron por su reloj: una Secuencia larga puede seguir). Las salas sueltas no tienen historial, así que ahí no hace falta.
 
 Qué ganamos así:
 - cualquier celu "empuja" la partida;

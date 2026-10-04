@@ -49,7 +49,7 @@
   - Se juegan **los cinco juegos**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
   - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate. En Tubitos, los 3 tableros del reto, cada uno en su versión.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 426 automáticas, todas pasan.
+- **Pruebas:** 427 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
@@ -82,13 +82,14 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
   - La lógica de jugar un tablero (levantar, verter, deshacer, reiniciar) pasó del reto a una pieza común (`components/tubitos/use-board.tsx`), que usan el reto, la práctica y la batalla.
   - Migración `battle_water_sort` (aplicada en Supabase; los avisos de seguridad siguen en cero): Tubitos entra en el `check` de los juegos de las batallas, y cada tablero resuelto guarda sus pasos.
 - **Probado:**
-  - 9 pruebas automáticas nuevas: las reglas, las consultas y una batalla entera en el servidor, que resuelve los tableros con el motor del juego.
+  - 9 pruebas automáticas nuevas: las reglas, las consultas y una batalla entera en el servidor, que resuelve los tableros con el motor del juego. Una más para la Secuencia larga.
   - En el navegador, `scripts/qa/battle-tubitos.cjs` con tres celus: 11 de 11 en 390 × 844 y en 360 × 740.
   - **Tubitos del reto, después de mover su lógica:** la práctica, 15 de 15, con y sin animaciones. Y el reto del día con el reloj del servidor corrido a mañana (arranca el 5/10): los 3 niveles, 4 de 4, y sus casos raros, 3 de 3.
 - **Corregido antes de publicar:**
   - el cartel "Esperando a…" se salía del ancho con nombres largos;
   - en la tabla se cortaban los nombres;
-  - en el podio no se veía por qué ganaba uno con los mismos puntos.
+  - en el podio no se veía por qué ganaba uno con los mismos puntos;
+  - el historial del grupo daba por terminada cualquier partida empezada hace más de 10 minutos. Con los juegos de antes no pasaba, pero una Secuencia larga entre dos muy buenos se cortaba a mitad. Ahora solo cierra las que terminaron por su reloj (con una prueba que lo confirma).
 - **Con esto, las batallas tienen los cinco juegos.**
 
 ### 4/10/2026 — Batallas: Secuencia por rondas

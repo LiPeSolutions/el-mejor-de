@@ -146,7 +146,7 @@ const NEW_BATTLES = { windowMs: 60 * 60_000, max: 20 } as const;
 const CODE_FAILURE_LIMITS = { windowMs: 60 * 60_000, perAccount: 10, perConnection: 30 } as const;
 /** A phone asks often; its "still here" is written at most this often. */
 const SEEN_EVERY_MS = 5_000;
-/** A match nobody watched to the end is written down after this. */
+/** A match nobody watched to the end is written down after this, if it's over. */
 const SETTLE_AFTER_MS = 10 * 60_000;
 /** A group's room shows as live (and new ones join it) while someone's phone asked this recently. */
 const LIVE_MS = 2 * 60_000;
@@ -1031,11 +1031,12 @@ export async function groupBattles(db: Queryable, user: User, groupId: string, c
   const membership = await getMembership(db, groupId, user.id);
   if (!membership || membership.leftAt !== null) throw new HttpError(404, "group-not-found");
 
-  // Matches everyone left before the podium are written down here.
+  // Matches everyone left before the podium are written down here, once over by their own clock:
+  // a long Secuencia can still be on after SETTLE_AFTER_MS.
   for (const stale of await unendedGroupMatches(db, groupId, ctx.now - SETTLE_AFTER_MS)) {
     const plays = await playsOf(db, stale);
-    const flow = flowOf(stale, plays, ctx.now);
-    await settle(db, stale, plays, flow.flow.endsAt ?? ctx.now);
+    const { endsAt } = flowOf(stale, plays, ctx.now).flow;
+    if (endsAt !== null && ctx.now >= endsAt) await settle(db, stale, plays, endsAt);
   }
 
   const [open, members, wins, recent] = await Promise.all([
