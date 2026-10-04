@@ -39,7 +39,8 @@ export const SEVEN_LETTERS_RULES: LetterGameRules = {
   minWordLength: 3,
   durationMs: 90_000,
   lateGraceMs: 2_000,
-  minWordsPerSet: 12,
+  // 7 since the dictionary has only known words (4/10/2026): every base word still has that many, so past days keep their letters.
+  minWordsPerSet: 7,
   maxGenerateAttempts: 200,
   maxSubmissions: 300,
   pointsByLength: { 3: 1, 4: 2, 5: 3, 6: 5, 7: 8 },
@@ -207,8 +208,9 @@ export function createSevenLetters(
     category: 'words',
     maxDurationMs: rules.durationMs + 30_000,
 
-    // Note: content depends on the dictionary, so the server stores each day's
-    // generated content instead of regenerating it after a dictionary update.
+    // The server regenerates each day's content from its seed and the
+    // dictionary, so a new dictionary must keep every base word with at least
+    // minWordsPerSet words, or that day's letters change (the content tests check it).
     generate({ shared }) {
       for (let attempt = 0; attempt < rules.maxGenerateAttempts; attempt++) {
         const base = shared.pick(bases);

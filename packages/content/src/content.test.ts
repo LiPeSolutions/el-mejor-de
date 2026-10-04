@@ -12,6 +12,8 @@ import {
   validateTriviaBank,
   type LetterGameRules,
 } from '@repo/games';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { BASE_WORDS, BASE_WORDS_10, TRIVIA_QUESTIONS, getSevenLettersDictionary, isBlockedWord } from './index';
 
@@ -26,25 +28,53 @@ describe('letters dictionary (Siete Letras and Diez Letras)', () => {
     return dictionary.words.filter((word, i) => (masks[i]! & outside) === 0 && canSpell(word, letters)).length;
   };
 
-  it('is large and only has 3 to 10 normalized letters', () => {
-    expect(dictionary.words.length).toBeGreaterThan(300_000);
+  it('only has known words of 3 to 10 normalized letters', () => {
+    expect(dictionary.words.length).toBeGreaterThan(100_000);
+    expect(dictionary.words.length).toBeLessThan(150_000);
     for (const word of [...dictionary.words.slice(0, 1000), ...dictionary.words.slice(-1000)]) {
       expect(word).toMatch(/^[A-ZÑ]{3,10}$/);
     }
   });
 
-  it('keeps everyday and local words', () => {
+  it('is exactly the known words without the blocked ones (run pnpm build:words after a change)', () => {
+    const known = readFileSync(fileURLToPath(new URL('../words/known.txt', import.meta.url)), 'utf8').split('\n').filter(Boolean);
+    expect(dictionary.words).toEqual(known.filter((word) => !isBlockedWord(word)));
+  });
+
+  it('keeps everyday, local and conjugated words', () => {
     const words = new Set(dictionary.words);
-    for (const word of ['CAMINAR', 'LABURO', 'BIROME', 'PIBE', 'MATE', 'CAMION', 'ÑANDU']) {
+    for (const word of [
+      'CAMINAR', 'LABURO', 'BIROME', 'PIBE', 'MATE', 'CAMION', 'ÑANDU', 'BONDI', 'CHABON', 'POCHOCLO', 'KIOSCO',
+      'HORNALLA', 'CELU', 'ZAFAR', 'CHAMUYAR', 'MANTUVIERA', 'TENES', 'JUGAS', 'DECIME', 'DAME', 'HACERLO', 'PERRITOS',
+      'BUENISIMO', 'LUCECITA', 'LABURADAS',
+    ]) {
       expect(words.has(word), word).toBe(true);
     }
   });
 
-  it('leaves out vulgar words, so nobody scores with them', () => {
+  it('leaves out words nobody knows, names and vosotros forms', () => {
     const words = new Set(dictionary.words);
-    for (const word of ['PUTA', 'BOLUDO', 'MIERDA', 'CONCHA', 'PIJA', 'GARCHA']) {
-      expect(isBlockedWord(word)).toBe(true);
+    for (const word of ['ADRAN', 'AES', 'ADRAR', 'EES', 'ABACIAL', 'ABADENGO', 'NADAL', 'MEDINA', 'HABEIS', 'ABRID']) {
       expect(words.has(word), word).toBe(false);
+    }
+  });
+
+  it('is for all ages: neutral body, drug and violence words count, adult and vulgar ones do not', () => {
+    const words = new Set(dictionary.words);
+    for (const word of ['PENE', 'VAGINA', 'SEXO', 'EMBARAZO', 'DROGA', 'COCAINA', 'MARIHUANA', 'MATAR', 'GUERRA', 'ARMA']) {
+      expect(isBlockedWord(word), word).toBe(false);
+      expect(words.has(word), word).toBe(true);
+    }
+    for (const word of [
+      'EROTISMO', 'PORNO', 'ORGASMO', 'PROSTITUTA', 'TETA', 'CULO', 'PUTA', 'BOLUDO', 'MIERDA', 'CONCHA', 'PIJA', 'GARCHA',
+      'PORRO', 'FASO', 'FALOPA', 'MERCA', 'VIOLAR', 'VIOLACION', 'VIOLADOR',
+    ]) {
+      expect(isBlockedWord(word), word).toBe(true);
+      expect(words.has(word), word).toBe(false);
+    }
+    // Their stems don't take innocent words with them.
+    for (const word of ['VIOLETA', 'VIOLIN', 'VIOLENCIA', 'PUTATIVO', 'TETERA', 'FOLLAJE', 'CHINGOLO', 'MARIQUITA']) {
+      expect(isBlockedWord(word), word).toBe(false);
     }
   });
 

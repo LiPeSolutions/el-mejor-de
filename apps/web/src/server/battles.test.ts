@@ -470,9 +470,10 @@ describe("a battle of Diez Letras", () => {
   });
 
   it("hides on the podium a rude word someone else found", async () => {
-    const { pato, juli, battleId, startsAt, valid } = await letters("ADIVINANZA");
+    // "Pene" counts in the game (a neutral body word), but other players don't see it, like in an apodo.
+    const { pato, juli, battleId, startsAt, valid } = await letters("PENDIENTES");
     const fine = valid.find((word) => word.length > 4)!;
-    expect(await battleWord(db, juli, battleId, "nazi", ctx(startsAt + 4_000))).toMatchObject({ status: "valid" });
+    expect(await battleWord(db, juli, battleId, "pene", ctx(startsAt + 4_000))).toMatchObject({ status: "valid" });
     expect(await battleWord(db, juli, battleId, fine, ctx(startsAt + 5_000))).toMatchObject({ status: "valid" });
     const end = startsAt + durationMs + graceMs + timeUpMs;
     const theirs = await battleState(db, pato, battleId, ctx(end));
@@ -480,7 +481,7 @@ describe("a battle of Diez Letras", () => {
     expect(theirs.match.found?.find((one) => one.userId === juli.id)?.words.map((one) => one.word)).toEqual([fine, null]);
     const mine = await battleState(db, juli, battleId, ctx(end + 100));
     if (mine.match?.game !== "seven-letters") throw new Error("not letters");
-    expect(mine.match.found?.find((one) => one.userId === juli.id)?.words.map((one) => one.word)).toEqual([fine, "NAZI"]);
+    expect(mine.match.found?.find((one) => one.userId === juli.id)?.words.map((one) => one.word)).toEqual([fine, "PENE"]);
   });
 
   it("ends early only when everyone left", async () => {

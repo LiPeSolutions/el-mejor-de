@@ -33,6 +33,7 @@
   - 10 letras en botones grandes y puntos fijos por largo.
   - Las palabras se mandan sin esperar la verificación.
   - Ya está en la práctica. En el reto del día rige desde el 4/10; el 3/10 y los días anteriores siguen con 7 letras.
+  - **Valen solo las palabras conocidas** (unas 120.000, con el voseo y las argentinas) y es **apto para todo público**: las neutras del cuerpo sí, las eróticas, las vulgares y la jerga de drogas no.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
 - **Tu lugar y rankings por barrio, provincia y país:**
   - Al crear la cuenta, el "Paso 2 de 2" es elegir tu lugar: con el GPS en un toque o a mano, y verificarlo.
@@ -52,7 +53,7 @@
   - Se juegan **los cinco juegos**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
   - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate. En Tubitos, los 3 tableros del reto, cada uno en su versión.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 690 automáticas, todas pasan.
+- **Pruebas:** 692 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** el editor de personaje (llega en otro paquete de Claude Design), vincular con Google y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
@@ -66,11 +67,45 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Publicación | Vercel, equipo `lipe-demos`, proyecto `el-mejor-de-web` (Root Directory `apps/web`, funciones en São Paulo `gru1`). Variables: `CHALLENGE_SECRET` (producción y previews) y `DATABASE_URL` (producción). Los previews no tienen base, así que ahí no hay cuentas. |
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
 | Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md); Largada y Tubitos, en [`handoff-largada`](diseno/handoff-largada/LARGADA.md) y [`handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
-| Contenido | Diccionario de Diez Letras (365.648 palabras de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
+| Contenido | Diccionario de Diez Letras (120.214 palabras conocidas de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Cómo se arma el diccionario y cómo sumar o sacar palabras, en su [README](../packages/content/README.md). Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
 | Pruebas en el navegador | [`scripts/qa`](../scripts/qa/README.md): la base local y las pruebas con celus simulados (batallas con tres celus, Tubitos). Se corren a mano, fuera de `pnpm check`. |
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Diez Letras: solo palabras conocidas y para todo público
+
+- **Lo decidido** (responsable del producto):
+  - Valen solo las palabras que la gente conoce: "adran" o "aes", no.
+  - Para todo público:
+    - valen las palabras neutras del cuerpo y la biología (pene, vagina, sexo, embarazo); no, las eróticas (erotismo, orgasmo, porno) ni las vulgares (teta, culo, pija);
+    - valen los nombres comunes de drogas (droga, alcohol, cocaína, marihuana); no, la jerga (porro, faso, falopa, merca);
+    - vale la violencia común (matar, guerra, arma, pelea); no, la violencia sexual (violar, violación).
+  - Rige ya, en todo: el reto de hoy, la práctica y las batallas.
+- **Qué se hizo:**
+  - El diccionario pasó de 365.648 palabras a 120.214.
+  - **3 y 4 letras:** las 3.391 se revisaron una por una y quedaron 1.448. Son las que más se prueban al azar, así que acá no entra nada por frecuencia.
+  - **Verbos:** los frecuentes valen con todas sus formas. Los otros 3.207 se revisaron uno por uno y quedaron 1.873.
+  - **Las conjugaciones salen de modelos de conjugación** (verbecc). Por eso ahora también valen formas que la lista de antes no tenía: el voseo (tenés, jugá, decí), con pronombres (decime, dame, hacerlo) y tiempos que faltaban (mantuvieran).
+  - **5 letras o más:** valen las frecuentes según los textos (wordfreq), con sus plurales, femeninos y diminutivos. Las 12.405 dudosas se revisaron una por una y quedaron 5.060.
+  - **Afuera:** nombres de personas y lugares que aparecen mucho (Nadal, Medina, García, Habana), palabras de otros idiomas y las formas de vosotros (habéis, decid).
+  - **Adentro, aunque los textos casi no las usen:** las argentinas (bondi, chabón, celu, kiosco, pochoclo, hornalla, matambre, ñoqui, chamuyar, gambetear) y préstamos de todos los días (mail, chat, wifi, meme).
+  - **La lista de bloqueadas para todo público, ampliada según lo decidido:** deja afuera 325 palabras. "Pene" y "sexo", que antes estaban bloqueadas, ahora valen.
+  - Todo quedó en archivos que se pueden editar, en `packages/content/words`, con el paso a paso en su [README](../packages/content/README.md). Así se puede sumar o sacar una palabra cuando aparezca en la beta.
+- **Lo que resolvió Claude:**
+  - **Las letras de los retos no cambian.** Las 439 palabras base siguen en el diccionario, cada una con palabras suficientes. Comparando 3.000 sorteos con la lista vieja y la nueva, en Diez Letras salen siempre las mismas letras.
+  - En Siete Letras (los días hasta el 3/10, que ya no se juegan), el mínimo de palabras por reto bajó de 12 a 7, porque "química" ahora arma 7.
+  - Cada reto de Diez Letras tiene ahora unas 350 palabras posibles (antes, unas 730), y todos siguen llegando a los 1.000 puntos.
+  - Quien ya jugó hoy con la lista vieja conserva su puntaje.
+  - **Cómo se revisó:** las palabras dudosas largas las revisaron seis revisores en paralelo, con el mismo criterio que las cortas y los verbos. Después se controlaron con muestras.
+  - El podio de las batallas sigue ocultando a los demás las palabras que el filtro de apodos considera feas, como "pene": cuentan, pero no se muestran.
+  - Los datos de frecuencias (wordfreq) tienen licencia CC BY-SA 4.0. Está anotado en el README.
+- **Probado:**
+  - 5 pruebas nuevas del diccionario: que sea exactamente la lista de conocidas sin las bloqueadas, palabras que tienen que valer y que no, y que las raíces bloqueadas no se lleven palabras inocentes (violeta, violín, tetera, follaje, chingolo).
+  - Las de siempre: cada palabra base con su mínimo y los retos de cada día.
+  - La prueba del podio de las batallas pasó de "nazi", que ya no vale, a "pene".
+  - En el navegador, `scripts/qa/battle-letters.cjs` con tres celus: 12 de 12.
+- **Pendiente:** ver en la beta si falta o sobra alguna palabra. Se suma o se saca en un momento.
 
 ### 4/10/2026 — Personajes 2.0
 
@@ -502,7 +537,7 @@ En orden sugerido.
 2. **Probar en el celu** (responsable del producto):
    - **Personajes 2.0:** elegir uno de los bichos nuevos en Perfil → tu personaje, y mirar el saludo del inicio, los podios y las filas del ranking.
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
-   - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
+   - **Diez Letras:** jugar el reto o la práctica con el diccionario nuevo y avisar si alguna palabra conocida no vale o alguna rara sí: se corrige en un momento.
    - Salir y volver a entrar a la cuenta.
    - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
 3. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
@@ -516,7 +551,6 @@ En orden sugerido.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
 8. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
-   - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
 9. **Antes de abrir al público:**
    - Términos y privacidad.

@@ -9,6 +9,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "build:known": "python3 scripts/known-words.py",
     "build:words": "tsx scripts/build-words.ts",
     "export:trivia": "tsx scripts/export-trivia.ts"
   },
