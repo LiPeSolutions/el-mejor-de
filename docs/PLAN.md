@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 4 de octubre de 2026 (Tubitos, el quinto juego, y la rotación de 5 juegos; batallas en vivo, con Diez Letras; cómo se juegan Secuencia y Tubitos en las batallas; la vibración de la señal de Largada se mantiene; música en loop).
+> Última actualización: 4 de octubre de 2026 (Tubitos, el quinto juego, y la rotación de 5 juegos; batallas en vivo, con Diez Letras y Secuencia; cómo se juega Tubitos en las batallas; la vibración de la señal de Largada se mantiene; música en loop).
 
 ## 1. La idea
 
@@ -36,7 +36,7 @@ Lo que la hace distinta:
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
-| Batallas en vivo | **Jugar al mismo tiempo**, cada uno en su celu (4/10/2026): se arma una sala **desde un grupo** (sus miembros ven el aviso) **o con un link** para cualquiera, con cuenta y **de 2 a 10 jugadores**. Quien la arma elige **un juego** y al final hay **revancha u otro juego** en la misma sala. Todo **a la par**: las mismas preguntas y las mismas luces para todos a la vez. **No cuentan para rankings ni coronas**; el grupo guarda **quién ganó cada batalla**. Primero Largada y Cinco Preguntas, después Diez Letras; Secuencia y Tubitos, en camino (ver §8). |
+| Batallas en vivo | **Jugar al mismo tiempo**, cada uno en su celu (4/10/2026): se arma una sala **desde un grupo** (sus miembros ven el aviso) **o con un link** para cualquiera, con cuenta y **de 2 a 10 jugadores**. Quien la arma elige **un juego** y al final hay **revancha u otro juego** en la misma sala. Todo **a la par**: las mismas preguntas y las mismas luces para todos a la vez. **No cuentan para rankings ni coronas**; el grupo guarda **quién ganó cada batalla**. Primero Largada y Cinco Preguntas, después Diez Letras y Secuencia; Tubitos, en camino (ver §8). |
 | Truco | Online contra gente y mesas privadas. **Sin flor.** 1 vs 1, 2 vs 2 y 3 vs 3. |
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
 | Monetización | **Más adelante.** Idea inicial: comprar vidas. |
@@ -220,7 +220,7 @@ La responsable del producto lo diseñó con Claude Design (dirección "Probeta")
 | Compartir resultados | Imagen y texto con emojis para WhatsApp o historias, con un link que se ve lindo al compartirlo. | MVP |
 | Lista de amigos | Agregar amigos, ver sus resultados y un ranking entre ustedes. | Etapa 1.5 |
 | Desafíos 1 vs 1 | Retar a alguien a un minijuego: los dos juegan el mismo reto y gana el mejor puntaje. Cada uno juega cuando puede, dentro de las 24 horas. | Etapa 1.5 |
-| Batallas en vivo | Una sala de 2 a 10 amigos que juegan el mismo juego a la vez, desde un grupo o con un link. | **Hecho** (4/10/2026): Largada, Cinco Preguntas y Diez Letras |
+| Batallas en vivo | Una sala de 2 a 10 amigos que juegan el mismo juego a la vez, desde un grupo o con un link. | **Hecho** (4/10/2026): Largada, Cinco Preguntas, Diez Letras y Secuencia |
 
 Los grupos y el compartir van primero porque son los que más gente nueva traen.
 
@@ -248,9 +248,10 @@ La responsable del producto pidió poder jugar al mismo tiempo con los del grupo
     - Los puntos son los del juego, sumados sin el tope de 1.000: el que más encuentra siempre gana. Un empate lo gana quien llegó primero a ese puntaje.
     - No hay botón para terminar antes, como en el reto.
     - En el podio se ven **las palabras de todos**, tocando a cada uno. Las que encontró uno solo llevan una estrella, y las groseras se ocultan para los demás.
-  - **Secuencia** (decidido el 4/10/2026): por rondas, con la misma secuencia para todos a la vez. El que se equivoca o no responde a tiempo queda afuera.
+  - **Secuencia** (hecho el 4/10/2026): por rondas, con la misma secuencia para todos a la vez. El que se equivoca o no responde a tiempo queda afuera y mira el resto.
     - Para repetirla hay 3 segundos más 1 por color (con 5 colores, 8 segundos); la ronda sigue apenas respondieron todos.
-    - **Desempate:** si se equivocan todos los que quedan en la misma ronda, la juegan otra vez solo ellos, hasta que quede uno.
+    - **Desempate:** si se equivocan todos los que quedan en la misma ronda, la juegan otra vez solo ellos (con los mismos colores), hasta que quede uno. Después de 3 desempates seguidos, comparten el primer puesto, así la partida siempre termina.
+    - Gana el último que queda. En el podio, cada uno con el nivel en que quedó afuera.
   - **Tubitos** (decidido el 4/10/2026): **como el reto**. Los mismos 3 tableros para todos (6, 8 y 10 tubos), uno detrás del otro, con los puntos del reto (movimientos y tiempo). Se ve quién ya lo resolvió, y cada tablero tiene un tiempo máximo, así nadie espera de más.
 - **El final:** el podio de la batalla y **revancha** (otras preguntas, otras largadas) u **otro juego**, sin salir de la sala.
 - **Si alguien se va** o se le corta internet, la partida sigue sin esa persona. Quien llega con una partida empezada juega la próxima. Si se va quien la armó, elige el que entró después.
@@ -321,7 +322,7 @@ Cada etapa termina con algo que se puede jugar y probar.
 
 - Lista de amigos y ranking entre amigos.
 - Desafíos 1 vs 1.
-- Batallas en vivo de Secuencia y Tubitos (las de Largada, Cinco Preguntas y Diez Letras ya están).
+- Batallas en vivo de Tubitos (las de Largada, Cinco Preguntas, Diez Letras y Secuencia ya están).
 - Notificaciones: "salió el reto de hoy", "te pasaron en el ranking", "¡ganaste la corona!", "Pato armó una batalla".
 - Más minijuegos.
 

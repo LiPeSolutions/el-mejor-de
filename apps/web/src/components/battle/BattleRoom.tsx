@@ -22,6 +22,7 @@ import { BattlePodium, type PodiumRow } from "./BattlePodium";
 import { homeOf, peopleOf, type BattlePerson } from "./faces";
 import { LargadaLive } from "./LargadaLive";
 import { LettersLive } from "./LettersLive";
+import { SequenceLive } from "./SequenceLive";
 import { TriviaLive } from "./TriviaLive";
 import { WaitingPill } from "./parts";
 
@@ -40,7 +41,7 @@ const CHOICES = [
   { game: GAMES.reflexes, soon: false },
   { game: GAMES["five-questions"], soon: false },
   { game: GAMES["seven-letters"], soon: false },
-  { game: GAMES.sequence, soon: true },
+  { game: GAMES.sequence, soon: false },
 ];
 
 const ERRORS: Record<string, string> = {
@@ -247,6 +248,8 @@ function Playing({ view, match, now, refresh, onExit }: { view: BattleView; matc
       return <LargadaLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
     case "seven-letters":
       return <LettersLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
+    case "sequence":
+      return <SequenceLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
     default:
       return unknownGame(match);
   }
@@ -260,6 +263,8 @@ function scoreText(game: MatchView["game"], row: StandingView): string {
       return formatNumber(row.score);
     case "reflexes":
       return row.averageMs ? `${row.averageMs} ms` : "—";
+    case "sequence":
+      return row.alive ? "Sigue" : `Nivel ${row.score}`;
     default:
       return unknownGame(game);
   }
@@ -276,6 +281,8 @@ function podiumDetail(match: MatchView, row: StandingView): string | undefined {
       return row.averageMs ? `${row.averageMs} ms` : undefined;
     case "seven-letters":
       return words(row.words ?? 0);
+    case "sequence":
+      return row.alive ? "Hasta el final" : `Afuera: nivel ${row.score + 1}`;
     default:
       return unknownGame(match);
   }
@@ -291,6 +298,8 @@ function winnerText(match: MatchView, winner: StandingView, who: BattlePerson): 
       return `${me ? "Largaste" : `${who.name} largó`} en ${winner.averageMs ?? "—"} ms de promedio`;
     case "seven-letters":
       return `${me ? "Encontraste" : `${who.name} encontró`} ${words(winner.words ?? 0)}`;
+    case "sequence":
+      return winner.score > 0 ? `${me ? "Llegaste" : `${who.name} llegó`} al nivel ${winner.score}` : "Nadie pasó el primer nivel";
     default:
       return unknownGame(match);
   }

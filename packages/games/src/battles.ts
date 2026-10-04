@@ -1,5 +1,6 @@
 import { FIVE_QUESTIONS_RULES, answerSeconds, fiveQuestionsPoints } from './games/five-questions';
 import { LARGADA_RULES, largadaScore } from './games/largada';
+import { SEQUENCE_RULES, sequenceLengthForLevel } from './games/sequence';
 import { TEN_LETTERS_RULES, sevenLettersWordPoints } from './games/seven-letters';
 import type { GameId } from './types';
 
@@ -12,7 +13,7 @@ import type { GameId } from './types';
  */
 
 /** The games a battle can be of today; the rest arrive later. */
-export const BATTLE_GAMES = ['reflexes', 'five-questions', 'seven-letters'] as const satisfies readonly GameId[];
+export const BATTLE_GAMES = ['reflexes', 'five-questions', 'seven-letters', 'sequence'] as const satisfies readonly GameId[];
 export type BattleGame = (typeof BATTLE_GAMES)[number];
 
 export const isBattleGame = (game: string): game is BattleGame => (BATTLE_GAMES as readonly string[]).includes(game);
@@ -56,6 +57,27 @@ export const BATTLE_RULES = {
     maxWords: TEN_LETTERS_RULES.maxSubmissions,
     /** Finding more than this share of a big set is suspicious, as in the daily challenge. */
     suspiciousShare: TEN_LETTERS_RULES.suspiciousFoundShare,
+  },
+  sequence: {
+    /** From a round opening to its first color, as in the daily challenge. */
+    leadMs: 500,
+    showMsPerItem: SEQUENCE_RULES.showMsPerItem,
+    /** To repeat it: this long, plus `answerPerItemMs` for each color (decided on 4/10/2026). */
+    answerBaseMs: 3_000,
+    answerPerItemMs: 1_000,
+    /** A repetition sent at the last moment still arrives. */
+    graceMs: 600,
+    /** Who's out, before the next round. */
+    revealMs: 2_500,
+    /** The colors reach a phone this early. */
+    earlyMs: 400,
+    /** Tiebreaks in a row before the tied ones share first place, so a match always ends. */
+    maxReplays: 3,
+    maxLevel: SEQUENCE_RULES.maxLength - SEQUENCE_RULES.startLength + 1,
+    /** Faster than this per color, since the last one showed, is not humanly possible. */
+    minTapMs: SEQUENCE_RULES.minTapMs,
+    /** A repetition can't reach the server before it was possible, give or take this much clock. */
+    clockToleranceMs: 300,
   },
   /** A room nobody opened for this long closes. */
   idleMs: 20 * 60_000,
@@ -273,6 +295,117 @@ export function lettersFlow(input: { startsAt: number; roster: readonly RosterEn
 /** A word's points, the game's own: the longer the more, and the one with all ten letters has its prize. */
 export const lettersPoints = (word: string): number => sevenLettersWordPoints(word, TEN_LETTERS_RULES);
 
+/* ───────────── Secuencia ───────────── */
+
+/** A repetition the server got and checked. */
+export interface SequenceMove {
+  userId: string;
+  round: number;
+  /** When the server got it. */
+  at: number;
+  /** The whole sequence, right. */
+  correct: boolean;
+}
+
+export interface SequenceRoundFlow {
+  index: number;
+  /** Its sequence has `length` colors. A tiebreak plays the same level again. */
+  level: number;
+  length: number;
+  /** Everyone left got the last round wrong: they play it again, only them. */
+  replay: boolean;
+  /** Who plays it: whoever is still in. */
+  players: string[];
+  /** The first color shows `leadMs` after; then one every `showMsPerItem`. */
+  showAt: number;
+  /** The last color is over: repeating starts. */
+  inputAt: number;
+  /** The latest a repetition counts. */
+  deadline: number;
+  closedAt: number | null;
+  /** Once closed: who repeated it right, and who's out with it. */
+  passed: string[] | null;
+  out: string[] | null;
+  /** When the next round (or the podium) comes. */
+  nextAt: number | null;
+}
+
+/** How long there is to repeat a sequence of `length` colors: 3 s plus 1 s per color. */
+export function sequenceAnswerMs(length: number): number {
+  const { answerBaseMs, answerPerItemMs } = BATTLE_RULES.sequence;
+  return answerBaseMs + answerPerItemMs * length;
+}
+
+/**
+ * By rounds, with the same sequence for everyone at once. Whoever gets it
+ * wrong, or doesn't answer in time, is out; it ends when one is left. If
+ * everyone still in gets the same round wrong, the ones who tried play it
+ * again (a tiebreak) until one is left, or they share first place after
+ * `maxReplays` of them.
+ */
+export function sequenceFlow(input: { startsAt: number; roster: readonly RosterEntry[]; moves: readonly SequenceMove[]; now: number }): MatchFlow<SequenceRoundFlow> {
+  const rules = BATTLE_RULES.sequence;
+  const leftAt = new Map(input.roster.map((entry) => [entry.userId, entry.leftAt]));
+  const rounds: SequenceRoundFlow[] = [];
+  let players = input.roster.map((entry) => entry.userId);
+  let level = 1;
+  let replays = 0;
+  let showAt = input.startsAt;
+  for (let index = 0; input.now >= showAt; index++) {
+    const length = sequenceLengthForLevel(level);
+    const inputAt = showAt + rules.leadMs + length * rules.showMsPerItem;
+    const deadline = inputAt + sequenceAnswerMs(length) + rules.graceMs;
+    const answers = new Map<string, SequenceMove>();
+    for (const move of input.moves) {
+      if (move.round === index && move.at <= deadline && players.includes(move.userId)) answers.set(move.userId, move);
+    }
+    const playing = input.roster.filter((entry) => players.includes(entry.userId));
+    const closing = closingTime(showAt, deadline, playing, new Map([...answers].map(([id, move]) => [id, move.at])), input.now);
+    const round = { index, level, length, replay: replays > 0, players, showAt, inputAt, deadline };
+    if (closing === null) {
+      rounds.push({ ...round, closedAt: null, passed: null, out: null, nextAt: null });
+      return { rounds, endsAt: null };
+    }
+    // Even if everyone answered early (which counts as wrong), the colors finish first.
+    const closedAt = Math.max(closing, inputAt);
+    const stays = (id: string) => {
+      const left = leftAt.get(id);
+      return left === null || left === undefined || left > closedAt;
+    };
+    const passed = players.filter((id) => stays(id) && answers.get(id)?.correct === true);
+    const missed = players.filter((id) => stays(id) && answers.get(id)?.correct === false);
+    let next: string[];
+    let ends: boolean;
+    if (passed.length > 0) {
+      next = passed;
+      ends = passed.length === 1 || level >= rules.maxLevel;
+      level += 1;
+      replays = 0;
+    } else if (missed.length >= 2 && replays < rules.maxReplays) {
+      next = missed;
+      ends = false;
+      replays += 1;
+    } else {
+      // Nobody got it: the one who tried is left, or they share it once the tiebreaks ran out.
+      next = missed;
+      ends = true;
+    }
+    const nextAt = closedAt + rules.revealMs;
+    rounds.push({ ...round, closedAt, passed, out: players.filter((id) => !next.includes(id)), nextAt });
+    if (ends) return { rounds, endsAt: nextAt };
+    players = next;
+    showAt = nextAt;
+  }
+  return { rounds, endsAt: null };
+}
+
+/** Whether a repetition is the sequence, and how many colors it got right before the first mistake. */
+export function sequenceCheck(expected: readonly number[], inputs: readonly number[]): { correct: boolean; right: number } {
+  let right = 0;
+  while (right < inputs.length && right < expected.length && inputs[right] === expected[right]) right++;
+  return { correct: inputs.length === expected.length && right === expected.length, right };
+}
+
 /* ───────────── The table ───────────── */
 
 export interface BattleStanding {
@@ -287,6 +420,8 @@ export interface BattleStanding {
   bestMs?: number | null;
   /** Diez Letras: words found. */
   words?: number;
+  /** Secuencia: still in (or last one standing). */
+  alive?: boolean;
 }
 
 function withPlaces<T>(rows: readonly T[], compare: (a: T, b: T) => number): (T & { place: number })[] {
@@ -344,6 +479,30 @@ export function lettersStandings(roster: readonly RosterEntry[], words: readonly
     place: row.place,
     score: row.score,
     words: row.words,
+  }));
+}
+
+/**
+ * Whoever lasted longer goes first: the ones still in (or the last one
+ * standing), then by the round each one went out in. The points are the
+ * levels each one repeated right.
+ */
+export function sequenceStandings(roster: readonly RosterEntry[], flow: MatchFlow<SequenceRoundFlow>): BattleStanding[] {
+  const still = Number.MAX_SAFE_INTEGER;
+  const rows = roster.map(({ userId }) => {
+    let levels = 0;
+    let outIn = still;
+    for (const round of flow.rounds) {
+      if (round.passed?.includes(userId)) levels = Math.max(levels, round.level);
+      if (outIn === still && round.out?.includes(userId)) outIn = round.index;
+    }
+    return { userId, levels, outIn };
+  });
+  return withPlaces(rows, (a, b) => b.outIn - a.outIn).map((row) => ({
+    userId: row.userId,
+    place: row.place,
+    score: row.levels,
+    alive: row.outIn === still,
   }));
 }
 

@@ -24,6 +24,7 @@ import {
   playerOpenBattles,
   recordAnswer,
   recordCodeFailure,
+  recordRepeat,
   recordStart,
   recordWord,
   resetUsedQuestions,
@@ -53,6 +54,9 @@ import {
   lettersPoints,
   lettersStandings,
   normalizeWord,
+  sequenceCheck,
+  sequenceFlow,
+  sequenceStandings,
   triviaAnswer,
   triviaFlow,
   triviaStandings,
@@ -64,6 +68,8 @@ import {
   type LettersWord,
   type MatchFlow,
   type RosterEntry,
+  type SequenceMove,
+  type SequenceRoundFlow,
   type TriviaMove,
   type TriviaRoundFlow,
 } from "@repo/games";
@@ -81,6 +87,8 @@ import type {
   LettersMatchView,
   LiveBattleView,
   MatchView,
+  SequenceMatchView,
+  SequenceRoundView,
   StandingView,
   TriviaMatchView,
   TriviaQuestionView,
@@ -91,10 +99,12 @@ import {
   lettersWords,
   pickLetters,
   pickQuestions,
+  pickSequence,
   playerOptions,
   questionById,
   type BattleLargadaContent,
   type BattleLettersContent,
+  type BattleSequenceContent,
   type BattleTriviaContent,
 } from "./battle-content";
 import { HttpError } from "./http";
@@ -102,8 +112,8 @@ import { HttpError } from "./http";
 /*
  * Live battles (docs/PLAN.md §8): who can do what in a room, and what each
  * phone sees. Nothing runs between requests: each one works out where the
- * match is from its start and the moves (triviaFlow, largadaFlow and
- * lettersFlow in @repo/games), writes the result once it ended and answers
+ * match is from its start and the moves (triviaFlow, largadaFlow,
+ * lettersFlow and sequenceFlow in @repo/games), writes the result once it ended and answers
  * with the server's clock, which the phones sync to. Every choice by game
  * is a switch over BattleGame, so a new game can't be forgotten in one.
  */
@@ -201,10 +211,14 @@ const largadaMoves = (moves: readonly BattleMove[]): LargadaMove[] =>
 
 const lettersPlayed = (words: readonly BattleWord[]): LettersWord[] => words.map((one) => ({ userId: one.userId, word: one.word, at: one.playedAt }));
 
+const sequenceMoves = (moves: readonly BattleMove[]): SequenceMove[] =>
+  moves.flatMap((move) => (move.playedAt === null ? [] : [{ userId: move.userId, round: move.round, at: move.playedAt, correct: move.correct === true }]));
+
 type Flow =
   | { game: "five-questions"; flow: MatchFlow<TriviaRoundFlow> }
   | { game: "reflexes"; flow: MatchFlow<LargadaRoundFlow> }
-  | { game: "seven-letters"; flow: MatchFlow<LettersRoundFlow> };
+  | { game: "seven-letters"; flow: MatchFlow<LettersRoundFlow> }
+  | { game: "sequence"; flow: MatchFlow<SequenceRoundFlow> };
 
 function flowOf(match: BattleMatch, plays: Plays, now: number): Flow {
   const roster = rosterOf(match);
@@ -218,13 +232,15 @@ function flowOf(match: BattleMatch, plays: Plays, now: number): Flow {
     }
     case "seven-letters":
       return { game, flow: lettersFlow({ startsAt: match.startsAt, roster, now }) };
+    case "sequence":
+      return { game, flow: sequenceFlow({ startsAt: match.startsAt, roster, moves: sequenceMoves(plays.moves), now }) };
     default:
       return unknownGame(game);
   }
 }
 
-/** The table once every round was played. */
-function finalStandings(match: BattleMatch, plays: Plays): BattleStanding[] {
+/** The table once every round was played (`now`: Secuencia works it out from its rounds). */
+function finalStandings(match: BattleMatch, plays: Plays, now: number): BattleStanding[] {
   const roster = rosterOf(match);
   const game = gameOf(match);
   switch (game) {
@@ -234,6 +250,8 @@ function finalStandings(match: BattleMatch, plays: Plays): BattleStanding[] {
       return largadaStandings(roster, largadaMoves(plays.moves), BATTLE_RULES.largada.starts);
     case "seven-letters":
       return lettersStandings(roster, lettersPlayed(plays.words));
+    case "sequence":
+      return sequenceStandings(roster, sequenceFlow({ startsAt: match.startsAt, roster, moves: sequenceMoves(plays.moves), now }));
     default:
       return unknownGame(game);
   }
@@ -241,7 +259,7 @@ function finalStandings(match: BattleMatch, plays: Plays): BattleStanding[] {
 
 /** Writes how the match ended (once, whoever asks first) and returns it ended. */
 async function settle(db: Queryable, match: BattleMatch, plays: Plays, endedAt: number): Promise<BattleMatch> {
-  const results = finalStandings(match, plays);
+  const results = finalStandings(match, plays, endedAt);
   const winners = battleWinners(results);
   await endMatch(db, { matchId: match.id, endedAt, results, winners });
   return { ...match, endedAt, results, winners };
@@ -441,7 +459,7 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
   const game = loaded.battle.game;
   if (!isBattleGame(game)) throw new HttpError(409, "game-not-available");
 
-  let content: BattleTriviaContent | BattleLargadaContent | BattleLettersContent;
+  let content: BattleTriviaContent | BattleLargadaContent | BattleLettersContent | BattleSequenceContent;
   switch (game) {
     case "five-questions": {
       const picked = pickQuestions(toGameDate(new Date(ctx.now)), loaded.battle.usedQuestions);
@@ -455,6 +473,9 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
       break;
     case "seven-letters":
       content = pickLetters(toGameDate(new Date(ctx.now)));
+      break;
+    case "sequence":
+      content = pickSequence();
       break;
     default:
       return unknownGame(game);
@@ -483,6 +504,7 @@ function standingViews(rows: readonly BattleStanding[]): StandingView[] {
     averageMs: row.averageMs,
     bestMs: row.bestMs,
     words: row.words,
+    alive: row.alive,
   }));
 }
 
@@ -599,6 +621,66 @@ function lettersView(match: BattleMatch, words: readonly BattleWord[], flow: Mat
   };
 }
 
+/**
+ * Secuencia: the rounds so far, with who's still in, and the colors of the
+ * round being played (or of the next one, a moment before it shows). How
+ * each one did shows once the round closed.
+ */
+function sequenceView(match: BattleMatch, moves: readonly BattleMove[], flow: MatchFlow<SequenceRoundFlow>, userId: string, now: number): SequenceMatchView {
+  const rules = BATTLE_RULES.sequence;
+  const roster = rosterOf(match);
+  const leftAt = new Map(roster.map((entry) => [entry.userId, entry.leftAt]));
+  const { sequence } = match.content as BattleSequenceContent;
+  const moveOf = (round: SequenceRoundFlow, id: string) =>
+    moves.find((move) => move.userId === id && move.round === round.index && move.playedAt !== null && move.playedAt <= round.deadline);
+  const rightOf = (round: SequenceRoundFlow, move: BattleMove | undefined) => (move?.inputs ? sequenceCheck(sequence.slice(0, round.length), move.inputs).right : 0);
+  const roundView = (round: SequenceRoundFlow): SequenceRoundView => ({
+    index: round.index,
+    level: round.level,
+    length: round.length,
+    replay: round.replay,
+    players: round.players,
+    showAt: round.showAt,
+    inputAt: round.inputAt,
+    answerUntil: round.deadline - rules.graceMs,
+    closedAt: round.closedAt,
+    nextAt: round.nextAt,
+    passed: round.passed,
+    out: round.out,
+    results:
+      round.closedAt === null
+        ? null
+        : round.players.map((id) => {
+            const move = moveOf(round, id);
+            const left = leftAt.get(id);
+            const outcome = left !== null && left !== undefined && left <= round.closedAt! ? "left" : !move ? "late" : move.correct ? "right" : "wrong";
+            return { userId: id, outcome, right: rightOf(round, move) };
+          }),
+  });
+
+  // The next round goes out a moment before it shows, so its first color is on time on every phone.
+  const soon = sequenceFlow({ startsAt: match.startsAt, roster, moves: sequenceMoves(moves), now: now + rules.earlyMs });
+  const last = flow.rounds.at(-1);
+  const upcoming = soon.rounds.at(-1);
+  const playing = last && last.closedAt === null ? last : upcoming && upcoming.closedAt === null && upcoming.index > (last?.index ?? -1) ? upcoming : null;
+  const mine = playing ? moveOf(playing, userId) : undefined;
+  return {
+    game: "sequence",
+    id: match.id,
+    startsAt: match.startsAt,
+    endsAt: flow.endsAt,
+    players: match.players,
+    pads: 4,
+    leadMs: rules.leadMs,
+    showMsPerItem: rules.showMsPerItem,
+    rounds: flow.rounds.map(roundView),
+    current: playing ? { ...roundView(playing), colors: sequence.slice(0, playing.length) } : null,
+    answered: playing ? playing.players.filter((id) => moveOf(playing, id) !== undefined) : [],
+    mine: playing && mine ? { correct: mine.correct === true, right: rightOf(playing, mine) } : null,
+    standings: standingViews(sequenceStandings(roster, flow)),
+  };
+}
+
 function matchView(match: BattleMatch, plays: Plays, flow: Flow, userId: string, now: number): MatchView {
   switch (flow.game) {
     case "five-questions":
@@ -607,6 +689,8 @@ function matchView(match: BattleMatch, plays: Plays, flow: Flow, userId: string,
       return largadaView(match, plays.moves, flow.flow);
     case "seven-letters":
       return lettersView(match, plays.words, flow.flow, userId, now);
+    case "sequence":
+      return sequenceView(match, plays.moves, flow.flow, userId, now);
     default:
       return unknownGame(flow);
   }
@@ -743,6 +827,33 @@ export async function battleStart(
   const ok = await recordStart(db, { matchId: match.id, userId: user.id, round: input.round, at: ctx.now, reactionMs: falseStart ? null : reactionMs === null ? null : Math.round(reactionMs), falseStart });
   if (!ok) throw new HttpError(409, "already-played");
   return { ok: true };
+}
+
+/**
+ * A repetition of Secuencia: the colors tapped, sent when the player
+ * finished, got one wrong or ran out of time. One that reached the server
+ * before it was possible (less than `minTapMs` per color since the colors
+ * finished showing) counts as wrong.
+ */
+export async function battleRepeat(db: Queryable, user: User, battleId: string, input: { round: number; inputs: number[] }, ctx: BattleContext): Promise<{ ok: true; correct: boolean }> {
+  const loaded = await load(db, battleId);
+  requireOpen(loaded.battle);
+  requirePlayer(loaded, user);
+  const match = requireInMatch(loaded.match, user.id, "sequence");
+  const flow = sequenceFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: sequenceMoves(loaded.plays.moves), now: ctx.now });
+  const round = flow.rounds.find((one) => one.index === input.round && one.closedAt === null);
+  if (!round || ctx.now < round.showAt || ctx.now > round.deadline) throw new HttpError(409, "round-closed");
+  if (!round.players.includes(user.id)) throw new HttpError(403, "out");
+  const rules = BATTLE_RULES.sequence;
+  const { sequence } = match.content as BattleSequenceContent;
+  let { correct } = sequenceCheck(sequence.slice(0, round.length), input.inputs);
+  if (correct && ctx.now < round.inputAt + round.length * rules.minTapMs - rules.clockToleranceMs) {
+    console.warn(JSON.stringify({ event: "suspicious-battle-sequence", battle: battleId, user: user.id, round: input.round, early: round.inputAt + round.length * rules.minTapMs - ctx.now }));
+    correct = false;
+  }
+  const inputs = input.inputs.slice(0, round.length);
+  if (!(await recordRepeat(db, { matchId: match.id, userId: user.id, round: input.round, at: ctx.now, correct, inputs }))) throw new HttpError(409, "already-played");
+  return { ok: true, correct };
 }
 
 /**

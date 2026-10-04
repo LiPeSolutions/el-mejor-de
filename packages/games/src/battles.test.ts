@@ -8,12 +8,17 @@ import {
   lettersFlow,
   lettersPoints,
   lettersStandings,
+  sequenceAnswerMs,
+  sequenceCheck,
+  sequenceFlow,
+  sequenceStandings,
   triviaAnswer,
   triviaFlow,
   triviaStandings,
   type LargadaMove,
   type LettersWord,
   type RosterEntry,
+  type SequenceMove,
   type TriviaMove,
 } from './battles';
 
@@ -224,5 +229,124 @@ describe('a Diez Letras battle', () => {
     const table = lettersStandings(roster('a', 'b'), []);
     expect(table.map((row) => row.place)).toEqual([1, 1]);
     expect(battleWinners(table)).toEqual([]);
+  });
+});
+
+describe('a Secuencia battle', () => {
+  const { leadMs, showMsPerItem, graceMs, revealMs, maxReplays } = BATTLE_RULES.sequence;
+  const repeat = (userId: string, round: number, at: number, correct = true): SequenceMove => ({ userId, round, at, correct });
+  /** When repeating starts and the latest it counts, for a round with `length` colors shown from `showAt`. */
+  const times = (showAt: number, length: number) => {
+    const inputAt = showAt + leadMs + length * showMsPerItem;
+    return { inputAt, deadline: inputAt + sequenceAnswerMs(length) + graceMs };
+  };
+  const flowOf = (players: RosterEntry[], moves: SequenceMove[], now: number) => sequenceFlow({ startsAt: T0, roster: players, moves, now });
+
+  it('shows the first 3 colors to everyone when the countdown ends, with 3 s plus 1 s per color to repeat them', () => {
+    const { inputAt, deadline } = times(T0, 3);
+    expect(sequenceAnswerMs(3)).toBe(6_000);
+    expect(flowOf(roster('a', 'b'), [], T0 + 100).rounds).toEqual([
+      { index: 0, level: 1, length: 3, replay: false, players: ['a', 'b'], showAt: T0, inputAt, deadline, closedAt: null, passed: null, out: null, nextAt: null },
+    ]);
+    expect(flowOf(roster('a', 'b'), [], T0 - 1)).toEqual({ rounds: [], endsAt: null });
+  });
+
+  it('closes when everyone repeated it, and the next one has one more color', () => {
+    const { inputAt } = times(T0, 3);
+    const moves = [repeat('a', 0, inputAt + 2_000), repeat('b', 0, inputAt + 2_500)];
+    const flow = flowOf(roster('a', 'b'), moves, inputAt + 2_500 + revealMs);
+    expect(flow.rounds[0]).toMatchObject({ closedAt: inputAt + 2_500, passed: ['a', 'b'], out: [], nextAt: inputAt + 2_500 + revealMs });
+    expect(flow.rounds[1]).toMatchObject({ index: 1, level: 2, length: 4, replay: false, players: ['a', 'b'], showAt: inputAt + 2_500 + revealMs, closedAt: null });
+  });
+
+  it('leaves out whoever gets it wrong or runs out of time, and ends when one is left', () => {
+    const first = times(T0, 3);
+    const secondShow = first.inputAt + 3_000 + revealMs;
+    const second = times(secondShow, 4);
+    const moves = [
+      repeat('a', 0, first.inputAt + 2_000),
+      repeat('b', 0, first.inputAt + 2_500),
+      repeat('c', 0, first.inputAt + 3_000, false),
+      repeat('a', 1, second.inputAt + 2_000),
+    ];
+    const flow = flowOf(roster('a', 'b', 'c'), moves, second.deadline + revealMs);
+    expect(flow.rounds.map((round) => [round.players, round.passed, round.out])).toEqual([
+      [['a', 'b', 'c'], ['a', 'b'], ['c']],
+      [['a', 'b'], ['a'], ['b']],
+    ]);
+    expect(flow.endsAt).toBe(second.deadline + revealMs);
+    const table = sequenceStandings(roster('a', 'b', 'c'), flow);
+    expect(table.map((row) => [row.userId, row.place, row.score, row.alive])).toEqual([
+      ['a', 1, 2, true],
+      ['b', 2, 1, false],
+      ['c', 3, 0, false],
+    ]);
+    expect(battleWinners(table)).toEqual(['a']);
+  });
+
+  it('plays the round again when everyone left gets it wrong, only with the ones who tried', () => {
+    const first = times(T0, 3);
+    const againShow = first.deadline + revealMs;
+    const again = times(againShow, 3);
+    const moves = [repeat('a', 0, first.inputAt + 1_000, false), repeat('b', 0, first.inputAt + 2_000, false), repeat('a', 1, again.inputAt + 2_000), repeat('b', 1, again.inputAt + 2_500, false)];
+    const flow = flowOf(roster('a', 'b', 'c'), moves, again.inputAt + 2_500 + revealMs);
+    // Carla didn't answer the first: she's out, and the tiebreak waited for her time to run out.
+    expect(flow.rounds[0]).toMatchObject({ closedAt: first.deadline, passed: [], out: ['c'] });
+    expect(flow.rounds[1]).toMatchObject({ level: 1, length: 3, replay: true, players: ['a', 'b'], passed: ['a'], out: ['b'] });
+    expect(flow.endsAt).toBe(again.inputAt + 2_500 + revealMs);
+    expect(sequenceStandings(roster('a', 'b', 'c'), flow).map((row) => [row.userId, row.place])).toEqual([
+      ['a', 1],
+      ['b', 2],
+      ['c', 3],
+    ]);
+  });
+
+  it("ends with the one who tried when the others didn't answer", () => {
+    const { inputAt, deadline } = times(T0, 3);
+    const flow = flowOf(roster('a', 'b'), [repeat('a', 0, inputAt + 1_000, false)], deadline + revealMs);
+    expect(flow.rounds).toHaveLength(1);
+    expect(flow.endsAt).toBe(deadline + revealMs);
+    expect(sequenceStandings(roster('a', 'b'), flow).map((row) => [row.userId, row.place, row.alive])).toEqual([
+      ['a', 1, true],
+      ['b', 2, false],
+    ]);
+  });
+
+  it('shares first place once the tiebreaks run out', () => {
+    let showAt = T0;
+    const moves: SequenceMove[] = [];
+    // Both repeat the first; then they miss the second, and every tiebreak of it.
+    for (let round = 0; round <= 1 + maxReplays; round++) {
+      const { inputAt } = times(showAt, round === 0 ? 3 : 4);
+      moves.push(repeat('a', round, inputAt + 1_000, round === 0), repeat('b', round, inputAt + 1_500, round === 0));
+      showAt = inputAt + 1_500 + revealMs;
+    }
+    const flow = flowOf(roster('a', 'b'), moves, showAt);
+    expect(flow.rounds.map((round) => round.replay)).toEqual([false, false, true, true, true]);
+    expect(flow.endsAt).toBe(showAt);
+    const table = sequenceStandings(roster('a', 'b'), flow);
+    expect(table.map((row) => [row.place, row.score])).toEqual([
+      [1, 1],
+      [1, 1],
+    ]);
+    expect(battleWinners(table)).toEqual(['a', 'b']);
+  });
+
+  it("doesn't wait for whoever left", () => {
+    const { inputAt } = times(T0, 3);
+    const players = [
+      { userId: 'a', leftAt: null },
+      { userId: 'b', leftAt: T0 + 1_000 },
+    ];
+    const flow = flowOf(players, [repeat('a', 0, inputAt + 1_200)], inputAt + 1_200 + revealMs);
+    expect(flow.rounds[0]).toMatchObject({ closedAt: inputAt + 1_200, passed: ['a'], out: ['b'] });
+    expect(flow.endsAt).toBe(inputAt + 1_200 + revealMs);
+  });
+
+  it('checks a repetition color by color', () => {
+    expect(sequenceCheck([0, 3, 1], [0, 3, 1])).toEqual({ correct: true, right: 3 });
+    expect(sequenceCheck([0, 3, 1], [0, 2])).toEqual({ correct: false, right: 1 });
+    expect(sequenceCheck([0, 3, 1], [0, 3])).toEqual({ correct: false, right: 2 });
+    expect(sequenceCheck([0, 3, 1], [])).toEqual({ correct: false, right: 0 });
   });
 });

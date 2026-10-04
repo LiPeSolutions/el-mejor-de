@@ -45,8 +45,8 @@ export function unknownGame(match: never): never {
   throw new Error(`unknown battle game ${(match as { game?: unknown }).game}`);
 }
 
-/** A Diez Letras phone asks for the letters this early, so they're there when the countdown ends. */
-const LETTERS_AHEAD_MS = 300;
+/** A phone asks for what's coming (Diez Letras' letters, Secuencia's colors) this early, so it's there on time. */
+const AHEAD_MS = 300;
 
 /** When to ask again: often while something is about to change, little in the room. */
 function nextAsk(view: BattleView, now: number): number {
@@ -55,7 +55,9 @@ function nextAsk(view: BattleView, now: number): number {
   if (!match) return 2_000;
   // Right when the next thing comes (a question, the lights, the podium), and at least every 1,5 s.
   const until = (at: number | null) => Math.min(1_500, Math.max(100, (at ?? now) - now + 80));
-  if (match.game === "seven-letters" && match.letters === null) return Math.min(1_000, Math.max(100, match.startsAt - LETTERS_AHEAD_MS - now));
+  const ahead = (at: number) => Math.min(1_500, Math.max(100, at - AHEAD_MS - now));
+  if (match.game === "seven-letters" && match.letters === null) return ahead(match.startsAt);
+  if (match.game === "sequence" && match.current === null && match.rounds.length === 0) return ahead(match.startsAt);
   if (now < match.startsAt) return Math.min(1_000, Math.max(100, match.startsAt - now + 50));
   switch (match.game) {
     case "five-questions": {
@@ -74,6 +76,13 @@ function nextAsk(view: BattleView, now: number): number {
       // Everyone's points, every second.
       const round = match.round;
       return round?.closed ? until(round.nextAt) : 1_000;
+    }
+    case "sequence": {
+      const current = match.current;
+      // Between rounds: the next one's colors, a moment before it shows.
+      if (!current) return ahead(match.rounds.at(-1)?.nextAt ?? now);
+      const done = match.answered.includes(view.meId) || !current.players.includes(view.meId);
+      return done ? 400 : 700;
     }
     default:
       return unknownGame(match);

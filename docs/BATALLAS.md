@@ -8,12 +8,12 @@
 
 - **Publicado:** salas de 2 a 10 jugadores, armadas desde un grupo o con un link. Se juegan a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo:
   - **Largada** (id `reflexes`) y **Cinco Preguntas** (id `five-questions`), desde el commit `0db320f`;
-  - **Diez Letras** (id `seven-letters`), desde la tanda "Batallas: Diez Letras a la par".
+  - **Diez Letras** (id `seven-letters`), desde la tanda "Batallas: Diez Letras a la par";
+  - **Secuencia** (id `sequence`), desde la tanda "Batallas: Secuencia por rondas".
 - **Falta:**
 
   | Juego | Id | Estado |
   |---|---|---|
-  | Secuencia | `sequence` | Formato decidido, con desempate (§13). En la sala dice "Muy pronto". |
   | Tubitos | `water-sort` | Formato decidido: como el reto (§13). Todavía no aparece en la sala. |
 
 - Lo que decidió la responsable del producto el 4/10/2026 está en [PLAN §8](PLAN.md#batallas-en-vivo-decidido-el-4102026).
@@ -133,7 +133,7 @@ Migración `supabase/migrations/20261004031914_battles.sql`. Solo entra `app_ser
 | `game.battles` | La sala. | `code` de 4 caracteres fáciles de leer (`^[2-9A-HJKMNP-Z]{4}$`), único entre las salas abiertas. `group_id` (null si es suelta). `host_id`. `game` (el de la próxima partida). `lobby_at` (cuándo el anfitrión volvió a elegir juego). `used_questions`. `closed_at`. |
 | `game.battle_players` | Quién está. | Clave `(battle_id, user_id)`. `left_at`, `removed_at` (la sacaron: no vuelve) y `seen_at` (su celu preguntó; se actualiza como mucho cada 5 s). |
 | `game.battle_matches` | Cada partida. | `players` (uuid[], fijo al empezar). `departures` (jsonb `{userId: ms}`: quién se fue durante la partida). `content` (jsonb, nunca se manda entero a un celu). `started_at`, `starts_at`, `ended_at`, `results`, `winners`. Índice único `battle_matches_one_open`: una partida abierta por sala. |
-| `game.battle_moves` | Una jugada por jugador y ronda. | Clave `(match_id, user_id, round)`, con `round` de 0 a 20. Columnas: `shown_at`, `played_at`, `choice` y `reaction_ms` / `false_start`. |
+| `game.battle_moves` | Una jugada por jugador y ronda. | Clave `(match_id, user_id, round)`, con `round` de 0 a 199 (antes, hasta 20; lo amplió `20261004135504_battle_sequence.sql` por los desempates de Secuencia). Columnas: `shown_at`, `played_at`, `choice`, `reaction_ms` / `false_start` y `correct` / `inputs`. |
 | `game.battle_words` | Cada palabra de Diez Letras. | Migración `20261004061538_battle_words.sql`. Clave `(match_id, user_id, word)`: una vez por jugador. Solo las válidas, normalizadas (`^[A-ZÑ]{3,10}$`), con `played_at`. Los puntos no se guardan: salen de la palabra (`lettersPoints`). |
 
 Cómo usa cada juego `game.battle_moves`:
@@ -143,6 +143,10 @@ Cómo usa cada juego `game.battle_moves`:
 - **Largada:**
   - `played_at`: cuando llegó al servidor.
   - `reaction_ms` y `false_start`: lo que midió el celu.
+- **Secuencia:**
+  - `played_at`: cuando llegó la repetición.
+  - `correct`: si estaba bien (lo decide el servidor, que compara con la secuencia).
+  - `inputs`: los colores que tocó (hasta 30, de 0 a 3), para saber hasta dónde llegó.
 - **Diez Letras** no usa `battle_moves`: cada palabra es una fila de `battle_words`. `playsOf` (en el servidor) trae una cosa o la otra según el juego.
 
 > ⚠️ **Antes de sumar Tubitos**, la columna `game` de `battles` y la de `battle_matches` tienen un `check` que solo admite `'seven-letters', 'five-questions', 'reflexes', 'sequence'`. Tubitos (`water-sort`) necesita una migración que los cambie, como `20261004051946_water_sort.sql` hizo con `attempts`. Secuencia ya entra.
@@ -150,6 +154,7 @@ Cómo usa cada juego `game.battle_moves`:
 Las consultas están en `packages/db/src/battles.ts`, agrupadas por tabla. Cada una dice en su comentario qué garantiza, por ejemplo:
 - `recordAnswer`: una respuesta por pregunta, y solo a una pregunta mostrada;
 - `recordStart`: una largada por ronda;
+- `recordRepeat`: una repetición de Secuencia por ronda;
 - `recordWord`: una palabra una vez por jugador (devuelve `false` si ya estaba);
 - `joinBattle`: devuelve `joined`, `already-in`, `full`, `removed` o `closed`.
 
@@ -163,15 +168,15 @@ Las consultas están en `packages/db/src/battles.ts`, agrupadas por tabla. Cada 
 
 | Capa | Archivo | Qué hace |
 |---|---|---|
-| Reglas | `packages/games/src/battles.ts` | Funciones puras, sin base ni red:<br>• `BATTLE_GAMES`, `isBattleGame` y `BATTLE_RULES`;<br>• `closingTime`;<br>• `triviaFlow`, `triviaAnswer` y `triviaStandings`;<br>• `largadaFlow`, `largadaStart` y `largadaStandings`;<br>• `lettersFlow`, `lettersPoints` y `lettersStandings`;<br>• `battleWinners`: el primer puesto con puntos, si jugaron 2 o más. Un empate arriba gana para cada uno. |
+| Reglas | `packages/games/src/battles.ts` | Funciones puras, sin base ni red:<br>• `BATTLE_GAMES`, `isBattleGame` y `BATTLE_RULES`;<br>• `closingTime`;<br>• `triviaFlow`, `triviaAnswer` y `triviaStandings`;<br>• `largadaFlow`, `largadaStart` y `largadaStandings`;<br>• `lettersFlow`, `lettersPoints` y `lettersStandings`;<br>• `sequenceFlow`, `sequenceAnswerMs`, `sequenceCheck` y `sequenceStandings`;<br>• `battleWinners`: el primer puesto con puntos, si jugaron 2 o más. Un empate arriba gana para cada uno. |
 | Consultas | `packages/db/src/battles.ts` | Salas, jugadores, partidas, jugadas e historial del grupo. Las horas van en milisegundos (`ms()` y `at()`). |
-| Contenido | `apps/web/src/server/battle-content.ts` | Lo que se decide al empezar:<br>• `pickQuestions`: 5 preguntas que no repiten las de la sala ni las del reto de hoy (`dailyQuestions`);<br>• `largadaDelays`: las 3 esperas;<br>• `pickLetters`: 10 letras con el generador del reto, nunca las de hoy (`dailyLetters`);<br>• `lettersWords`: las palabras válidas de unas letras, sacadas del diccionario (con caché de las últimas 50);<br>• `playerOptions`: el orden de las opciones de cada jugador, sacado con HMAC de partida, jugador y ronda;<br>• `questionById` y `categoryLabel`. |
-| Servidor | `apps/web/src/server/battles.ts` | Quién puede hacer qué, y qué ve cada celu. Lo arma así:<br>• **Carga:** `load` trae la sala, los jugadores, la última partida y sus jugadas (`plays`: `moves` o `words`, según el juego).<br>• **Cuentas:** `gameOf`, `flowOf`, `finalStandings`, `settle` y `current`.<br>• **Etapa:** `stageOf` da `closed`, `lobby`, `match` o `podium`. Es `lobby` si `lobbyAt > match.startedAt`.<br>• **Permisos:** `requirePlayer`, `requireHost`, `requireOpen` y `requireInMatch`.<br>• **Salas:** `openRoom`, `joinFromGroup`, `previewRoom`, `joinWithCode`, `leaveRoom`, `removeFromRoom`, `chooseGame`, `backToLobby` y `startMatch`.<br>• **Vistas:** `battleState` arma la vista con `triviaView`, `largadaView` o `lettersView` (vía `matchView`) y con `playerViews`.<br>• **Jugadas:** `battleQuestion`, `battleAnswer`, `battleStart` y `battleWord`.<br>• **Grupo:** `groupBattles`. |
+| Contenido | `apps/web/src/server/battle-content.ts` | Lo que se decide al empezar:<br>• `pickQuestions`: 5 preguntas que no repiten las de la sala ni las del reto de hoy (`dailyQuestions`);<br>• `largadaDelays`: las 3 esperas;<br>• `pickLetters`: 10 letras con el generador del reto, nunca las de hoy (`dailyLetters`);<br>• `lettersWords`: las palabras válidas de unas letras, sacadas del diccionario (con caché de las últimas 50);<br>• `pickSequence`: los 30 colores, con el generador del reto;<br>• `playerOptions`: el orden de las opciones de cada jugador, sacado con HMAC de partida, jugador y ronda;<br>• `questionById` y `categoryLabel`. |
+| Servidor | `apps/web/src/server/battles.ts` | Quién puede hacer qué, y qué ve cada celu. Lo arma así:<br>• **Carga:** `load` trae la sala, los jugadores, la última partida y sus jugadas (`plays`: `moves` o `words`, según el juego).<br>• **Cuentas:** `gameOf`, `flowOf`, `finalStandings`, `settle` y `current`.<br>• **Etapa:** `stageOf` da `closed`, `lobby`, `match` o `podium`. Es `lobby` si `lobbyAt > match.startedAt`.<br>• **Permisos:** `requirePlayer`, `requireHost`, `requireOpen` y `requireInMatch`.<br>• **Salas:** `openRoom`, `joinFromGroup`, `previewRoom`, `joinWithCode`, `leaveRoom`, `removeFromRoom`, `chooseGame`, `backToLobby` y `startMatch`.<br>• **Vistas:** `battleState` arma la vista con `triviaView`, `largadaView`, `lettersView` o `sequenceView` (vía `matchView`) y con `playerViews`.<br>• **Jugadas:** `battleQuestion`, `battleAnswer`, `battleStart`, `battleWord` y `battleRepeat`.<br>• **Grupo:** `groupBattles`. |
 | Endpoints | `apps/web/src/app/api/batallas/**/route.ts` y `api/grupos/[id]/batallas` | Cortos y todos iguales:<br>• `handle(async () => …)`;<br>• `assertSameOrigin(request)` en los POST;<br>• validan el cuerpo con zod;<br>• piden la sesión con `requireUser()`;<br>• llaman a una función del servidor con `groupContext(request)`, que da `{ now, ipHash }`. |
-| Tipos de la API | `apps/web/src/lib/battle-types.ts` | `BattleView`, `MatchView` (`TriviaMatchView`, `LargadaMatchView` y `LettersMatchView`), `StandingView`, `BattleWordResponse`, `BattlePreview`, `LiveBattleView` y `GroupBattlesResponse`. |
+| Tipos de la API | `apps/web/src/lib/battle-types.ts` | `BattleView`, `MatchView` (`TriviaMatchView`, `LargadaMatchView`, `LettersMatchView` y `SequenceMatchView`), `StandingView`, `BattleWordResponse`, `BattlePreview`, `LiveBattleView` y `GroupBattlesResponse`. |
 | Cliente de la API | `apps/web/src/lib/api.ts` (`battlesApi`) | Un método por endpoint. |
 | El celu | `apps/web/src/lib/use-battle.ts` | `BattleClock`, `nextAsk`, `useBattle(id)` (devuelve `{ view, problem, now, refresh, grid }`), `useServerTime` y `unknownGame` (para los `switch`). |
-| Pantallas | `apps/web/src/components/battle/` | **Lógica:**<br>• `BattleRoom` decide qué se ve según la etapa: `Lobby`, `Playing` (cuenta regresiva y el juego), `Watching` (quien llegó tarde), `Podium` y los problemas. También define `CHOICES`, `SONG_FOR` y el Wake Lock.<br>• `TriviaLive`, `LargadaLive` y `LettersLive` llevan la lógica de cada juego en el celu.<br>**Presentación:** `BattleLobby`, `BattleCountdown`, `BattleQuestion`, `BattleLargada`, `BattleLetters`, `BattlePodium` y `BattleLettersWords` (las palabras de todos en el podio).<br>**Del reto:** el teclado de Diez Letras (`components/games/letters.tsx`: `useLetterKeys`, `useTyping`, `LetterKeys` y `WordChip`) es el mismo que el del reto.<br>**Grupo:** `GroupBattles` (el aviso y la pestaña), `BattleStrip` y `BattleHistory`.<br>**Link:** `JoinBattleScreen` y `JoinBattle` (`/b/código`).<br>**Práctica:** `PracticeBattleCard`.<br>**Piezas:** `parts.tsx` (`BATTLE_HOW_TO`, caras, "en vivo") y `faces.ts` (`peopleOf`, `homeOf`). |
+| Pantallas | `apps/web/src/components/battle/` | **Lógica:**<br>• `BattleRoom` decide qué se ve según la etapa: `Lobby`, `Playing` (cuenta regresiva y el juego), `Watching` (quien llegó tarde), `Podium` y los problemas. También define `CHOICES`, `SONG_FOR` y el Wake Lock.<br>• `TriviaLive`, `LargadaLive`, `LettersLive` y `SequenceLive` llevan la lógica de cada juego en el celu.<br>**Presentación:** `BattleLobby`, `BattleCountdown`, `BattleQuestion`, `BattleLargada`, `BattleLetters`, `BattleSequence`, `BattlePodium` y `BattleLettersWords` (las palabras de todos en el podio).<br>**Del reto:** el teclado de Diez Letras (`components/games/letters.tsx`: `useLetterKeys`, `useTyping`, `LetterKeys` y `WordChip`) y los botones de Secuencia (`components/games/sequence-pads.tsx`) son los mismos que los del reto.<br>**Grupo:** `GroupBattles` (el aviso y la pestaña), `BattleStrip` y `BattleHistory`.<br>**Link:** `JoinBattleScreen` y `JoinBattle` (`/b/código`).<br>**Práctica:** `PracticeBattleCard`.<br>**Piezas:** `parts.tsx` (`BATTLE_HOW_TO`, caras, "en vivo") y `faces.ts` (`peopleOf`, `homeOf`). |
 | Páginas | `app/batalla/[id]/page.tsx` y `app/b/[codigo]/page.tsx` | La sala y la invitación. |
 
 Endpoints:
@@ -184,6 +189,7 @@ Endpoints:
 | `POST /api/batallas/{id}/pregunta` · `/respuesta` | `battleQuestion` · `battleAnswer` |
 | `POST /api/batallas/{id}/largada` | `battleStart` |
 | `POST /api/batallas/{id}/palabra` | `battleWord` |
+| `POST /api/batallas/{id}/repetir` | `battleRepeat` |
 | `POST /api/batallas/{id}/sumarse` · `/salir` · `/sacar` | `joinFromGroup` · `leaveRoom` · `removeFromRoom` |
 | `GET` · `POST /api/batallas/codigo/{código}` | `previewRoom` · `joinWithCode` |
 | `GET /api/grupos/{id}/batallas` | `groupBattles` |
@@ -279,7 +285,7 @@ Lo que ya anda con cualquier juego de `BATTLE_GAMES`:
 - **Servidor:** `apps/web/src/server/battles.test.ts`. Una batalla entera con varios jugadores, moviendo el reloj con `ctx(T + ms)`.
   - Helpers: `room(host, ...otros)` arma una sala; `answer(user, battleId, round, at, afterMs, right)` responde bien o mal.
   - Para leer la correcta en una prueba, `questionById(...).options[0]` es la correcta y `question.options` está en el orden del jugador.
-- **En el navegador:** [`scripts/qa`](../scripts/qa/README.md). Tres celus simulados juegan una batalla entera: el grupo, el link, las 5 preguntas, 3 largadas y el podio. También prueban los casos raros: llegar tarde, la revancha, irse y que pase el mando. `battle-letters.cjs` juega Diez Letras con palabras de verdad (las saca del diccionario). Correlos después de cada cambio en las batallas.
+- **En el navegador:** [`scripts/qa`](../scripts/qa/README.md). Tres celus simulados juegan una batalla entera: el grupo, el link, las 5 preguntas, 3 largadas y el podio. También prueban los casos raros: llegar tarde, la revancha, irse y que pase el mando. `battle-letters.cjs` juega Diez Letras con palabras de verdad (las saca del diccionario), y `battle-sequence.cjs`, Secuencia con uno que queda afuera y un desempate. Correlos después de cada cambio en las batallas.
 
 ## 11. Trampas que ya pisamos
 
@@ -373,34 +379,27 @@ Quedó como el plan, con estos detalles:
 - **El celu** (`LettersLive`): manda sin esperar, como el reto. Mis puntos suben enseguida y los de los demás llegan cada 1 s. El teclado es el mismo componente que el del reto.
 - **Podio:** `BattleLettersWords`, una fila por jugador que se abre al tocarla.
 
-### Secuencia (`sequence`)
+### Secuencia (`sequence`): hecha el 4/10/2026
 
-**Decidido** (4/10/2026):
-- por rondas; el que se equivoca, o no responde a tiempo, queda afuera;
-- para repetir, 3 s más 1 s por color;
-- **desempate:** si se equivocan todos los que quedan en la misma ronda, la juegan otra vez solo ellos, hasta que quede uno.
+Lo decidido: por rondas, 3 s más 1 s por color para repetir, y desempate si se equivocan todos los que quedan. Quedó así:
 
-- **Contenido:** una secuencia para todos, como la del reto (`SEQUENCE_RULES`: 4 colores, empieza en 3 y suma uno por nivel, hasta 30). Se guarda `{ sequence }`.
-- **Ronda n:**
-  1. Se muestran `3 + n` colores, a la vez en todos los celus, a 600 ms cada uno, desde `showAt`.
-  2. Después hay un plazo para repetirla: 3 s + 1 s por color.
-  3. La ronda cierra cuando respondieron todos los que siguen en juego, o al vencer el plazo.
-  4. Unos 2,5 s para ver quién quedó afuera, y la siguiente.
-- **Quiénes siguen:** los que repitieron bien todas las rondas anteriores y no se fueron. Lo calcula el flow desde las jugadas. No responder a tiempo es quedar afuera.
-- **El final:**
-  - cuando después de una ronda queda uno solo;
-  - o al llegar al largo máximo.
-  - Si los últimos se equivocan en la misma ronda, desempate: se repite esa ronda solo con ellos (los que no respondieron quedan afuera).
-- **Entregar la ronda sin adelantarla:** `POST /api/batallas/{id}/secuencia { round }` devuelve los colores de esa ronda como mucho 400 ms antes de `showAt`, como la pregunta, y anota `shown_at`. Nunca se manda la secuencia entera.
-- **La respuesta:** `POST /api/batallas/{id}/repetir { round, inputs }`. El servidor la compara con la esperada.
-  - Una respuesta que llega antes de lo humanamente posible (menos de 120 ms por color desde que terminó de mostrarse) cuenta como error.
-- **Base:** guardar en `battle_moves` si acertó (por ejemplo, una columna nueva `correct boolean`) y los colores (`inputs smallint[]`). Ampliar el `check` de `round` (con 28 niveles posibles no alcanza 0–20).
-- **Tabla:** por niveles superados. Un empate comparte el puesto.
-- **Pantalla:**
-  - los cuatro botones de `SequencePlay`;
-  - una tira con quién sigue y quién quedó afuera;
-  - "Quedaste afuera en el nivel N": esa persona mira el resto.
-
+- **Contenido:** `{ sequence }`, los 30 colores de `pickSequence` (el generador del reto). Cada ronda muestra los primeros `largo` colores; nunca se manda la secuencia entera.
+- **La ronda** (`sequenceFlow`):
+  1. En `showAt`, 0,5 s (`leadMs`) y después un color cada 0,6 s, en todos los celus a la vez.
+  2. `inputAt`: terminó el último color y se puede repetir, hasta `answerUntil` (3 s + 1 s por color) más 0,6 s de gracia (`deadline`).
+  3. Cierra cuando respondieron todos los que siguen (o se fueron), o al vencer el plazo. Nunca antes de `inputAt`.
+  4. 2,5 s (`revealMs`) con quién siguió y quién quedó afuera, y la próxima.
+- **Quiénes siguen:** los que la repitieron bien. Quien se equivoca, no responde o se va, queda afuera.
+  - **Desempate:** si nadie la repitió bien y al menos dos lo intentaron, la ronda se juega de nuevo, con los mismos colores, solo con los que lo intentaron (`replay: true`). Quien no respondió queda afuera igual.
+  - Si nadie la repitió bien y solo uno lo intentó, gana ese.
+  - Después de 3 desempates seguidos (`maxReplays`), los que quedan comparten el primer puesto: así la partida siempre termina.
+- **El final:** cuando queda uno solo, o al pasar el nivel 28 (los 30 colores).
+- **Los colores al celu:** van en la vista (`current.colors`) desde 400 ms antes de `showAt` (`earlyMs`), calculando el flow con `now + 400` (`soon` en `sequenceView`). El celu pregunta 300 ms antes (`AHEAD_MS` en `nextAsk`) y programa cada color a la hora del servidor.
+- **La respuesta:** `POST /repetir { round, inputs }` (`battleRepeat`), una por ronda (`recordRepeat`).
+  - El celu la manda al terminar, al primer error o cuando se acaba el tiempo con algo tocado. Sin nada tocado, no manda nada, y cuenta como no responder.
+  - El servidor compara con la secuencia (`sequenceCheck`). Una correcta que llega antes de lo posible (`inputAt` + 120 ms por color − 300 ms) cuenta como error y va a los logs (`suspicious-battle-sequence`).
+- **La tabla** (`sequenceStandings`): primero los que siguen (o el último que quedó), después por la ronda en que quedó afuera cada uno. Los puntos son los niveles que repitió bien.
+- **El celu** (`SequenceLive`): `SequenceRound` (una por ronda, con su `key`) muestra los colores, la vuelta para repetir y la espera; `SequenceBetween`, el resultado de la ronda (siguen, afuera, desempate o quién ganó). Quien quedó afuera ve los colores igual, sin poder tocar.
 
 ### Tubitos (`water-sort`)
 

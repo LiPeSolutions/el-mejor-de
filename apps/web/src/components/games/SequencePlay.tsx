@@ -1,7 +1,7 @@
 "use client";
 
 import { SEQUENCE_RULES, sequenceScore, type SequenceLog } from "@repo/games";
-import { Check, Eye, Heart, Moon, Star, X, Zap, type LucideIcon } from "lucide-react";
+import { Check, Eye, X } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import type { StartView } from "@/lib/challenge-types";
 import { duckMusic, playSound, restoreMusic } from "@/lib/sound";
 import { GameHeader, ScoreRow } from "./chrome";
+import { SequencePads } from "./sequence-pads";
 
 type View = Extract<StartView, { game: "sequence" }>;
 
@@ -21,14 +22,6 @@ interface Props {
   onFinish: (log: SequenceLog) => void;
   onExit: () => void;
 }
-
-/** Each pad has its own color, corner, shape and icon: nothing depends on color alone. */
-const PADS: Array<{ label: string; Icon: LucideIcon; bg: string; fg: string; corner: string; shadow: string; ring: string }> = [
-  { label: "Estrella", Icon: Star, bg: "bg-letras", fg: "text-white", corner: "rounded-[32px_12px_12px_12px]", shadow: "rgba(255,107,74,.3)", ring: "#FF6B4A" },
-  { label: "Luna", Icon: Moon, bg: "bg-preguntas", fg: "text-white", corner: "rounded-[12px_32px_12px_12px]", shadow: "rgba(139,108,255,.3)", ring: "#8B6CFF" },
-  { label: "Rayo", Icon: Zap, bg: "bg-reflejos", fg: "text-white", corner: "rounded-[12px_12px_12px_32px]", shadow: "rgba(46,196,182,.3)", ring: "#2EC4B6" },
-  { label: "Corazón", Icon: Heart, bg: "bg-secuencia", fg: "text-ink", corner: "rounded-[12px_12px_32px_12px]", shadow: "rgba(255,197,61,.35)", ring: "#FFC53D" },
-];
 
 type Phase = "watch" | "input" | "advancing" | "failed";
 
@@ -215,26 +208,7 @@ export function SequencePlay({ view, token, record, onProgress, onFinish, onExit
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 px-8 pt-4">
-        {PADS.map(({ label, Icon, bg, fg, corner, shadow, ring }, pad) => {
-          const lit = active === pad;
-          return (
-            <button
-              key={label}
-              type="button"
-              aria-label={label}
-              disabled={phase !== "input"}
-              onPointerDown={() => press(pad, performance.now())}
-              className={cx("grid aspect-square place-items-center transition duration-150 select-none", bg, fg, corner, lit && "scale-[1.04]")}
-              style={{
-                boxShadow: lit ? `0 0 0 6px #fff, 0 0 0 10px ${ring}, 0 16px 30px ${shadow.replace(/[\d.]+\)$/, ".45)")}` : `0 10px 22px ${shadow}`,
-              }}
-            >
-              <Icon className={cx("size-12", pad === 3 ? "fill-ink" : "fill-white")} strokeWidth={1.6} />
-            </button>
-          );
-        })}
-      </div>
+      <SequencePads active={active} enabled={phase === "input"} onPress={press} />
 
       <p className="mt-auto px-5 pt-4 text-center text-xs font-semibold text-ink-500">
         Tocá los botones en el mismo orden · 1.000 en el nivel {SEQUENCE_RULES.targetLevel}

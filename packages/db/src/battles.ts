@@ -13,7 +13,7 @@ const at = (param: string) => `to_timestamp(${param}::float8 / 1000)`;
  * JSON and arrays travel as text and are cast in SQL ($1::text::jsonb):
  * typed as jsonb, postgres.js would store the text as a JSON string.
  */
-const array = (param: string, type: 'text' | 'uuid') =>
+const array = (param: string, type: 'text' | 'uuid' | 'smallint') =>
   `coalesce((select array_agg(value::${type}) from jsonb_array_elements_text(${param}::text::jsonb)), '{}'::${type}[])`;
 
 function isUniqueViolation(error: unknown): boolean {
@@ -403,6 +403,9 @@ export interface BattleMove {
   choice: number | null;
   reactionMs: number | null;
   falseStart: boolean | null;
+  /** Secuencia: whether they repeated it right, and the colors they tapped. */
+  correct: boolean | null;
+  inputs: number[] | null;
 }
 
 export async function matchMoves(db: Queryable, matchId: string): Promise<BattleMove[]> {
@@ -414,8 +417,11 @@ export async function matchMoves(db: Queryable, matchId: string): Promise<Battle
     choice: number | null;
     reaction_ms: number | null;
     false_start: boolean | null;
+    correct: boolean | null;
+    inputs: string | null;
   }>(
-    `select user_id, round, ${ms('shown_at', 'shown_at')}, ${ms('played_at', 'played_at')}, choice, reaction_ms, false_start
+    `select user_id, round, ${ms('shown_at', 'shown_at')}, ${ms('played_at', 'played_at')}, choice, reaction_ms, false_start,
+       correct, to_jsonb(inputs)::text as inputs
      from game.battle_moves where match_id = $1::uuid
      order by round, played_at nulls last, user_id`,
     [matchId],
@@ -428,6 +434,8 @@ export async function matchMoves(db: Queryable, matchId: string): Promise<Battle
     choice: row.choice,
     reactionMs: row.reaction_ms,
     falseStart: row.false_start,
+    correct: row.correct,
+    inputs: row.inputs === null ? null : (JSON.parse(row.inputs) as number[]),
   }));
 }
 
@@ -465,6 +473,18 @@ export async function recordStart(
      on conflict (match_id, user_id, round) do nothing
      returning 1`,
     [input.matchId, input.userId, input.round, input.at, input.reactionMs, input.falseStart],
+  );
+  return rows.length > 0;
+}
+
+/** A repetition of Secuencia, once per player and round. False if this player already sent this one. */
+export async function recordRepeat(db: Queryable, input: { matchId: string; userId: string; round: number; at: number; correct: boolean; inputs: readonly number[] }): Promise<boolean> {
+  const rows = await db.query(
+    `insert into game.battle_moves (match_id, user_id, round, played_at, correct, inputs)
+     values ($1::uuid, $2::uuid, $3::int, ${at('$4')}, $5::boolean, ${array('$6', 'smallint')})
+     on conflict (match_id, user_id, round) do nothing
+     returning 1`,
+    [input.matchId, input.userId, input.round, input.at, input.correct, JSON.stringify(input.inputs)],
   );
   return rows.length > 0;
 }

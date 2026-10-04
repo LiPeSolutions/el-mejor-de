@@ -46,13 +46,13 @@
 - **Sonido:** efectos en los juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
 - **Música:** un loop para el menú y uno por juego (el de Tubitos, "Laboratorio"), más bajo que los efectos. Se apaga aparte en el perfil.
 - **Batallas en vivo:** de 2 a 10 amigos juegan a la vez, cada uno en su celu, desde un grupo (con el aviso "Pato armó una de Largada · Sumarme") o con un link.
-  - Se juegan Largada, Cinco Preguntas y **Diez Letras**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
-  - En Diez Letras, en el podio se ven las palabras de todos.
+  - Se juegan Largada, Cinco Preguntas, **Diez Letras** y **Secuencia**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
+  - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate.
   - No cuentan para rankings ni coronas.
-  - Secuencia y Tubitos ya tienen el formato decidido y se están construyendo.
-- **Pruebas:** 404 automáticas, todas pasan.
+  - Tubitos ya tiene el formato decidido (como el reto) y se está construyendo.
+- **Pruebas:** 417 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** las batallas de Secuencia y Tubitos (decididas; el plan de cada una, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** la batalla de Tubitos (decidida; el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -69,6 +69,24 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Batallas: Secuencia por rondas
+
+- **Lo decidido** (en la tanda de Diez Letras): 3 s más 1 s por color para repetir, y desempate si se equivocan todos los que quedan.
+- **Qué se hizo:**
+  - La misma secuencia para todos. En cada ronda los colores se prenden a la vez en todos los celus, a la hora del servidor, y cada ronda suma un color.
+  - Arriba, una tira "En vivo" con quién sigue y quién ya respondió (nunca si acertó, hasta que cierra la ronda).
+  - Quien se equivoca o no responde a tiempo queda afuera, y mira el resto con los colores prendiéndose.
+  - **Desempate:** si se equivocan todos los que quedan, juegan la ronda otra vez, con los mismos colores. Después de 3 desempates seguidos comparten el primer puesto, así la partida siempre termina. Esto último lo resolvió Claude: no estaba en la consulta.
+  - En el podio, cada uno con el nivel en que quedó afuera.
+  - Los cuatro botones del reto pasaron a una pieza común (`components/games/sequence-pads.tsx`).
+  - Migración `battle_sequence` (aplicada en Supabase; los avisos de seguridad siguen en cero): si acertó y qué tocó en cada ronda, y hasta 200 rondas por los desempates.
+- **Probado:**
+  - 13 pruebas automáticas nuevas: las rondas, quién queda afuera, el desempate, el tope de desempates, las consultas y una batalla entera en el servidor (con una respuesta imposible de rápida y alguien que ya estaba afuera).
+  - En el navegador, `scripts/qa/battle-sequence.cjs` con tres celus: 8 de 8 en 390 × 844 y en 360 × 740.
+  - Las de antes siguen pasando: grupo 8 de 8, casos raros 8 de 8 y Diez Letras 12 de 12.
+- **Corregido antes de publicar:** la tira decía "Siguen todos" a quien acababa de quedar afuera, el cartel amarillo del desempate se leía mal, y en el podio del celu chico se cortaba el nivel.
+- **Pendiente:** Tubitos en las batallas.
 
 ### 4/10/2026 — Batallas: Diez Letras a la par
 
@@ -418,7 +436,8 @@ En orden sugerido.
 1. **Probar una batalla en vivo** (responsable del producto), con alguien al lado o por WhatsApp:
    - Desde el grupo, "Batalla en vivo · Armar", o desde Práctica, "Batalla con amigos".
    - Una de Cinco Preguntas, una de Largada y una de Diez Letras. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende, si la música suena junta y si en Diez Letras se entienden los puntos en vivo y las palabras del podio.
-   - Siguen Secuencia y Tubitos, ya decididas (el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
+   - Y una de Secuencia: que los colores salgan a la vez en los dos celus, que se entienda quién quedó afuera y el desempate.
+   - Sigue Tubitos, ya decidido (el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
 2. **Probar en el celu** (responsable del producto):
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.

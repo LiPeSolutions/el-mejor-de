@@ -149,5 +149,6 @@ export const battlesApi = {
   largadaStart: (id: string, round: number, reactionMs: number | null, falseStart: boolean) =>
     send<{ ok: true }>(battle(id, "/largada"), { round, reactionMs, falseStart }),
   word: (id: string, word: string) => send<BattleWordResponse>(battle(id, "/palabra"), { word }),
+  repeat: (id: string, round: number, inputs: number[]) => send<{ ok: true; correct: boolean }>(battle(id, "/repetir"), { round, inputs }),
   group: (groupId: string) => send<GroupBattlesResponse>(`/api/grupos/${encodeURIComponent(groupId)}/batallas`),
 };

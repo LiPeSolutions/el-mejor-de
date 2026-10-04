@@ -2,11 +2,12 @@ import { createUser, latestMatch, type User } from "@repo/db";
 import { testDatabase, type TestDatabase } from "@repo/db/testing";
 import { BATTLE_RULES } from "@repo/games";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { lettersWords, questionById, type BattleLargadaContent, type BattleLettersContent, type BattleTriviaContent } from "./battle-content";
+import { lettersWords, questionById, type BattleLargadaContent, type BattleLettersContent, type BattleSequenceContent, type BattleTriviaContent } from "./battle-content";
 import {
   backToLobby,
   battleAnswer,
   battleQuestion,
+  battleRepeat,
   battleStart,
   battleState,
   battleWord,
@@ -478,5 +479,104 @@ describe("a battle of Diez Letras", () => {
     const view = await battleState(db, pato, battleId, ctx(startsAt + 20_000));
     if (view.match?.game !== "seven-letters") throw new Error("not letters");
     expect(view.match.round?.closed).toBe(false);
+  });
+});
+
+describe("a battle of Secuencia", () => {
+  const { leadMs, showMsPerItem, revealMs } = BATTLE_RULES.sequence;
+  async function sequence(...names: string[]) {
+    const people = await Promise.all(names.map(player));
+    const { battleId } = await room(people[0]!, ...people.slice(1));
+    await chooseGame(db, people[0]!, battleId, "sequence", ctx(T + 2_000));
+    await startMatch(db, people[0]!, battleId, ctx(T + 3_000));
+    const { sequence: colors } = (await latestMatch(db, battleId))!.content as BattleSequenceContent;
+    return { people, battleId, startsAt: T + 3_000 + countdownMs, colors };
+  }
+  /** When repeating starts for a round of `length` colors shown from `showAt`. */
+  const inputAtOf = (showAt: number, length: number) => showAt + leadMs + length * showMsPerItem;
+  /** The colors with the last one wrong. */
+  const wrong = (colors: number[], length: number) => [...colors.slice(0, length - 1), ((colors[length - 1] ?? 0) + 1) % 4];
+
+  it("gives everyone the first three colors a moment before the round, and no more", async () => {
+    const { people, battleId, startsAt, colors } = await sequence("Pato", "Juli");
+    expect(colors).toHaveLength(30);
+    const early = await battleState(db, people[1]!, battleId, ctx(startsAt - 1_000));
+    if (early.match?.game !== "sequence") throw new Error("not sequence");
+    expect(early.match).toMatchObject({ current: null, rounds: [], pads: 4 });
+    const soon = await battleState(db, people[1]!, battleId, ctx(startsAt - 300));
+    if (soon.match?.game !== "sequence") throw new Error("not sequence");
+    expect(soon.match.current).toMatchObject({ index: 0, level: 1, length: 3, replay: false, colors: colors.slice(0, 3), showAt: startsAt, inputAt: inputAtOf(startsAt, 3) });
+    expect(soon.match.rounds).toEqual([]);
+    expect(await failure(battleRepeat(db, people[0]!, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(startsAt - 300)))).toMatchObject({ code: "round-closed" });
+  });
+
+  it("leaves out whoever gets it wrong and ends when one is left", async () => {
+    const { people, battleId, startsAt, colors } = await sequence("Pato", "Juli");
+    const [pato, juli] = people as [User, User];
+    const inputAt = inputAtOf(startsAt, 3);
+    expect(await battleRepeat(db, juli, battleId, { round: 0, inputs: wrong(colors, 3) }, ctx(inputAt + 1_500))).toEqual({ ok: true, correct: false });
+    const waiting = await battleState(db, pato, battleId, ctx(inputAt + 1_600));
+    if (waiting.match?.game !== "sequence") throw new Error("not sequence");
+    expect(waiting.match.answered).toEqual([juli.id]);
+    expect(waiting.match.rounds[0]?.results).toBeNull();
+    expect(await battleRepeat(db, pato, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(inputAt + 2_000))).toEqual({ ok: true, correct: true });
+    expect(await failure(battleRepeat(db, pato, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(inputAt + 2_100)))).toMatchObject({ code: "round-closed" });
+
+    const reveal = await battleState(db, juli, battleId, ctx(inputAt + 2_100));
+    if (reveal.match?.game !== "sequence") throw new Error("not sequence");
+    expect(reveal.match.current).toBeNull();
+    expect(reveal.match.rounds[0]).toMatchObject({
+      closedAt: inputAt + 2_000,
+      passed: [pato.id],
+      out: [juli.id],
+      results: [
+        { userId: pato.id, outcome: "right", right: 3 },
+        { userId: juli.id, outcome: "wrong", right: 2 },
+      ],
+    });
+    const podium = await battleState(db, juli, battleId, ctx(inputAt + 2_000 + revealMs));
+    expect(podium.stage).toBe("podium");
+    expect(podium.match?.standings.map((row) => [row.userId, row.place, row.score, row.alive])).toEqual([
+      [pato.id, 1, 1, true],
+      [juli.id, 2, 0, false],
+    ]);
+    expect((await latestMatch(db, battleId))?.winners).toEqual([pato.id]);
+  });
+
+  it("plays the round again when everyone gets it wrong", async () => {
+    const { people, battleId, startsAt, colors } = await sequence("Pato", "Juli");
+    const [pato, juli] = people as [User, User];
+    const inputAt = inputAtOf(startsAt, 3);
+    await battleRepeat(db, pato, battleId, { round: 0, inputs: [((colors[0] ?? 0) + 1) % 4] }, ctx(inputAt + 1_000));
+    await battleRepeat(db, juli, battleId, { round: 0, inputs: wrong(colors, 3) }, ctx(inputAt + 1_800));
+    const againAt = inputAt + 1_800 + revealMs;
+    const again = await battleState(db, pato, battleId, ctx(againAt - 300));
+    if (again.match?.game !== "sequence") throw new Error("not sequence");
+    expect(again.match.rounds[0]).toMatchObject({ passed: [], out: [] });
+    expect(again.match.current).toMatchObject({ index: 1, level: 1, length: 3, replay: true, players: [pato.id, juli.id], colors: colors.slice(0, 3), showAt: againAt });
+
+    const secondInput = inputAtOf(againAt, 3);
+    await battleRepeat(db, juli, battleId, { round: 1, inputs: colors.slice(0, 3) }, ctx(secondInput + 1_200));
+    await battleRepeat(db, pato, battleId, { round: 1, inputs: wrong(colors, 3) }, ctx(secondInput + 1_500));
+    const podium = await battleState(db, pato, battleId, ctx(secondInput + 1_500 + revealMs));
+    expect(podium.stage).toBe("podium");
+    expect(podium.match?.standings.map((row) => [row.userId, row.place])).toEqual([
+      [juli.id, 1],
+      [pato.id, 2],
+    ]);
+  });
+
+  it("counts as wrong a repetition faster than possible, and keeps out whoever is out", async () => {
+    const { people, battleId, startsAt, colors } = await sequence("Pato", "Juli", "Toto");
+    const [pato, juli, toto] = people as [User, User, User];
+    const inputAt = inputAtOf(startsAt, 3);
+    expect(await battleRepeat(db, toto, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(inputAt + 10))).toEqual({ ok: true, correct: false });
+    await battleRepeat(db, pato, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(inputAt + 1_500));
+    await battleRepeat(db, juli, battleId, { round: 0, inputs: colors.slice(0, 3) }, ctx(inputAt + 1_700));
+    const nextAt = inputAt + 1_700 + revealMs;
+    const next = await battleState(db, toto, battleId, ctx(nextAt + 100));
+    if (next.match?.game !== "sequence") throw new Error("not sequence");
+    expect(next.match.current).toMatchObject({ index: 1, level: 2, length: 4, players: [pato.id, juli.id], colors: colors.slice(0, 4) });
+    expect(await failure(battleRepeat(db, toto, battleId, { round: 1, inputs: colors.slice(0, 4) }, ctx(inputAtOf(nextAt, 4) + 1_000)))).toMatchObject({ status: 403, code: "out" });
   });
 });

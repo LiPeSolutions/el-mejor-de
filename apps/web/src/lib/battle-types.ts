@@ -41,6 +41,8 @@ export interface StandingView {
   bestMs?: number | null;
   /** Diez Letras: words found. */
   words?: number;
+  /** Secuencia: still in (or the last one standing). */
+  alive?: boolean;
 }
 
 /* ───────────── Cinco Preguntas ───────────── */
@@ -184,7 +186,59 @@ export interface BattleWordResponse {
   points: number;
 }
 
-export type MatchView = TriviaMatchView | LargadaMatchView | LettersMatchView;
+/* ───────────── Secuencia ───────────── */
+
+/** How a player did in a round: "late" didn't answer in time, "left" left the battle. */
+export interface SequenceResultView {
+  userId: string;
+  outcome: "right" | "wrong" | "late" | "left";
+  /** Colors right before the first mistake. */
+  right: number;
+}
+
+export interface SequenceRoundView {
+  index: number;
+  /** A tiebreak plays the same level again. */
+  level: number;
+  length: number;
+  replay: boolean;
+  /** Who plays it: whoever is still in. */
+  players: string[];
+  /** The first color shows `leadMs` after; then one every `showMsPerItem`. */
+  showAt: number;
+  /** Repeating starts. */
+  inputAt: number;
+  /** The clock shown runs out here. */
+  answerUntil: number;
+  closedAt: number | null;
+  nextAt: number | null;
+  /** Once closed: who's in the next round, and how each one did. */
+  passed: string[] | null;
+  out: string[] | null;
+  results: SequenceResultView[] | null;
+}
+
+export interface SequenceMatchView {
+  game: "sequence";
+  id: string;
+  startsAt: number;
+  endsAt: number | null;
+  players: string[];
+  pads: number;
+  leadMs: number;
+  showMsPerItem: number;
+  /** Up to the one being played. */
+  rounds: SequenceRoundView[];
+  /** The round being played, or the next one a moment before it shows, with its colors. */
+  current: (SequenceRoundView & { colors: number[] }) | null;
+  /** Who already answered the current round (never how). */
+  answered: string[];
+  /** How I did in it. */
+  mine: { correct: boolean; right: number } | null;
+  standings: StandingView[];
+}
+
+export type MatchView = TriviaMatchView | LargadaMatchView | LettersMatchView | SequenceMatchView;
 
 /* ───────────── The room ───────────── */
 

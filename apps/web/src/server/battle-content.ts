@@ -7,6 +7,7 @@ import {
   TEN_LETTERS_RULES,
   createFiveQuestions,
   createRng,
+  createSequence,
   createSevenLetters,
   dailyLineup,
   sevenLettersWords,
@@ -37,6 +38,11 @@ export interface BattleLargadaContent {
 /** Only the letters: the valid words are worked out again from them (`lettersWords`). */
 export interface BattleLettersContent {
   letters: string[];
+}
+
+/** The whole sequence (30 colors); each round shows the first ones, never more. */
+export interface BattleSequenceContent {
+  sequence: number[];
 }
 
 let dailyCache: { date: string; ids: Set<string> } | null = null;
@@ -132,4 +138,13 @@ export function lettersWords(letters: readonly string[]): ReadonlySet<string> {
     if (wordsCache.size > 50) wordsCache.delete(wordsCache.keys().next().value as string);
   }
   return words;
+}
+
+/* ───────────── Secuencia ───────────── */
+
+/** A new sequence for everyone, like the daily challenge's. */
+export function pickSequence(): BattleSequenceContent {
+  const seed = randomUUID();
+  const { content } = createSequence().generate({ shared: createRng(`${seed}:shared`), player: createRng(`${seed}:sequence`) });
+  return { sequence: content.sequence };
 }

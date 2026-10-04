@@ -21,6 +21,7 @@ import {
   openGroupBattle,
   playerOpenBattles,
   recordAnswer,
+  recordRepeat,
   recordStart,
   recordWord,
   setBattleGame,
@@ -170,7 +171,9 @@ describe('battle matches', () => {
     expect(await markShown(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 300 })).toBe(T0 + 100);
     expect(await recordAnswer(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 2_000, choice: 2 })).toBe(true);
     expect(await recordAnswer(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 2_500, choice: 0 })).toBe(false);
-    expect(await matchMoves(db, id)).toEqual([{ userId: pato.id, round: 0, shownAt: T0 + 100, playedAt: T0 + 2_000, choice: 2, reactionMs: null, falseStart: null }]);
+    expect(await matchMoves(db, id)).toEqual([
+      { userId: pato.id, round: 0, shownAt: T0 + 100, playedAt: T0 + 2_000, choice: 2, reactionMs: null, falseStart: null, correct: null, inputs: null },
+    ]);
   });
 
   it('keeps one start per player and round', async () => {
@@ -184,6 +187,24 @@ describe('battle matches', () => {
     expect((await matchMoves(db, id)).map((move) => [move.userId, move.reactionMs, move.falseStart])).toEqual([
       [pato.id, null, true],
       [juli.id, 231, false],
+    ]);
+  });
+
+  it('keeps one repetition per player and round, with the colors tapped', async () => {
+    const [pato, juli] = await Promise.all([player('Pato'), player('Juli')]);
+    const battle = await room(pato);
+    const match = await createMatch(db, { battleId: battle.id, groupId: null, game: 'sequence', players: [pato.id, juli.id], content: { sequence: [0, 1, 2] }, startedAt: T0, startsAt: T0 });
+    const id = match!.id;
+    expect(await recordRepeat(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 4_000, correct: true, inputs: [0, 1, 2] })).toBe(true);
+    expect(await recordRepeat(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 4_500, correct: false, inputs: [3] })).toBe(false);
+    expect(await recordRepeat(db, { matchId: id, userId: juli.id, round: 0, at: T0 + 5_000, correct: false, inputs: [0, 3] })).toBe(true);
+    // Tiebreaks can take a match past the 21 rounds of the other games.
+    expect(await recordRepeat(db, { matchId: id, userId: juli.id, round: 120, at: T0 + 9_000, correct: false, inputs: [] })).toBe(true);
+    expect(await recordRepeat(db, { matchId: id, userId: juli.id, round: 1, at: T0 + 9_000, correct: false, inputs: [4] }).catch(() => 'refused')).toBe('refused');
+    expect((await matchMoves(db, id)).map((move) => [move.userId, move.round, move.correct, move.inputs])).toEqual([
+      [pato.id, 0, true, [0, 1, 2]],
+      [juli.id, 0, false, [0, 3]],
+      [juli.id, 120, false, []],
     ]);
   });
 

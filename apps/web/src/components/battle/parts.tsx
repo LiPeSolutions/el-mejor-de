@@ -128,4 +128,5 @@ export const BATTLE_HOW_TO: Partial<Record<GameId, string>> = {
   reflexes: "3 largadas con las mismas luces para todos. Gana el mejor promedio.",
   "five-questions": "5 preguntas, la misma para todos a la vez. Responder rápido suma más.",
   "seven-letters": "Las mismas 10 letras para todos, 90 segundos. Gana el que suma más puntos.",
+  sequence: "La misma secuencia para todos, cada ronda un color más. El que se equivoca queda afuera.",
 };
