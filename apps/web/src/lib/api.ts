@@ -1,6 +1,7 @@
+import type { WaterSortEvent } from "@repo/games";
 import type { Article, Avatar, GroupColor, GroupEmblem, PlaceLevel } from "@repo/shared";
 import type { AccountResponse, AvailabilityResponse } from "./account-types";
-import type { BattleCreatedResponse, BattlePreview, BattleView, BattleWordResponse, GroupBattlesResponse, TriviaQuestionView } from "./battle-types";
+import type { BattleCreatedResponse, BattlePreview, BattleView, BattleWordResponse, GroupBattlesResponse, TriviaQuestionView, TubitosSolveResponse } from "./battle-types";
 import type {
   AnswerResponse,
   FinishResponse,
@@ -150,5 +151,6 @@ export const battlesApi = {
     send<{ ok: true }>(battle(id, "/largada"), { round, reactionMs, falseStart }),
   word: (id: string, word: string) => send<BattleWordResponse>(battle(id, "/palabra"), { word }),
   repeat: (id: string, round: number, inputs: number[]) => send<{ ok: true; correct: boolean }>(battle(id, "/repetir"), { round, inputs }),
+  solve: (id: string, round: number, log: { events: WaterSortEvent[]; durationMs: number }) => send<TubitosSolveResponse>(battle(id, "/tubos"), { round, ...log }),
   group: (groupId: string) => send<GroupBattlesResponse>(`/api/grupos/${encodeURIComponent(groupId)}/batallas`),
 };

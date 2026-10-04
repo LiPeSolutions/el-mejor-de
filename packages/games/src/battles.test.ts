@@ -15,10 +15,13 @@ import {
   triviaAnswer,
   triviaFlow,
   triviaStandings,
+  tubitosFlow,
+  tubitosStandings,
   type LargadaMove,
   type LettersWord,
   type RosterEntry,
   type SequenceMove,
+  type TubitosResult,
   type TriviaMove,
 } from './battles';
 
@@ -348,5 +351,60 @@ describe('a Secuencia battle', () => {
     expect(sequenceCheck([0, 3, 1], [0, 2])).toEqual({ correct: false, right: 1 });
     expect(sequenceCheck([0, 3, 1], [0, 3])).toEqual({ correct: false, right: 2 });
     expect(sequenceCheck([0, 3, 1], [])).toEqual({ correct: false, right: 0 });
+  });
+});
+
+describe('a Tubitos battle', () => {
+  const { maxMs, graceMs, revealMs } = BATTLE_RULES.tubitos;
+  const solved = (userId: string, round: number, at: number) => ({ userId, round, at });
+  const flowOf = (players: RosterEntry[], moves: ReturnType<typeof solved>[], now: number) => tubitosFlow({ startsAt: T0, roster: players, moves, now });
+
+  it('gives each board the time after which the daily challenge stops adding points', () => {
+    expect(maxMs).toEqual([100_000, 150_000, 220_000]);
+    expect(flowOf(roster('a', 'b'), [], T0 + 10).rounds).toEqual([{ index: 0, opensAt: T0, answerUntil: T0 + 100_000, closesAt: T0 + 100_000 + graceMs, closed: false, nextAt: null }]);
+  });
+
+  it('closes a board as soon as everyone solved it, and opens the next after its table', () => {
+    const flow = flowOf(roster('a', 'b'), [solved('a', 0, T0 + 30_000), solved('b', 0, T0 + 45_000)], T0 + 45_000 + revealMs);
+    expect(flow.rounds[0]).toMatchObject({ closed: true, closesAt: T0 + 45_000, nextAt: T0 + 45_000 + revealMs });
+    expect(flow.rounds[1]).toMatchObject({ index: 1, opensAt: T0 + 45_000 + revealMs, answerUntil: T0 + 45_000 + revealMs + 150_000, closed: false });
+  });
+
+  it("waits for whoever hasn't solved it until its most time, but not for whoever left", () => {
+    const waiting = flowOf(roster('a', 'b'), [solved('a', 0, T0 + 30_000)], T0 + 90_000);
+    expect(waiting.rounds[0]?.closed).toBe(false);
+    const timeUp = flowOf(roster('a', 'b'), [solved('a', 0, T0 + 30_000)], T0 + 100_000 + graceMs);
+    expect(timeUp.rounds[0]).toMatchObject({ closed: true, closesAt: T0 + 100_000 + graceMs });
+    const left = flowOf([{ userId: 'a', leftAt: null }, { userId: 'b', leftAt: T0 + 40_000 }], [solved('a', 0, T0 + 30_000)], T0 + 41_000);
+    expect(left.rounds[0]).toMatchObject({ closed: true, closesAt: T0 + 40_000 });
+  });
+
+  it('ends after the third board', () => {
+    const moves = [solved('a', 0, T0 + 10_000), solved('a', 1, T0 + 10_000 + revealMs + 20_000), solved('a', 2, T0 + 10_000 + revealMs + 20_000 + revealMs + 30_000)];
+    const end = T0 + 10_000 + revealMs + 20_000 + revealMs + 30_000 + revealMs;
+    const flow = flowOf(roster('a'), moves, end);
+    expect(flow.rounds).toHaveLength(3);
+    expect(flow.endsAt).toBe(end);
+  });
+
+  it('ranks by points, then boards solved, then time', () => {
+    const results: TubitosResult[] = [
+      { userId: 'a', round: 0, points: 200, moves: 12, timeMs: 30_000 },
+      { userId: 'a', round: 1, points: 300, moves: 20, timeMs: 50_000 },
+      { userId: 'b', round: 0, points: 250, moves: 11, timeMs: 20_000 },
+      { userId: 'b', round: 1, points: 250, moves: 22, timeMs: 70_000 },
+      { userId: 'c', round: 0, points: 240, moves: 12, timeMs: 25_000 },
+    ];
+    const table = tubitosStandings(roster('a', 'b', 'c', 'd'), results, 2);
+    expect(table.map((row) => [row.userId, row.place, row.score, row.solved])).toEqual([
+      ['a', 1, 500, 2],
+      ['b', 2, 500, 2],
+      ['c', 3, 240, 1],
+      ['d', 4, 0, 0],
+    ]);
+    expect(tubitosStandings(roster('a', 'b'), results, 1).map((row) => [row.userId, row.score])).toEqual([
+      ['b', 250],
+      ['a', 200],
+    ]);
   });
 });

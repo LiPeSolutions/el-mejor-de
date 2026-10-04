@@ -10,6 +10,7 @@ No son parte de `pnpm check`: se corren a mano después de tocar las batallas o 
 | `battle-group.cjs` | Una batalla de grupo entera con 3 celus: el aviso "Armar" en el grupo, quien se suma desde el aviso y quien entra con el link, las 5 preguntas de Cinco Preguntas y "Otro juego". Después, 3 largadas (con una adelantada), los dos podios y la pestaña "Batallas" del grupo. |
 | `battle-letters.cjs` | Una batalla de Diez Letras con 3 celus: las mismas letras para todos, palabras de verdad (sacadas del diccionario) mandadas mientras se juega, una que no vale y una repetida, los puntos en vivo sin las palabras de los demás, "¡Tiempo!" y el podio con las palabras de cada uno. Dura unos 2 minutos. |
 | `battle-sequence.cjs` | Una batalla de Secuencia con 3 celus: los mismos colores a la vez, uno que se equivoca y queda afuera (y mira el resto), un desempate cuando los dos que quedan se equivocan, y el podio. |
+| `battle-tubitos.cjs` | Una batalla de Tubitos con 3 celus: los mismos 3 tableros, cada celu con su versión, quién ya lo resolvió, la tabla de cada tablero, alguien que se va a mitad del último (cierra sin esperarlo) y el podio. Lee los tubos de la pantalla y los resuelve con el motor del juego. |
 | `battle-edges.cjs` | Los casos raros: una batalla suelta desde Práctica, quien llega con la partida empezada (mira y juega la revancha), alguien que se va a mitad de una pregunta y el anfitrión que se va (pasa el mando). Al final, quien se fue ve "No estás en esta batalla". |
 | `tubitos.cjs` | La práctica de Tubitos: levantar, "Ahí no", deshacer, reiniciar, resolver, la victoria, repetir, el siguiente nivel y el récord. Con `DAILY=1`, el reto del día con sus 3 niveles y el resultado. |
 | `tubitos-edges.cjs` | El reto de Tubitos dejado a mitad: salir en la victoria de un nivel (cuenta lo resuelto) y cerrar la app a mitad de un nivel (cuenta como jugado). |
@@ -50,6 +51,7 @@ node scripts/qa/battle-group.cjs 390 844
 node scripts/qa/battle-edges.cjs 360 740
 node scripts/qa/battle-letters.cjs 390 844
 node scripts/qa/battle-sequence.cjs 360 740
+node scripts/qa/battle-tubitos.cjs 390 844
 node scripts/qa/tubitos.cjs 390 844
 REDUCED=1 node scripts/qa/tubitos.cjs 360 740
 DAILY=1 node scripts/qa/tubitos.cjs

@@ -103,16 +103,14 @@ export function WaitingPill({ children, className }: { children: ReactNode; clas
   );
 }
 
-/** A "who answered" strip: the characters, a check on each one that did. */
-export function AnsweredStrip({ faces, answered }: { faces: readonly BattleFace[]; answered: ReadonlySet<string> }) {
+/** A "who answered" strip: the characters, a check on each one that did. `verb` says what they did ("Respondieron"). */
+export function AnsweredStrip({ faces, answered, verb = "Respondieron" }: { faces: readonly BattleFace[]; answered: ReadonlySet<string>; verb?: string }) {
   const count = faces.filter((face) => answered.has(face.key)).length;
   return (
     <div className="mx-5 mt-3 rounded-row bg-white/70 px-3 pt-2.5 pb-2 shadow-sm">
       <div className="flex justify-between text-[11px] font-bold tracking-[.06em] text-ink-500 uppercase">
         <span>En vivo</span>
-        <span className="normal-case tracking-normal">
-          {count === faces.length ? "Respondieron todos" : `Respondieron ${count} de ${faces.length}`}
-        </span>
+        <span className="normal-case tracking-normal">{count === faces.length ? `${verb} todos` : `${verb} ${count} de ${faces.length}`}</span>
       </div>
       <div className="mt-2 flex justify-around gap-1">
         {faces.map((face) => (
@@ -129,4 +127,5 @@ export const BATTLE_HOW_TO: Partial<Record<GameId, string>> = {
   "five-questions": "5 preguntas, la misma para todos a la vez. Responder rápido suma más.",
   "seven-letters": "Las mismas 10 letras para todos, 90 segundos. Gana el que suma más puntos.",
   sequence: "La misma secuencia para todos, cada ronda un color más. El que se equivoca queda afuera.",
+  "water-sort": "Los mismos 3 tableros para todos, uno detrás del otro. Suman los movimientos y el tiempo, como en el reto.",
 };

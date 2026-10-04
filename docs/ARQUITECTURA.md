@@ -213,7 +213,7 @@ Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su 
 **Sin proceso propio.** Ningún programa queda corriendo entre pedidos:
 
 - La partida guarda cuándo arranca y cada jugada.
-- Cada pedido calcula dónde está con `triviaFlow`, `largadaFlow`, `lettersFlow` o `sequenceFlow`.
+- Cada pedido calcula dónde está con `triviaFlow`, `largadaFlow`, `lettersFlow`, `sequenceFlow` o `tubitosFlow`.
 - Cada decisión por juego es un `switch` sobre el juego: al sumar uno, TypeScript marca lo que falta.
 - Una pregunta (o una largada) **cierra cuando jugaron todos los que siguen en la sala, o al vencer su tiempo**. Quien se fue durante la partida no la frena (`departures`), aunque vuelva.
 - Lo que sigue arranca a una hora fija después de ese cierre:
@@ -221,6 +221,7 @@ Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su 
   - en Largada, 0,7 s para que todos se enteren y la carrera.
 - Diez Letras es una sola ronda de 90 s (más 2 s de gracia), que cierra antes solo si se fueron todos, y 2,5 s de "¡Tiempo!" antes del podio.
 - En Secuencia, cada ronda muestra sus colores y da 3 s más 1 s por color para repetirlos; cierra cuando respondieron todos los que siguen, y 2,5 s después arranca la próxima (o el desempate).
+- En Tubitos, cada tablero cierra cuando lo resolvieron todos o a su tiempo máximo (1:40, 2:30 y 3:40), y 5 s de tabla después arranca el próximo.
 - Cuando la partida terminó, el primero que pregunta la escribe (`ended_at`, `results`, `winners`), una sola vez.
 - Una partida que nadie miró hasta el final se escribe al abrir el historial del grupo.
 
@@ -237,6 +238,7 @@ Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su 
 - cada 0,3 s después de la señal de Largada;
 - cada 1 s en Diez Letras, por los puntos de los demás (las letras las pide 0,3 s antes de que termine la cuenta regresiva);
 - en Secuencia, cada 0,7 s con una ronda abierta (0,4 s si ya respondió) y 0,3 s antes de la ronda siguiente, para tener sus colores;
+- en Tubitos, cada 1 s con un tablero abierto (0,7 s si ya lo resolvió) y 0,3 s antes del tablero siguiente;
 - justo cuando arranca lo que sigue.
 
 Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No hace falta un servidor de websockets, y si algún día hay muchas batallas a la vez, se puede sumar un aviso en vivo (Supabase Realtime) sin cambiar las reglas.
@@ -250,6 +252,7 @@ Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No
 | `POST /api/batallas/{id}/largada` | Largada: el tiempo de reacción que midió el celu, o que se adelantó. |
 | `POST /api/batallas/{id}/palabra` | Diez Letras: una palabra. El servidor dice si vale (`valid`, `invalid`, `too-short` o `duplicate`) y sus puntos. |
 | `POST /api/batallas/{id}/repetir` | Secuencia: los colores que tocó el jugador en una ronda. El servidor dice si estaba bien. |
+| `POST /api/batallas/{id}/tubos` | Tubitos: los pasos de un tablero resuelto. El servidor los rejuega y dice los puntos. |
 | `POST /api/batallas/{id}/sumarse` · `/salir` · `/sacar` | Sumarse desde el grupo, irse y sacar a alguien (quien la arma). |
 | `GET` · `POST /api/batallas/codigo/{código}` | Lo que muestra la página `/b/{código}` (anda sin cuenta) y sumarse con el código. |
 | `GET /api/grupos/{id}/batallas` | La batalla en vivo del grupo (para el aviso) y su historial: ganadas por miembro y las últimas 10. |
@@ -258,7 +261,7 @@ Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No
   - `game.battles`: la sala, con el código, el grupo, quien la arma, el juego elegido y las preguntas ya jugadas.
   - `game.battle_players`: quién está, con `seen_at` para saber quién sigue conectado.
   - `game.battle_matches`: cada partida, con su contenido (los ids de las preguntas o las esperas de las luces), quiénes la juegan, quién se fue y el resultado.
-  - `game.battle_moves`: una jugada por jugador y ronda (en Secuencia, si acertó y qué colores tocó; hasta 200 rondas por los desempates).
+  - `game.battle_moves`: una jugada por jugador y ronda (en Secuencia, si acertó y qué colores tocó, con hasta 200 rondas por los desempates; en Tubitos, los pasos de cada tablero resuelto, en `log`).
   - `game.battle_words`: cada palabra válida de Diez Letras, una vez por jugador.
   - Una sola partida abierta por sala (índice único).
 - **Juego limpio:**
@@ -267,6 +270,7 @@ Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No
   - En Largada, las esperas son las mismas para todos y el celu mide la reacción desde el cuadro en que se apagan las luces, como en el reto del día. Una reacción que llega al servidor antes de lo posible (con 300 ms de margen de reloj) cuenta como adelantada y va a los logs.
   - En Diez Letras, las letras llegan 400 ms antes de abrir, como mucho, y no coinciden con las del reto de hoy. El servidor saca las palabras válidas de las letras y del diccionario; nunca van al celu. Mientras se juega, de los demás solo se ven los puntos. En el podio se ven las palabras de todos, y las groseras (el filtro de los apodos) se ocultan para los demás.
   - En Secuencia, la secuencia es la misma para todos y cada ronda llega 400 ms antes de mostrarse, como mucho, con solo sus colores. Una repetición correcta que llega antes de lo posible (menos de 120 ms por color desde que terminaron de mostrarse, con 300 ms de margen) cuenta como error y va a los logs.
+  - En Tubitos, cada uno juega su versión del tablero (los colores cambiados y los tubos en otro orden, sacados con HMAC de la partida y el jugador). El servidor rejuega los pasos sobre esa versión, como en el reto, y el tiempo nunca cuenta mucho menos que el que vio él desde que abrió el tablero. Vertidos más rápidos de lo que permite la pantalla van a los logs.
 - **Límites:**
   - 20 salas nuevas por hora por cuenta.
   - Los códigos equivocados cuentan como los de los grupos: 10 por cuenta y 30 por conexión por hora.

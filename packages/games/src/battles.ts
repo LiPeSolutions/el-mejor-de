@@ -2,6 +2,7 @@ import { FIVE_QUESTIONS_RULES, answerSeconds, fiveQuestionsPoints } from './game
 import { LARGADA_RULES, largadaScore } from './games/largada';
 import { SEQUENCE_RULES, sequenceLengthForLevel } from './games/sequence';
 import { TEN_LETTERS_RULES, sevenLettersWordPoints } from './games/seven-letters';
+import { WATER_SORT_RULES } from './games/water-sort';
 import type { GameId } from './types';
 
 /*
@@ -13,7 +14,7 @@ import type { GameId } from './types';
  */
 
 /** The games a battle can be of today; the rest arrive later. */
-export const BATTLE_GAMES = ['reflexes', 'five-questions', 'seven-letters', 'sequence'] as const satisfies readonly GameId[];
+export const BATTLE_GAMES = ['reflexes', 'five-questions', 'seven-letters', 'sequence', 'water-sort'] as const satisfies readonly GameId[];
 export type BattleGame = (typeof BATTLE_GAMES)[number];
 
 export const isBattleGame = (game: string): game is BattleGame => (BATTLE_GAMES as readonly string[]).includes(game);
@@ -78,6 +79,18 @@ export const BATTLE_RULES = {
     minTapMs: SEQUENCE_RULES.minTapMs,
     /** A repetition can't reach the server before it was possible, give or take this much clock. */
     clockToleranceMs: 300,
+  },
+  tubitos: {
+    /** The daily challenge's three boards: 6, 8 and 10 tubes. */
+    boards: WATER_SORT_RULES.levels,
+    /** Each board's most time: when the daily challenge's clock stops adding points (decided on 4/10/2026). */
+    maxMs: WATER_SORT_RULES.levels.map((level) => level.badSeconds * 1000),
+    /** The solving steps can arrive a moment late. */
+    graceMs: 2_000,
+    /** Each board's table, before the next one. */
+    revealMs: 5_000,
+    /** A board reaches a phone this early. */
+    earlyMs: 400,
   },
   /** A room nobody opened for this long closes. */
   idleMs: 20 * 60_000,
@@ -406,6 +419,61 @@ export function sequenceCheck(expected: readonly number[], inputs: readonly numb
   return { correct: inputs.length === expected.length && right === expected.length, right };
 }
 
+/* ───────────── Tubitos ───────────── */
+
+/** A board someone solved, when the server got it. Unsolved boards have none. */
+export interface TubitosMove {
+  userId: string;
+  round: number;
+  at: number;
+}
+
+/** How a solved board scored, worked out by the server from its steps. */
+export interface TubitosResult {
+  userId: string;
+  round: number;
+  points: number;
+  moves: number;
+  timeMs: number;
+}
+
+export interface TubitosRoundFlow {
+  index: number;
+  opensAt: number;
+  /** The clock shown runs out here. */
+  answerUntil: number;
+  /** When it closed; while open, the latest it can. */
+  closesAt: number;
+  closed: boolean;
+  /** When the next board (or the podium) comes; null while open. */
+  nextAt: number | null;
+}
+
+/** The same three boards for everyone, one after the other: each closes when all solved it, or at its most time. */
+export function tubitosFlow(input: { startsAt: number; roster: readonly RosterEntry[]; moves: readonly TubitosMove[]; now: number }): MatchFlow<TubitosRoundFlow> {
+  const { boards, maxMs, graceMs, revealMs } = BATTLE_RULES.tubitos;
+  const rounds: TubitosRoundFlow[] = [];
+  let opensAt = input.startsAt;
+  for (let index = 0; index < boards.length && input.now >= opensAt; index++) {
+    const answerUntil = opensAt + (maxMs[index] ?? 0);
+    const deadline = answerUntil + graceMs;
+    const solved = new Map<string, number>();
+    for (const move of input.moves) {
+      if (move.round === index && move.at <= deadline) solved.set(move.userId, move.at);
+    }
+    const closedAt = closingTime(opensAt, deadline, input.roster, solved, input.now);
+    if (closedAt === null) {
+      rounds.push({ index, opensAt, answerUntil, closesAt: deadline, closed: false, nextAt: null });
+      return { rounds, endsAt: null };
+    }
+    const nextAt = closedAt + revealMs;
+    rounds.push({ index, opensAt, answerUntil, closesAt: closedAt, closed: true, nextAt });
+    opensAt = nextAt;
+  }
+  const last = rounds.at(-1);
+  return { rounds, endsAt: rounds.length === boards.length && last?.closed ? last.nextAt : null };
+}
+
 /* ───────────── The table ───────────── */
 
 export interface BattleStanding {
@@ -422,6 +490,9 @@ export interface BattleStanding {
   words?: number;
   /** Secuencia: still in (or last one standing). */
   alive?: boolean;
+  /** Tubitos: boards solved, and their time added up. */
+  solved?: number;
+  timeMs?: number;
 }
 
 function withPlaces<T>(rows: readonly T[], compare: (a: T, b: T) => number): (T & { place: number })[] {
@@ -503,6 +574,26 @@ export function sequenceStandings(roster: readonly RosterEntry[], flow: MatchFlo
     place: row.place,
     score: row.levels,
     alive: row.outIn === still,
+  }));
+}
+
+/** After `closed` boards: by points, as in the daily challenge; a tie goes to whoever solved more, then faster. */
+export function tubitosStandings(roster: readonly RosterEntry[], results: readonly TubitosResult[], closed: number): BattleStanding[] {
+  const rows = roster.map(({ userId }) => {
+    const mine = results.filter((one) => one.userId === userId && one.round < closed);
+    return {
+      userId,
+      score: mine.reduce((sum, one) => sum + one.points, 0),
+      solved: mine.length,
+      time: mine.reduce((sum, one) => sum + one.timeMs, 0),
+    };
+  });
+  return withPlaces(rows, (a, b) => b.score - a.score || b.solved - a.solved || a.time - b.time).map((row) => ({
+    userId: row.userId,
+    place: row.place,
+    score: row.score,
+    solved: row.solved,
+    timeMs: row.time,
   }));
 }
 

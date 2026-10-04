@@ -11,6 +11,7 @@ import { useAccount } from "@/lib/account";
 import { ApiError, battlesApi } from "@/lib/api";
 import type { BattleView, MatchView, StandingView } from "@/lib/battle-types";
 import { formatNumber } from "@/lib/format";
+import { clockText } from "@/lib/tubitos";
 import { GAMES } from "@/lib/games";
 import type { SongKey } from "@/lib/music";
 import { playSoundLater, useMusic } from "@/lib/sound";
@@ -23,6 +24,7 @@ import { homeOf, peopleOf, type BattlePerson } from "./faces";
 import { LargadaLive } from "./LargadaLive";
 import { LettersLive } from "./LettersLive";
 import { SequenceLive } from "./SequenceLive";
+import { TubitosLive } from "./TubitosLive";
 import { TriviaLive } from "./TriviaLive";
 import { WaitingPill } from "./parts";
 
@@ -36,12 +38,13 @@ const SONG_FOR: Record<GameId, SongKey> = {
   "water-sort": "tubitos",
 };
 
-/** The games a room can choose, and the ones on their way. */
+/** The games a room can choose: all five. */
 const CHOICES = [
   { game: GAMES.reflexes, soon: false },
   { game: GAMES["five-questions"], soon: false },
   { game: GAMES["seven-letters"], soon: false },
   { game: GAMES.sequence, soon: false },
+  { game: GAMES["water-sort"], soon: false },
 ];
 
 const ERRORS: Record<string, string> = {
@@ -250,6 +253,8 @@ function Playing({ view, match, now, refresh, onExit }: { view: BattleView; matc
       return <LettersLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
     case "sequence":
       return <SequenceLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
+    case "water-sort":
+      return <TubitosLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
     default:
       return unknownGame(match);
   }
@@ -260,6 +265,7 @@ function scoreText(game: MatchView["game"], row: StandingView): string {
   switch (game) {
     case "five-questions":
     case "seven-letters":
+    case "water-sort":
       return formatNumber(row.score);
     case "reflexes":
       return row.averageMs ? `${row.averageMs} ms` : "—";
@@ -283,6 +289,9 @@ function podiumDetail(match: MatchView, row: StandingView): string | undefined {
       return words(row.words ?? 0);
     case "sequence":
       return row.alive ? "Hasta el final" : `Afuera: nivel ${row.score + 1}`;
+    case "water-sort":
+      // With the same points, the time decides: it shows.
+      return row.solved ? `${row.solved} de ${match.boardCount} · ${clockText(row.timeMs ?? 0)}` : `0 de ${match.boardCount}`;
     default:
       return unknownGame(match);
   }
@@ -300,6 +309,10 @@ function winnerText(match: MatchView, winner: StandingView, who: BattlePerson): 
       return `${me ? "Encontraste" : `${who.name} encontró`} ${words(winner.words ?? 0)}`;
     case "sequence":
       return winner.score > 0 ? `${me ? "Llegaste" : `${who.name} llegó`} al nivel ${winner.score}` : "Nadie pasó el primer nivel";
+    case "water-sort": {
+      const solved = winner.solved ?? 0;
+      return `${me ? "Resolviste" : `${who.name} resolvió`} ${solved === match.boardCount ? `los ${solved} tableros` : `${solved} de ${match.boardCount} tableros`}`;
+    }
     default:
       return unknownGame(match);
   }

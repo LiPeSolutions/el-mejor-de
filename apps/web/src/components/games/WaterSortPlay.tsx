@@ -1,25 +1,14 @@
 "use client";
 
-import {
-  WATER_SORT_RULES,
-  canLift,
-  checkPour,
-  colorsLeft,
-  hasPours,
-  isSolved,
-  isTubeDone,
-  moveLayers,
-  topGroup,
-  waterSortLevelPoints,
-  type Board as Tubes,
-  type WaterSortEvent,
-} from "@repo/games";
+import { WATER_SORT_RULES, topGroup, waterSortLevelPoints, type WaterSortEvent } from "@repo/games";
 import { toGameDate } from "@repo/shared";
-import { Check, Info, RotateCcw, Undo2, X } from "lucide-react";
+import { Info, RotateCcw, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { BACK_MS, Board, FLY_MS, POUR_MS_PER_LAYER, TILT_MS, type Flash, type PourMotion } from "@/components/tubitos/Board";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Board } from "@/components/tubitos/Board";
 import { LevelPills, LevelWin } from "@/components/tubitos/LevelWin";
+import { ActionButton } from "@/components/tubitos/ActionButton";
+import { useWaterSortBoard } from "@/components/tubitos/use-board";
 import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { Toast } from "@/components/ui/Toast";
@@ -27,7 +16,7 @@ import { api } from "@/lib/api";
 import type { StartView, WaterSortBoardView } from "@/lib/challenge-types";
 import { GAMES } from "@/lib/games";
 import { useMediaQuery } from "@/lib/hooks";
-import { playSound, playSoundLater, vibrate } from "@/lib/sound";
+import { playSound, playSoundLater } from "@/lib/sound";
 import { savePracticeLevel } from "@/lib/storage";
 import { boardLayout, clockText, liquidOf } from "@/lib/tubitos";
 import { GameHeader, ScoreRow, useToast } from "./chrome";
@@ -71,9 +60,6 @@ interface SolvedLevel {
 
 type Phase = "playing" | "won" | "ending";
 
-/** After the last cork, the victory (§3). */
-const VICTORY_AFTER_MS = 600;
-
 export function WaterSortPlay({ view, token: firstToken, practice, position, record, onProgress, onFinish, onExit }: Props) {
   const game = GAMES["water-sort"];
   const router = useRouter();
@@ -85,15 +71,6 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
   const [token, setToken] = useState(firstToken);
   const [board, setBoard] = useState<WaterSortBoardView>(view.board);
   const [practiceLevel, setPracticeLevel] = useState(view.practiceLevel ?? 1);
-  const [tubes, setTubes] = useState<Tubes>(view.board.tubes);
-  const [moves, setMoves] = useState(0);
-  const [undosLeft, setUndosLeft] = useState(undos);
-  const [history, setHistory] = useState<Array<{ from: number; to: number; amount: number }>>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [refused, setRefused] = useState<Flash | null>(null);
-  const [nudged, setNudged] = useState<Flash | null>(null);
-  const [faded, setFaded] = useState<Flash | null>(null);
-  const [pour, setPour] = useState<PourMotion | null>(null);
   const [phase, setPhase] = useState<Phase>("playing");
   const [solved, setSolved] = useState<SolvedLevel[]>([]);
   const [best, setBest] = useState(record);
@@ -107,16 +84,8 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
   const [area, setArea] = useState<{ width: number; height: number } | null>(null);
 
   const areaRef = useRef<HTMLDivElement>(null);
-  const events = useRef<WaterSortEvent[]>([]);
   const log = useRef<WaterSortAttemptLog>({ levels: [] });
   const receipt = useRef<Promise<string | null> | null>(null);
-  const timers = useRef<number[]>([]);
-  const flashes = useRef(0);
-
-  const later = (run: () => void, ms: number) => {
-    timers.current.push(window.setTimeout(run, ms));
-  };
-  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), []);
 
   // Each level's clock starts on its first frame.
   useEffect(() => {
@@ -145,125 +114,27 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
     observer.observe(element);
     return () => observer.disconnect();
   }, [playing]);
-  const count = tubes.length;
+  // A level always has as many tubes as it starts with.
+  const count = board.tubes.length;
   const layout = useMemo(() => (area ? boardLayout(count, { width: area.width, height: area.height, tablet, short }) : null), [area, count, tablet, short]);
   // Never squeezed past its smallest: below that the page scrolls instead.
   const smallest = useMemo(() => (area ? boardLayout(count, { width: area.width, height: 0, tablet, short }).height : 0), [area, count, tablet, short]);
 
-  const targets = useMemo(
-    () => new Set(selected === null ? [] : tubes.flatMap((_, index) => (checkPour(tubes, selected, index, capacity).ok ? [index] : []))),
-    [selected, tubes, capacity],
-  );
-  const stuck = phase === "playing" && !pour && !isSolved(tubes, capacity) && !hasPours(tubes, capacity);
-
-  /** Marks some tubes for a moment (a shake, a fade). */
-  const flash = (set: (update: (current: Flash | null) => Flash | null) => void, marked: number[], ms: number) => {
-    flashes.current += 1;
-    const next = { tubes: marked, key: flashes.current };
-    set(() => next);
-    later(() => set((current) => (current?.key === next.key ? null : current)), ms);
-  };
-
-  const levelLog = (durationMs: number): WaterSortAttemptLog => ({ levels: [...log.current.levels, { events: events.current, durationMs }] });
-  const report = (durationMs: number) => {
-    if (!practice) onProgress(levelLog(durationMs));
+  const levelLog = (durationMs: number, events: WaterSortEvent[]): WaterSortAttemptLog => ({ levels: [...log.current.levels, { events, durationMs }] });
+  const report = (durationMs: number, events: WaterSortEvent[]) => {
+    if (!practice) onProgress(levelLog(durationMs, events));
   };
   const timeNow = () => Math.round(performance.now() - (startAt ?? performance.now()));
-  const canAct = phase === "playing" && !pour && startAt !== null && frozenMs === null;
-
-  const tap = (index: number) => {
-    if (!canAct) return;
-    const tube = tubes[index];
-    if (!tube) return;
-    if (selected === null) {
-      if (!canLift(tube, capacity)) {
-        flash(setNudged, [index], 240);
-        return;
-      }
-      setSelected(index);
-      vibrate(10);
-      return;
-    }
-    if (index === selected) {
-      setSelected(null);
-      return;
-    }
-    const check = checkPour(tubes, selected, index, capacity);
-    if (!check.ok) {
-      // It can't take it: the lifted one stays up, so another can be tried.
-      flash(setRefused, [index], 600);
-      showToast({
-        tone: "danger",
-        icon: <X className="size-3.5" strokeWidth={3} />,
-        text: check.reason === "full" ? "Ahí no · ese tubo está lleno" : "Ahí no · solo sobre el mismo color",
-      });
-      playSound("fail");
-      vibrate([15, 60, 15]);
-      return;
-    }
-    pourInto(selected, index, check.amount);
-  };
-
-  const pourInto = (from: number, to: number, amount: number) => {
-    const t = timeNow();
-    const before = tubes;
-    const after = moveLayers(before, from, to, amount);
-    const color = topGroup(before[from]!)!.color;
-    const madeIt = isSolved(after, capacity);
-    events.current = [...events.current, { type: "pour", from, to, t }];
-    setMoves(moves + 1);
-    setHistory((steps) => [...steps, { from, to, amount }]);
-    setSelected(null);
-    if (madeIt) {
-      setFrozenMs(t);
-      levelSolved(t, moves + 1);
-    } else {
-      report(t);
-    }
-    const settle = () => afterPour(before, after, to, madeIt);
-    if (reduced) {
-      // No flight: the liquid just goes, with a short fade.
-      setTubes(after);
-      flash(setFaded, [from, to], 150);
-      playSound("pour", amount);
-      settle();
-      return;
-    }
-    const pourMs = amount * POUR_MS_PER_LAYER;
-    setPour({ from, to, amount, color, stage: "lift", before });
-    later(() => setPour((current) => current && { ...current, stage: "tilt" }), FLY_MS - TILT_MS);
-    later(() => {
-      setPour((current) => current && { ...current, stage: "pour" });
-      playSound("pour", amount);
-    }, FLY_MS);
-    later(() => {
-      setTubes(after);
-      setPour((current) => current && { ...current, stage: "back" });
-      settle();
-    }, FLY_MS + pourMs);
-    later(() => setPour(null), FLY_MS + pourMs + BACK_MS);
-  };
-
-  const afterPour = (before: Tubes, after: Tubes, to: number, madeIt: boolean) => {
-    if (isTubeDone(after[to]!, capacity) && !isTubeDone(before[to]!, capacity)) {
-      playSound("cork");
-      vibrate(25);
-      const left = colorsLeft(after, capacity);
-      if (left > 0) showToast({ tone: "success", icon: <Check className="size-3.5" strokeWidth={3} />, text: `¡Tubo listo! · faltan ${left}` });
-    }
-    if (madeIt) later(win, VICTORY_AFTER_MS);
-  };
 
   /** The solving pour: the level goes to the server right away, so its clock stops now. */
-  const levelSolved = (t: number, levelMoves: number) => {
-    const used = undos - undosLeft;
+  const levelSolved = (t: number, levelMoves: number, events: WaterSortEvent[]) => {
+    const used = undos - play.undosLeft;
     if (practice) {
       setSolved([{ level: practiceLevel, moves: levelMoves, par: board.par, timeMs: t, undos: used, points: null }]);
       return;
     }
-    const played = { events: events.current, durationMs: t };
+    const played = { events, durationMs: t };
     log.current = { levels: [...log.current.levels, played] };
-    events.current = [];
     const index = log.current.levels.length - 1;
     const level = board.level;
     setSolved((list) => [...list, { level, moves: levelMoves, par: board.par, timeMs: t, undos: used, points: null }]);
@@ -304,22 +175,28 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
     playSound("levelUp");
   };
 
+  const play = useWaterSortBoard(
+    { start: board.tubes, capacity, undos, reduced, active: phase === "playing" && startAt !== null && frozenMs === null, timeNow },
+    {
+      onSolved: (t, levelMoves, events) => {
+        setFrozenMs(t);
+        levelSolved(t, levelMoves, events);
+      },
+      onWin: () => win(),
+      onStep: report,
+      showToast,
+    },
+  );
+  const { tubes, moves, undosLeft, history, selected, pour } = play;
+  const stuck = phase === "playing" && play.stuck;
+
   const startLevel = (next: WaterSortBoardView) => {
     setBoard(next);
-    setTubes(next.tubes);
-    setMoves(0);
-    setUndosLeft(undos);
-    setHistory([]);
-    setSelected(null);
-    setRefused(null);
-    setNudged(null);
-    setFaded(null);
-    setPour(null);
+    play.reset(next.tubes);
     setFrozenMs(null);
     setStartAt(null);
     setNow(0);
     setError(null);
-    events.current = [];
     receipt.current = null;
     setPhase("playing");
     setRound((current) => current + 1);
@@ -353,36 +230,6 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
     } finally {
       setBusy(false);
     }
-  };
-
-  const undo = () => {
-    const step = history.at(-1);
-    if (!canAct || undosLeft === 0 || !step) return;
-    const t = timeNow();
-    events.current = [...events.current, { type: "undo", t }];
-    setTubes(moveLayers(tubes, step.to, step.from, step.amount));
-    setHistory((steps) => steps.slice(0, -1));
-    setUndosLeft(undosLeft - 1);
-    setSelected(null);
-    flash(setFaded, [step.from, step.to], 150);
-    report(t);
-  };
-
-  const restart = () => {
-    if (!canAct || moves === 0) return;
-    const t = timeNow();
-    events.current = [...events.current, { type: "restart", t }];
-    setTubes(board.tubes);
-    setMoves(0);
-    setUndosLeft(undos);
-    setHistory([]);
-    setSelected(null);
-    flash(
-      setFaded,
-      board.tubes.map((_, index) => index),
-      150,
-    );
-    report(t);
   };
 
   // Practice just leaves; the daily challenge asks first (it counts as played).
@@ -453,13 +300,13 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
             tubes={tubes}
             capacity={capacity}
             selected={selected}
-            targets={targets}
-            refused={refused}
-            nudged={nudged}
+            targets={play.targets}
+            refused={play.refused}
+            nudged={play.nudged}
             pour={pour}
-            faded={faded}
+            faded={play.faded}
             reduced={reduced}
-            onTap={tap}
+            onTap={play.tap}
           />
         )}
       </div>
@@ -467,35 +314,17 @@ export function WaterSortPlay({ view, token: firstToken, practice, position, rec
       {!practice && <LevelPills total={view.levels} moves={solved.map((level) => level.moves)} current={board.level} className="px-5" />}
 
       <div className={cx("grid grid-cols-2", tablet ? "mx-auto mt-4 w-[480px] gap-3" : "gap-2.5 px-5 pt-3.5")}>
-        <ActionButton onClick={undo} off={undosLeft === 0 || history.length === 0} breathe={stuck && history.length > 0 && undosLeft > 0}>
+        <ActionButton onClick={play.undo} off={undosLeft === 0 || history.length === 0} breathe={stuck && history.length > 0 && undosLeft > 0}>
           <Undo2 className="size-5" strokeWidth={2.6} />
           Deshacer
           <span className="grid h-6 min-w-6 place-items-center rounded-full bg-surface-2 px-1.5 text-sm tabular-nums">{undosLeft}</span>
         </ActionButton>
-        <ActionButton onClick={restart} breathe={stuck}>
+        <ActionButton onClick={play.restart} breathe={stuck}>
           <RotateCcw className="size-5" strokeWidth={2.6} />
           Reiniciar
         </ActionButton>
       </div>
       {!short && <p className="px-5 pt-3 text-center text-[13px] font-semibold text-ink-700">Solo sobre el mismo color o en un tubo vacío</p>}
     </Screen>
-  );
-}
-
-/** The two white buttons under the board: dimmed when there's nothing to undo, breathing when stuck. */
-function ActionButton({ children, onClick, off = false, breathe }: { children: ReactNode; onClick: () => void; off?: boolean; breathe: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-disabled={off}
-      className={cx(
-        "flex h-14 items-center justify-center gap-[9px] rounded-full bg-white font-display text-[17px] font-extrabold shadow-[0_8px_20px_rgba(35,38,58,.08)] transition active:scale-[.98]",
-        off && "opacity-45",
-        breathe && "animate-breathe",
-      )}
-    >
-      {children}
-    </button>
   );
 }

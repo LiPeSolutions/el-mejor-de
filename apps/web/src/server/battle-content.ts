@@ -2,6 +2,7 @@ import "server-only";
 import { randomInt, randomUUID } from "node:crypto";
 import { TRIVIA_QUESTIONS, getSevenLettersDictionary } from "@repo/content";
 import {
+  BATTLE_RULES,
   FIVE_QUESTIONS_RULES,
   LARGADA_RULES,
   TEN_LETTERS_RULES,
@@ -11,7 +12,10 @@ import {
   createSevenLetters,
   dailyLineup,
   sevenLettersWords,
+  waterSortBoard,
+  waterSortPlayerBoard,
   type TriviaQuestion,
+  type WaterSortLevel,
 } from "@repo/games";
 import { dailyRngs, deriveSeed } from "@repo/games/server";
 import { CATEGORY_LABELS } from "./challenges";
@@ -43,6 +47,11 @@ export interface BattleLettersContent {
 /** The whole sequence (30 colors); each round shows the first ones, never more. */
 export interface BattleSequenceContent {
   sequence: number[];
+}
+
+/** Tubitos' three boards as drawn, the same for everyone; each player plays their own version of each. */
+export interface BattleTubitosContent {
+  levels: WaterSortLevel[];
 }
 
 let dailyCache: { date: string; ids: Set<string> } | null = null;
@@ -147,4 +156,23 @@ export function pickSequence(): BattleSequenceContent {
   const seed = randomUUID();
   const { content } = createSequence().generate({ shared: createRng(`${seed}:shared`), player: createRng(`${seed}:sequence`) });
   return { sequence: content.sequence };
+}
+
+/* ───────────── Tubitos ───────────── */
+
+/** The three boards of the daily challenge's sizes, new ones, with their par (solved once, here). */
+export function pickBoards(): BattleTubitosContent {
+  const seed = randomUUID();
+  return { levels: BATTLE_RULES.tubitos.boards.map((rules, index) => waterSortBoard(`${seed}:${index}`, rules)) };
+}
+
+/**
+ * This player's version of board `round`: its colors swapped and its tubes
+ * in another order, from a seed of the match and the player. Same puzzle
+ * and par, but a friend's board alongside doesn't copy over.
+ */
+export function playerBoard(matchId: string, userId: string, round: number, board: WaterSortLevel): WaterSortLevel {
+  const rules = BATTLE_RULES.tubitos.boards[round];
+  if (!rules) throw new Error(`no board ${round}`);
+  return waterSortPlayerBoard(board, rules, createRng(deriveSeed(challengeSecret(), "battle", matchId, userId, "tubitos", String(round))));
 }

@@ -45,7 +45,7 @@ export function unknownGame(match: never): never {
   throw new Error(`unknown battle game ${(match as { game?: unknown }).game}`);
 }
 
-/** A phone asks for what's coming (Diez Letras' letters, Secuencia's colors) this early, so it's there on time. */
+/** A phone asks for what's coming (Diez Letras' letters, Secuencia's colors, a Tubitos board) this early, so it's there on time. */
 const AHEAD_MS = 300;
 
 /** When to ask again: often while something is about to change, little in the room. */
@@ -57,7 +57,7 @@ function nextAsk(view: BattleView, now: number): number {
   const until = (at: number | null) => Math.min(1_500, Math.max(100, (at ?? now) - now + 80));
   const ahead = (at: number) => Math.min(1_500, Math.max(100, at - AHEAD_MS - now));
   if (match.game === "seven-letters" && match.letters === null) return ahead(match.startsAt);
-  if (match.game === "sequence" && match.current === null && match.rounds.length === 0) return ahead(match.startsAt);
+  if ((match.game === "sequence" || match.game === "water-sort") && match.current === null && match.rounds.length === 0) return ahead(match.startsAt);
   if (now < match.startsAt) return Math.min(1_000, Math.max(100, match.startsAt - now + 50));
   switch (match.game) {
     case "five-questions": {
@@ -83,6 +83,11 @@ function nextAsk(view: BattleView, now: number): number {
       if (!current) return ahead(match.rounds.at(-1)?.nextAt ?? now);
       const done = match.answered.includes(view.meId) || !current.players.includes(view.meId);
       return done ? 400 : 700;
+    }
+    case "water-sort": {
+      // Who solved the board, every second; between boards, the next one a moment before it opens.
+      if (!match.current) return ahead(match.rounds.at(-1)?.nextAt ?? now);
+      return match.mine ? 700 : 1_000;
     }
     default:
       return unknownGame(match);

@@ -357,6 +357,16 @@ function playerVersion(board: WaterSortLevel, rules: WaterSortLevelRules, rng: R
   return { ...board, tubes: [...full, ...board.tubes.slice(rules.colors).map((tube) => [...tube])] };
 }
 
+/** The same board for everyone on a seed, solved once (a live battle's boards). */
+export function waterSortBoard(seed: string, rules: WaterSortLevelRules, exactPar = true): WaterSortLevel {
+  return sharedBoard(seed, rules, WATER_SORT_RULES.capacity, exactPar);
+}
+
+/** One player's version of a shared board: same puzzle and par, other colors and order. */
+export function waterSortPlayerBoard(board: WaterSortLevel, rules: WaterSortLevelRules, rng: Rng): WaterSortLevel {
+  return playerVersion(board, rules, rng);
+}
+
 /* ───────────── Grading ───────────── */
 
 export type WaterSortEvent =

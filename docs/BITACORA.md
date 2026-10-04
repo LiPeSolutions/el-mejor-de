@@ -46,13 +46,12 @@
 - **Sonido:** efectos en los juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
 - **Música:** un loop para el menú y uno por juego (el de Tubitos, "Laboratorio"), más bajo que los efectos. Se apaga aparte en el perfil.
 - **Batallas en vivo:** de 2 a 10 amigos juegan a la vez, cada uno en su celu, desde un grupo (con el aviso "Pato armó una de Largada · Sumarme") o con un link.
-  - Se juegan Largada, Cinco Preguntas, **Diez Letras** y **Secuencia**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
-  - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate.
+  - Se juegan **los cinco juegos**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
+  - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate. En Tubitos, los 3 tableros del reto, cada uno en su versión.
   - No cuentan para rankings ni coronas.
-  - Tubitos ya tiene el formato decidido (como el reto) y se está construyendo.
-- **Pruebas:** 417 automáticas, todas pasan.
+- **Pruebas:** 426 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** la batalla de Tubitos (decidida; el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -69,6 +68,28 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Batallas: Tubitos como el reto
+
+- **Lo decidido:** como el reto, con los mismos 3 tableros para todos, los puntos del reto y un tiempo máximo por tablero.
+- **Lo que resolvió Claude:**
+  - Los tiempos máximos son 1:40, 2:30 y 3:40: cuando en el reto el tiempo deja de sumar puntos. Quien no resuelve un tablero a tiempo no lo suma y sigue en el próximo.
+  - Con los mismos puntos, gana el que tardó menos en total; el podio muestra los tableros resueltos y el tiempo.
+- **Qué se hizo:**
+  - Cada tablero abre a la vez en todos los celus. Cada uno juega su versión: otros colores y otro orden de tubos, el mismo rompecabezas.
+  - Arriba, quién ya lo resolvió. Al cerrar, la tabla del tablero con los movimientos, el tiempo y los puntos de cada uno.
+  - Al resolverlo, el celu manda los pasos y el servidor los rejuega, como en el reto.
+  - La lógica de jugar un tablero (levantar, verter, deshacer, reiniciar) pasó del reto a una pieza común (`components/tubitos/use-board.tsx`), que usan el reto, la práctica y la batalla.
+  - Migración `battle_water_sort` (aplicada en Supabase; los avisos de seguridad siguen en cero): Tubitos entra en el `check` de los juegos de las batallas, y cada tablero resuelto guarda sus pasos.
+- **Probado:**
+  - 9 pruebas automáticas nuevas: las reglas, las consultas y una batalla entera en el servidor, que resuelve los tableros con el motor del juego.
+  - En el navegador, `scripts/qa/battle-tubitos.cjs` con tres celus: 11 de 11 en 390 × 844 y en 360 × 740.
+  - **Tubitos del reto, después de mover su lógica:** la práctica, 15 de 15, con y sin animaciones. Y el reto del día con el reloj del servidor corrido a mañana (arranca el 5/10): los 3 niveles, 4 de 4, y sus casos raros, 3 de 3.
+- **Corregido antes de publicar:**
+  - el cartel "Esperando a…" se salía del ancho con nombres largos;
+  - en la tabla se cortaban los nombres;
+  - en el podio no se veía por qué ganaba uno con los mismos puntos.
+- **Con esto, las batallas tienen los cinco juegos.**
 
 ### 4/10/2026 — Batallas: Secuencia por rondas
 
@@ -136,7 +157,7 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
   - En el podio de una batalla de grupo, "Batallas ganadas" muestra también a invitados que no son del grupo, y a quien no está en la sala como "Alguien".
   - La pestaña del grupo sí muestra solo a los miembros.
   - Quedó anotado en [BATALLAS §14](BATALLAS.md#14-ideas-para-después).
-- **Pendiente:** las batallas de Diez Letras y Secuencia, y decidir si entra Tubitos ([BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
+- **Pendiente:** las batallas de Diez Letras y Secuencia, y decidir si entra Tubitos ([BATALLAS §13](BATALLAS.md#13-los-juegos-de-la-segunda-tanda)); se hicieron ese mismo día.
 
 ### 4/10/2026 — Tubitos, el quinto juego
 
@@ -436,8 +457,7 @@ En orden sugerido.
 1. **Probar una batalla en vivo** (responsable del producto), con alguien al lado o por WhatsApp:
    - Desde el grupo, "Batalla en vivo · Armar", o desde Práctica, "Batalla con amigos".
    - Una de Cinco Preguntas, una de Largada y una de Diez Letras. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende, si la música suena junta y si en Diez Letras se entienden los puntos en vivo y las palabras del podio.
-   - Y una de Secuencia: que los colores salgan a la vez en los dos celus, que se entienda quién quedó afuera y el desempate.
-   - Sigue Tubitos, ya decidido (el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
+   - Y una de Secuencia (que los colores salgan a la vez en los dos celus, que se entienda quién quedó afuera y el desempate) y una de Tubitos (si los tiempos máximos de cada tablero están bien).
 2. **Probar en el celu** (responsable del producto):
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.

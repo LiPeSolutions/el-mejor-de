@@ -1,13 +1,23 @@
 import { createUser, latestMatch, type User } from "@repo/db";
 import { testDatabase, type TestDatabase } from "@repo/db/testing";
-import { BATTLE_RULES } from "@repo/games";
+import { BATTLE_RULES, solveWaterSort } from "@repo/games";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { lettersWords, questionById, type BattleLargadaContent, type BattleLettersContent, type BattleSequenceContent, type BattleTriviaContent } from "./battle-content";
+import {
+  lettersWords,
+  playerBoard,
+  questionById,
+  type BattleLargadaContent,
+  type BattleLettersContent,
+  type BattleSequenceContent,
+  type BattleTriviaContent,
+  type BattleTubitosContent,
+} from "./battle-content";
 import {
   backToLobby,
   battleAnswer,
   battleQuestion,
   battleRepeat,
+  battleSolve,
   battleStart,
   battleState,
   battleWord,
@@ -578,5 +588,92 @@ describe("a battle of Secuencia", () => {
     if (next.match?.game !== "sequence") throw new Error("not sequence");
     expect(next.match.current).toMatchObject({ index: 1, level: 2, length: 4, players: [pato.id, juli.id], colors: colors.slice(0, 4) });
     expect(await failure(battleRepeat(db, toto, battleId, { round: 1, inputs: colors.slice(0, 4) }, ctx(inputAtOf(nextAt, 4) + 1_000)))).toMatchObject({ status: 403, code: "out" });
+  });
+});
+
+describe("a battle of Tubitos", () => {
+  const { maxMs, graceMs, revealMs } = BATTLE_RULES.tubitos;
+  async function tubitos() {
+    const [pato, juli] = await Promise.all([player("Pato"), player("Juli")]);
+    const { battleId } = await room(pato, juli);
+    await chooseGame(db, pato, battleId, "water-sort", ctx(T + 2_000));
+    await startMatch(db, pato, battleId, ctx(T + 3_000));
+    return { pato, juli, battleId, startsAt: T + 3_000 + countdownMs };
+  }
+  /** This player's board `round`, solved with the engine's shortest solution, a pour every 400 ms. */
+  async function steps(user: User, battleId: string, round: number) {
+    const match = (await latestMatch(db, battleId))!;
+    const board = playerBoard(match.id, user.id, round, (match.content as BattleTubitosContent).levels[round]!);
+    const events = solveWaterSort(board.tubes)!.path.map(([from, to], i) => ({ type: "pour" as const, from, to, t: 400 * (i + 1) }));
+    return { events, durationMs: events.at(-1)!.t, par: board.par, tubes: board.tubes };
+  }
+
+  it("gives each one their own version of the same board, a moment before it opens", async () => {
+    const { pato, juli, battleId, startsAt } = await tubitos();
+    const early = await battleState(db, pato, battleId, ctx(startsAt - 1_000));
+    if (early.match?.game !== "water-sort") throw new Error("not tubitos");
+    expect(early.match).toMatchObject({ current: null, rounds: [], boardCount: 3, capacity: 4, undos: 3 });
+    const mine = await battleState(db, pato, battleId, ctx(startsAt - 300));
+    const theirs = await battleState(db, juli, battleId, ctx(startsAt - 300));
+    if (mine.match?.game !== "water-sort" || theirs.match?.game !== "water-sort") throw new Error("not tubitos");
+    expect(mine.match.current).toMatchObject({ index: 0, opensAt: startsAt, answerUntil: startsAt + maxMs[0]! });
+    expect(mine.match.current?.tubes).toHaveLength(6);
+    expect(mine.match.current?.par).toBe(theirs.match.current?.par);
+    const layers = (tubes: number[][]) => tubes.map((tube) => tube.length).sort().join();
+    expect(layers(mine.match.current!.tubes)).toBe(layers(theirs.match.current!.tubes));
+  });
+
+  it("replays the steps, scores them like the daily challenge and closes when both solved it", async () => {
+    const { pato, juli, battleId, startsAt } = await tubitos();
+    const patoSteps = await steps(pato, battleId, 0);
+    expect(await failure(battleSolve(db, pato, battleId, { round: 0, log: { events: patoSteps.events.slice(0, 2), durationMs: 800 } }, ctx(startsAt + 5_000)))).toMatchObject({
+      status: 400,
+      code: "not-solved",
+    });
+    const solved = await battleSolve(db, pato, battleId, { round: 0, log: patoSteps }, ctx(startsAt + 30_000));
+    expect(solved).toMatchObject({ ok: true, moves: patoSteps.par, timeMs: 30_000 - 2_000 });
+    expect(solved.points).toBeGreaterThan(200);
+
+    const waiting = await battleState(db, juli, battleId, ctx(startsAt + 31_000));
+    if (waiting.match?.game !== "water-sort") throw new Error("not tubitos");
+    expect(waiting.match.rounds[0]).toMatchObject({ closed: false, solved: [pato.id], results: null });
+    expect(waiting.match.standings.every((row) => row.score === 0)).toBe(true);
+
+    await battleSolve(db, juli, battleId, { round: 0, log: await steps(juli, battleId, 0) }, ctx(startsAt + 45_000));
+    const table = await battleState(db, juli, battleId, ctx(startsAt + 45_100));
+    if (table.match?.game !== "water-sort") throw new Error("not tubitos");
+    expect(table.match.current).toBeNull();
+    expect(table.match.rounds[0]).toMatchObject({ closed: true, closesAt: startsAt + 45_000, nextAt: startsAt + 45_000 + revealMs });
+    expect(table.match.rounds[0]?.results?.map((one) => [one.userId, one.solved])).toEqual([
+      [pato.id, true],
+      [juli.id, true],
+    ]);
+    expect(table.match.standings.map((row) => [row.userId, row.place, row.solved])).toEqual([
+      [pato.id, 1, 1],
+      [juli.id, 2, 1],
+    ]);
+    expect(await failure(battleSolve(db, pato, battleId, { round: 0, log: patoSteps }, ctx(startsAt + 45_200)))).toMatchObject({ code: "round-closed" });
+  });
+
+  it("closes a board at its most time, with nothing for whoever didn't solve it, and ends after the third", async () => {
+    const { pato, juli, battleId, startsAt } = await tubitos();
+    let opensAt = startsAt;
+    for (let round = 0; round < 3; round++) {
+      await battleSolve(db, pato, battleId, { round, log: await steps(pato, battleId, round) }, ctx(opensAt + 20_000));
+      if (round === 1) {
+        // Juli doesn't solve the second one: it closes at its most time.
+        opensAt += maxMs[1]! + graceMs + revealMs;
+      } else {
+        await battleSolve(db, juli, battleId, { round, log: await steps(juli, battleId, round) }, ctx(opensAt + 40_000));
+        opensAt += 40_000 + revealMs;
+      }
+    }
+    const podium = await battleState(db, juli, battleId, ctx(opensAt));
+    expect(podium.stage).toBe("podium");
+    expect(podium.match?.standings.map((row) => [row.userId, row.place, row.solved])).toEqual([
+      [pato.id, 1, 3],
+      [juli.id, 2, 2],
+    ]);
+    expect((await latestMatch(db, battleId))?.winners).toEqual([pato.id]);
   });
 });

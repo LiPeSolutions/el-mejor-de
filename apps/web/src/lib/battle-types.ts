@@ -43,6 +43,9 @@ export interface StandingView {
   words?: number;
   /** Secuencia: still in (or the last one standing). */
   alive?: boolean;
+  /** Tubitos: boards solved, and their time added up. */
+  solved?: number;
+  timeMs?: number;
 }
 
 /* ───────────── Cinco Preguntas ───────────── */
@@ -238,7 +241,70 @@ export interface SequenceMatchView {
   standings: StandingView[];
 }
 
-export type MatchView = TriviaMatchView | LargadaMatchView | LettersMatchView | SequenceMatchView;
+/* ───────────── Tubitos ───────────── */
+
+/** How a board went for a player, once it closed. */
+export interface TubitosResultView {
+  userId: string;
+  solved: boolean;
+  moves: number | null;
+  timeMs: number | null;
+  points: number;
+}
+
+export interface TubitosRoundView {
+  index: number;
+  opensAt: number;
+  /** The clock shown runs out here. */
+  answerUntil: number;
+  /** When it closed; while open, the latest it can. */
+  closesAt: number;
+  closed: boolean;
+  /** When the next board (or the podium) comes. */
+  nextAt: number | null;
+  /** The fewest pours that solve it. */
+  par: number;
+  /** Who already solved it (never how, until it closes). */
+  solved: string[];
+  results: TubitosResultView[] | null;
+}
+
+/** The board being played (or the next one, a moment before it opens), in my own version. */
+export interface TubitosBoardView {
+  index: number;
+  tubes: number[][];
+  par: number;
+  parExact: boolean;
+  opensAt: number;
+  answerUntil: number;
+}
+
+export interface TubitosMatchView {
+  game: "water-sort";
+  id: string;
+  startsAt: number;
+  endsAt: number | null;
+  players: string[];
+  capacity: number;
+  undos: number;
+  boardCount: number;
+  /** Up to the one being played. */
+  rounds: TubitosRoundView[];
+  current: TubitosBoardView | null;
+  /** How the current board went for me, once I solved it. */
+  mine: { moves: number; timeMs: number; points: number } | null;
+  standings: StandingView[];
+}
+
+/** What the server says of a solved board. */
+export interface TubitosSolveResponse {
+  ok: true;
+  moves: number;
+  timeMs: number;
+  points: number;
+}
+
+export type MatchView = TriviaMatchView | LargadaMatchView | LettersMatchView | SequenceMatchView | TubitosMatchView;
 
 /* ───────────── The room ───────────── */
 

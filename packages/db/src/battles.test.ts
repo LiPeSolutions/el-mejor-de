@@ -22,6 +22,7 @@ import {
   playerOpenBattles,
   recordAnswer,
   recordRepeat,
+  recordSolve,
   recordStart,
   recordWord,
   setBattleGame,
@@ -172,7 +173,7 @@ describe('battle matches', () => {
     expect(await recordAnswer(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 2_000, choice: 2 })).toBe(true);
     expect(await recordAnswer(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 2_500, choice: 0 })).toBe(false);
     expect(await matchMoves(db, id)).toEqual([
-      { userId: pato.id, round: 0, shownAt: T0 + 100, playedAt: T0 + 2_000, choice: 2, reactionMs: null, falseStart: null, correct: null, inputs: null },
+      { userId: pato.id, round: 0, shownAt: T0 + 100, playedAt: T0 + 2_000, choice: 2, reactionMs: null, falseStart: null, correct: null, inputs: null, log: null },
     ]);
   });
 
@@ -206,6 +207,19 @@ describe('battle matches', () => {
       [juli.id, 0, false, [0, 3]],
       [juli.id, 120, false, []],
     ]);
+  });
+
+  it('takes Tubitos and keeps each solved board once, with its steps', async () => {
+    const [pato, juli] = await Promise.all([player('Pato'), player('Juli')]);
+    const battle = await room(pato);
+    await setBattleGame(db, battle.id, 'water-sort');
+    expect((await getBattle(db, battle.id))?.game).toBe('water-sort');
+    const match = await createMatch(db, { battleId: battle.id, groupId: null, game: 'water-sort', players: [pato.id, juli.id], content: { levels: [] }, startedAt: T0, startsAt: T0 });
+    const id = match!.id;
+    const log = { events: [{ type: 'pour', from: 0, to: 4, t: 900 }], durationMs: 900 };
+    expect(await recordSolve(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 1_000, log })).toBe(true);
+    expect(await recordSolve(db, { matchId: id, userId: pato.id, round: 0, at: T0 + 2_000, log })).toBe(false);
+    expect((await matchMoves(db, id)).map((move) => [move.userId, move.round, move.correct, move.log])).toEqual([[pato.id, 0, true, log]]);
   });
 
   it('keeps each word once per player, and only well-formed ones', async () => {

@@ -25,6 +25,7 @@ import {
   recordAnswer,
   recordCodeFailure,
   recordRepeat,
+  recordSolve,
   recordStart,
   recordWord,
   resetUsedQuestions,
@@ -45,6 +46,8 @@ import {
   BATTLE_RULES,
   LARGADA_RULES,
   TEN_LETTERS_RULES,
+  WATER_SORT_RULES,
+  gradeWaterSortLevel,
   battleWinners,
   isBattleGame,
   largadaFlow,
@@ -60,6 +63,8 @@ import {
   triviaAnswer,
   triviaFlow,
   triviaStandings,
+  tubitosFlow,
+  tubitosStandings,
   type BattleGame,
   type BattleStanding,
   type LargadaMove,
@@ -72,6 +77,11 @@ import {
   type SequenceRoundFlow,
   type TriviaMove,
   type TriviaRoundFlow,
+  type TubitosMove,
+  type TubitosResult,
+  type TubitosRoundFlow,
+  type WaterSortContent,
+  type WaterSortLog,
 } from "@repo/games";
 import { DEFAULT_AVATAR, INVITE_ALPHABET, inviteKey, isPhraseBlocked, parseAvatar, toGameDate, type GroupColor, type GroupEmblem } from "@repo/shared";
 import type {
@@ -92,6 +102,8 @@ import type {
   StandingView,
   TriviaMatchView,
   TriviaQuestionView,
+  TubitosMatchView,
+  TubitosSolveResponse,
 } from "@/lib/battle-types";
 import {
   categoryLabel,
@@ -99,21 +111,25 @@ import {
   lettersWords,
   pickLetters,
   pickQuestions,
+  pickBoards,
   pickSequence,
+  playerBoard,
   playerOptions,
   questionById,
   type BattleLargadaContent,
   type BattleLettersContent,
   type BattleSequenceContent,
   type BattleTriviaContent,
+  type BattleTubitosContent,
 } from "./battle-content";
+import { waterSortLevelLog } from "./challenges";
 import { HttpError } from "./http";
 
 /*
  * Live battles (docs/PLAN.md §8): who can do what in a room, and what each
  * phone sees. Nothing runs between requests: each one works out where the
  * match is from its start and the moves (triviaFlow, largadaFlow,
- * lettersFlow and sequenceFlow in @repo/games), writes the result once it ended and answers
+ * lettersFlow, sequenceFlow and tubitosFlow in @repo/games), writes the result once it ended and answers
  * with the server's clock, which the phones sync to. Every choice by game
  * is a switch over BattleGame, so a new game can't be forgotten in one.
  */
@@ -214,11 +230,38 @@ const lettersPlayed = (words: readonly BattleWord[]): LettersWord[] => words.map
 const sequenceMoves = (moves: readonly BattleMove[]): SequenceMove[] =>
   moves.flatMap((move) => (move.playedAt === null ? [] : [{ userId: move.userId, round: move.round, at: move.playedAt, correct: move.correct === true }]));
 
+const tubitosMoves = (moves: readonly BattleMove[]): TubitosMove[] =>
+  moves.flatMap((move) => (move.playedAt === null ? [] : [{ userId: move.userId, round: move.round, at: move.playedAt }]));
+
+/** A player's version of board `round` as the engine grades it: a one-level challenge. */
+function tubitosContent(match: BattleMatch, userId: string, round: number): WaterSortContent {
+  const { levels } = match.content as BattleTubitosContent;
+  const rules = BATTLE_RULES.tubitos.boards[round]!;
+  return { capacity: WATER_SORT_RULES.capacity, undosPerLevel: WATER_SORT_RULES.undosPerLevel, levels: [playerBoard(match.id, userId, round, levels[round]!)], rules: [rules] };
+}
+
+/** A solved board's steps, replayed and scored like the daily challenge's: the time never much less than the server saw since it opened. */
+function tubitosGrade(match: BattleMatch, userId: string, round: number, log: WaterSortLog["levels"][number], serverMs: number) {
+  return gradeWaterSortLevel(tubitosContent(match, userId, round), 0, log, serverMs);
+}
+
+/** How each solved board scored, by the boards' opening times. */
+function tubitosResults(match: BattleMatch, moves: readonly BattleMove[], flow: MatchFlow<TubitosRoundFlow>): TubitosResult[] {
+  return moves.flatMap((move) => {
+    const round = flow.rounds[move.round];
+    const log = waterSortLevelLog.safeParse(move.log);
+    if (!round || move.playedAt === null || move.playedAt > round.closesAt || !log.success) return [];
+    const { result } = tubitosGrade(match, move.userId, move.round, log.data, move.playedAt - round.opensAt);
+    return result.solved ? [{ userId: move.userId, round: move.round, points: result.points, moves: result.moves, timeMs: result.timeMs }] : [];
+  });
+}
+
 type Flow =
   | { game: "five-questions"; flow: MatchFlow<TriviaRoundFlow> }
   | { game: "reflexes"; flow: MatchFlow<LargadaRoundFlow> }
   | { game: "seven-letters"; flow: MatchFlow<LettersRoundFlow> }
-  | { game: "sequence"; flow: MatchFlow<SequenceRoundFlow> };
+  | { game: "sequence"; flow: MatchFlow<SequenceRoundFlow> }
+  | { game: "water-sort"; flow: MatchFlow<TubitosRoundFlow> };
 
 function flowOf(match: BattleMatch, plays: Plays, now: number): Flow {
   const roster = rosterOf(match);
@@ -234,6 +277,8 @@ function flowOf(match: BattleMatch, plays: Plays, now: number): Flow {
       return { game, flow: lettersFlow({ startsAt: match.startsAt, roster, now }) };
     case "sequence":
       return { game, flow: sequenceFlow({ startsAt: match.startsAt, roster, moves: sequenceMoves(plays.moves), now }) };
+    case "water-sort":
+      return { game, flow: tubitosFlow({ startsAt: match.startsAt, roster, moves: tubitosMoves(plays.moves), now }) };
     default:
       return unknownGame(game);
   }
@@ -252,6 +297,10 @@ function finalStandings(match: BattleMatch, plays: Plays, now: number): BattleSt
       return lettersStandings(roster, lettersPlayed(plays.words));
     case "sequence":
       return sequenceStandings(roster, sequenceFlow({ startsAt: match.startsAt, roster, moves: sequenceMoves(plays.moves), now }));
+    case "water-sort": {
+      const flow = tubitosFlow({ startsAt: match.startsAt, roster, moves: tubitosMoves(plays.moves), now });
+      return tubitosStandings(roster, tubitosResults(match, plays.moves, flow), BATTLE_RULES.tubitos.boards.length);
+    }
     default:
       return unknownGame(game);
   }
@@ -459,7 +508,7 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
   const game = loaded.battle.game;
   if (!isBattleGame(game)) throw new HttpError(409, "game-not-available");
 
-  let content: BattleTriviaContent | BattleLargadaContent | BattleLettersContent | BattleSequenceContent;
+  let content: BattleTriviaContent | BattleLargadaContent | BattleLettersContent | BattleSequenceContent | BattleTubitosContent;
   switch (game) {
     case "five-questions": {
       const picked = pickQuestions(toGameDate(new Date(ctx.now)), loaded.battle.usedQuestions);
@@ -476,6 +525,9 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
       break;
     case "sequence":
       content = pickSequence();
+      break;
+    case "water-sort":
+      content = pickBoards();
       break;
     default:
       return unknownGame(game);
@@ -505,6 +557,8 @@ function standingViews(rows: readonly BattleStanding[]): StandingView[] {
     bestMs: row.bestMs,
     words: row.words,
     alive: row.alive,
+    solved: row.solved,
+    timeMs: row.timeMs,
   }));
 }
 
@@ -681,6 +735,59 @@ function sequenceView(match: BattleMatch, moves: readonly BattleMove[], flow: Ma
   };
 }
 
+/**
+ * Tubitos: each board, who already solved it (how, only once it closed),
+ * and my own version of the board being played, or of the next one a
+ * moment before it opens.
+ */
+function tubitosView(match: BattleMatch, moves: readonly BattleMove[], flow: MatchFlow<TubitosRoundFlow>, userId: string, now: number): TubitosMatchView {
+  const rules = BATTLE_RULES.tubitos;
+  const roster = rosterOf(match);
+  const { levels } = match.content as BattleTubitosContent;
+  const results = tubitosResults(match, moves, flow);
+  const closed = flow.rounds.filter((round) => round.closed).length;
+  const solvedBy = (round: TubitosRoundFlow) => moves.filter((move) => move.round === round.index && move.playedAt !== null && move.playedAt <= round.closesAt).map((move) => move.userId);
+
+  const soon = tubitosFlow({ startsAt: match.startsAt, roster, moves: tubitosMoves(moves), now: now + rules.earlyMs });
+  const last = flow.rounds.at(-1);
+  const upcoming = soon.rounds.at(-1);
+  const playing = last && !last.closed ? last : upcoming && !upcoming.closed && upcoming.index > (last?.index ?? -1) ? upcoming : null;
+  const board = playing ? playerBoard(match.id, userId, playing.index, levels[playing.index]!) : null;
+  const mine = playing ? results.find((one) => one.userId === userId && one.round === playing.index) : undefined;
+  return {
+    game: "water-sort",
+    id: match.id,
+    startsAt: match.startsAt,
+    endsAt: flow.endsAt,
+    players: match.players,
+    capacity: WATER_SORT_RULES.capacity,
+    undos: WATER_SORT_RULES.undosPerLevel,
+    boardCount: rules.boards.length,
+    rounds: flow.rounds.map((round) => ({
+      index: round.index,
+      opensAt: round.opensAt,
+      answerUntil: round.answerUntil,
+      closesAt: round.closesAt,
+      closed: round.closed,
+      nextAt: round.nextAt,
+      par: levels[round.index]!.par,
+      solved: solvedBy(round),
+      results: round.closed
+        ? roster.map(({ userId: id }) => {
+            const result = results.find((one) => one.userId === id && one.round === round.index);
+            return { userId: id, solved: Boolean(result), moves: result?.moves ?? null, timeMs: result?.timeMs ?? null, points: result?.points ?? 0 };
+          })
+        : null,
+    })),
+    current:
+      playing && board
+        ? { index: playing.index, tubes: board.tubes, par: board.par, parExact: board.parExact, opensAt: playing.opensAt, answerUntil: playing.answerUntil }
+        : null,
+    mine: mine ? { moves: mine.moves, timeMs: mine.timeMs, points: mine.points } : null,
+    standings: standingViews(tubitosStandings(roster, results, closed)),
+  };
+}
+
 function matchView(match: BattleMatch, plays: Plays, flow: Flow, userId: string, now: number): MatchView {
   switch (flow.game) {
     case "five-questions":
@@ -691,6 +798,8 @@ function matchView(match: BattleMatch, plays: Plays, flow: Flow, userId: string,
       return lettersView(match, plays.words, flow.flow, userId, now);
     case "sequence":
       return sequenceView(match, plays.moves, flow.flow, userId, now);
+    case "water-sort":
+      return tubitosView(match, plays.moves, flow.flow, userId, now);
     default:
       return unknownGame(flow);
   }
@@ -854,6 +963,32 @@ export async function battleRepeat(db: Queryable, user: User, battleId: string, 
   const inputs = input.inputs.slice(0, round.length);
   if (!(await recordRepeat(db, { matchId: match.id, userId: user.id, round: input.round, at: ctx.now, correct, inputs }))) throw new HttpError(409, "already-played");
   return { ok: true, correct };
+}
+
+/**
+ * A solved board of Tubitos: its steps, replayed on this player's version
+ * of the board and scored like the daily challenge's. Steps that don't
+ * solve it are refused; pours faster than the screen allows go to the logs.
+ */
+export async function battleSolve(
+  db: Queryable,
+  user: User,
+  battleId: string,
+  input: { round: number; log: WaterSortLog["levels"][number] },
+  ctx: BattleContext,
+): Promise<TubitosSolveResponse> {
+  const loaded = await load(db, battleId);
+  requireOpen(loaded.battle);
+  requirePlayer(loaded, user);
+  const match = requireInMatch(loaded.match, user.id, "water-sort");
+  const flow = tubitosFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: tubitosMoves(loaded.plays.moves), now: ctx.now });
+  const round = flow.rounds.find((one) => one.index === input.round && !one.closed);
+  if (!round || ctx.now < round.opensAt) throw new HttpError(409, "round-closed");
+  const graded = tubitosGrade(match, user.id, input.round, input.log, ctx.now - round.opensAt);
+  if (!graded.result.solved) throw new HttpError(400, "not-solved");
+  if (graded.fast) console.warn(JSON.stringify({ event: "suspicious-battle-tubitos", battle: battleId, user: user.id, round: input.round }));
+  if (!(await recordSolve(db, { matchId: match.id, userId: user.id, round: input.round, at: ctx.now, log: input.log }))) throw new HttpError(409, "already-played");
+  return { ok: true, moves: graded.result.moves, timeMs: graded.result.timeMs, points: graded.result.points };
 }
 
 /**

@@ -406,6 +406,8 @@ export interface BattleMove {
   /** Secuencia: whether they repeated it right, and the colors they tapped. */
   correct: boolean | null;
   inputs: number[] | null;
+  /** Tubitos: the steps of a solved board (validated by the app). */
+  log: unknown;
 }
 
 export async function matchMoves(db: Queryable, matchId: string): Promise<BattleMove[]> {
@@ -419,9 +421,10 @@ export async function matchMoves(db: Queryable, matchId: string): Promise<Battle
     false_start: boolean | null;
     correct: boolean | null;
     inputs: string | null;
+    log: string | null;
   }>(
     `select user_id, round, ${ms('shown_at', 'shown_at')}, ${ms('played_at', 'played_at')}, choice, reaction_ms, false_start,
-       correct, to_jsonb(inputs)::text as inputs
+       correct, to_jsonb(inputs)::text as inputs, log::text as log
      from game.battle_moves where match_id = $1::uuid
      order by round, played_at nulls last, user_id`,
     [matchId],
@@ -436,6 +439,7 @@ export async function matchMoves(db: Queryable, matchId: string): Promise<Battle
     falseStart: row.false_start,
     correct: row.correct,
     inputs: row.inputs === null ? null : (JSON.parse(row.inputs) as number[]),
+    log: row.log === null ? null : JSON.parse(row.log),
   }));
 }
 
@@ -485,6 +489,18 @@ export async function recordRepeat(db: Queryable, input: { matchId: string; user
      on conflict (match_id, user_id, round) do nothing
      returning 1`,
     [input.matchId, input.userId, input.round, input.at, input.correct, JSON.stringify(input.inputs)],
+  );
+  return rows.length > 0;
+}
+
+/** A solved board of Tubitos, with its steps, once per player and board. False if this player already sent this one. */
+export async function recordSolve(db: Queryable, input: { matchId: string; userId: string; round: number; at: number; log: unknown }): Promise<boolean> {
+  const rows = await db.query(
+    `insert into game.battle_moves (match_id, user_id, round, played_at, correct, log)
+     values ($1::uuid, $2::uuid, $3::int, ${at('$4')}, true, $5::text::jsonb)
+     on conflict (match_id, user_id, round) do nothing
+     returning 1`,
+    [input.matchId, input.userId, input.round, input.at, JSON.stringify(input.log)],
   );
   return rows.length > 0;
 }
