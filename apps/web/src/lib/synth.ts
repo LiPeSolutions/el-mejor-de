@@ -7,7 +7,7 @@
 
 type Ctx = BaseAudioContext;
 
-interface Voice {
+export interface Voice {
   type?: OscillatorType;
   freq: number;
   /** Glides here by the end. */
@@ -23,7 +23,7 @@ interface Voice {
   vibrato?: number;
 }
 
-function voice(ctx: Ctx, out: AudioNode, v: Voice): void {
+export function voice(ctx: Ctx, out: AudioNode, v: Voice): void {
   const osc = ctx.createOscillator();
   osc.type = v.type ?? "sine";
   osc.frequency.setValueAtTime(v.freq, v.start);

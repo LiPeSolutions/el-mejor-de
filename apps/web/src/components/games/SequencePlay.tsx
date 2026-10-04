@@ -7,7 +7,7 @@ import { cx } from "@/components/ui/cx";
 import { Screen } from "@/components/ui/Screen";
 import { api } from "@/lib/api";
 import type { StartView } from "@/lib/challenge-types";
-import { playSound } from "@/lib/sound";
+import { duckMusic, playSound, restoreMusic } from "@/lib/sound";
 import { GameHeader, ScoreRow } from "./chrome";
 
 type View = Extract<StartView, { game: "sequence" }>;
@@ -82,6 +82,13 @@ export function SequencePlay({ view, token, record, onProgress, onFinish, onExit
   }, [phase, sequence]);
 
   useEffect(() => () => clearTimers(), []);
+
+  // While the sequence shows, the music steps back so its notes are heard.
+  useEffect(() => {
+    if (phase === "watch") duckMusic(0.3);
+    else restoreMusic();
+  }, [phase]);
+  useEffect(() => () => restoreMusic(), []);
 
   const flash = (pad: number) => {
     setActive(pad);

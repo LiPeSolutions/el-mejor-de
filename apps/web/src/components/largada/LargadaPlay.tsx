@@ -12,7 +12,7 @@ import { useMediaQuery } from "@/lib/hooks";
 import { SoundToggle } from "@/components/ui/Sound";
 import { RACE, departures, inSentence, noseAt, ordinal, placements, raceEndMs, startSummary } from "@/lib/largada";
 import type { LargadaStart } from "@/lib/largada-types";
-import { playSound, vibrate } from "@/lib/sound";
+import { duckMusic, playSound, restoreMusic, vibrate } from "@/lib/sound";
 import { CAR } from "./Car";
 import type { Racer } from "./field";
 import { Track, carScaleFor, laneHeightFor, type ChipSpec, type ChipTone, type TrackLane } from "./Track";
@@ -184,6 +184,15 @@ export function LargadaPlay({ view, field, article, onProgress, onFinish, onExit
     setT(0);
     scheduleLights(round + 1);
   };
+
+  // The music steps back while the lights go on, for the tension, and comes back with the race, after the tap.
+  // It doesn't move at the signal, so it never tells when to go.
+  const hushed = phase === "lights" || phase === "go";
+  useEffect(() => {
+    if (hushed) duckMusic(0.35);
+    else restoreMusic();
+  }, [hushed]);
+  useEffect(() => () => restoreMusic(), []);
 
   const begin = useEffectEvent(() => scheduleLights(0));
   useEffect(() => {

@@ -1,0 +1,26 @@
+import { describe, expect, it } from "vitest";
+import { SONGS, type SongKey } from "./music";
+import { fakeAudioContext } from "./testing/fake-audio";
+
+describe("the app's music", () => {
+  it.each(Object.keys(SONGS) as SongKey[])("%s plays every step of its loop on time", (key) => {
+    const song = SONGS[key];
+    const { ctx, ramps, starts } = fakeAudioContext();
+    const sixteenth = 60 / song.bpm / 4;
+    const steps = song.bars * 16;
+    for (let step = 0; step < steps; step++) {
+      const before = starts.length;
+      const t = 1 + step * sixteenth;
+      song.step(ctx, ctx.destination, t, step, sixteenth);
+      expect(starts.slice(before).every((start) => start >= t)).toBe(true);
+    }
+    // Every bar plays something (Secuencia's is sparse on purpose).
+    expect(starts.length).toBeGreaterThanOrEqual(song.bars * 4);
+    expect(ramps.every((ramp) => ramp.value > 0)).toBe(true);
+  });
+
+  it("goes faster in Largada than in the trivia, and calmest in Secuencia", () => {
+    expect(SONGS.largada.bpm).toBeGreaterThan(SONGS.preguntas.bpm);
+    expect(SONGS.secuencia.bpm).toBeLessThan(Math.min(SONGS.menu.bpm, SONGS.letras.bpm, SONGS.preguntas.bpm));
+  });
+});

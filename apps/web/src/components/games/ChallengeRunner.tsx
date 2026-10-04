@@ -18,7 +18,8 @@ import { useIsClient } from "@/lib/hooks";
 import { saveLargadaRace } from "@/lib/largada-session";
 import type { LargadaGridResponse } from "@/lib/largada-types";
 import { lastGroupId, rememberGroup } from "@/lib/last-group";
-import { unlockSound } from "@/lib/sound";
+import type { SongKey } from "@/lib/music";
+import { unlockSound, useMusic } from "@/lib/sound";
 import { loadDay, practiceRecords, saveAttempt, savePracticeResult, updateAttempt } from "@/lib/storage";
 import { useRequest } from "@/lib/use-request";
 import { ExitDialog } from "./chrome";
@@ -46,6 +47,9 @@ function emptyLog(game: GameId): unknown {
       return { levels: [] };
   }
 }
+
+/** Each game's song, from its intro to its last move. */
+const SONG_FOR: Record<GameId, SongKey> = { "seven-letters": "letras", "five-questions": "preguntas", reflexes: "largada", sequence: "secuencia" };
 
 /** Largada's grid, or a race against the clock if it takes too long. */
 function loadGrid(groupId: string | null): Promise<LargadaGridResponse> {
@@ -78,6 +82,8 @@ function Runner(props: Props) {
     if (previous?.status === "finished") return "redirecting";
     return resumable ? "finishing" : "intro";
   });
+  // The game's song from its intro; one already played just goes on to its result.
+  useMusic(stage === "redirecting" ? "menu" : SONG_FOR[base.id]);
   const [start, setStart] = useState<StartResponse | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);

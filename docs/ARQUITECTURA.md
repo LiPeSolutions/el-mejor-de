@@ -175,8 +175,12 @@ Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLA
 - **El parlante** (`apps/web/src/lib/sound.ts`): un solo `AudioContext` para toda la app, con un limitador para que los sonidos encimados no saturen. Los navegadores solo dejan sonar después de un toque: `SoundUnlock` (en el layout) lo abre en el primero y lo reabre si el celu lo pausó. En el iPhone usa la sesión de audio "ambient": respeta la tecla de silencio y no corta la música que esté sonando.
 - **Prendido o apagado:** arranca prendido; apagarlo queda en el celu (`emd:sonido`). Se cambia con el parlante de la cabecera de los juegos (`SoundToggle`) o en el perfil (`SoundSetting`).
 - **Cuándo suena:** cada juego llama a `playSound` en el momento justo (al tocar, al corregir, en los últimos segundos). Los resultados cuentan el puntaje con un sonido (`useResultSound`); el récord, la corona y el día cerrado (una vez por día, `emd:sonido-dia`) tienen su cortina.
-- **Juego limpio:** nada que suene da información que la pantalla no muestre. La señal de Largada no suena: el motor arranca después del toque.
-- **Pruebas:** `synth.test.ts` revisa con un contexto de mentira que cada sonido arranque cuando debe, dure lo que dice y no rompa Web Audio (una rampa exponencial a cero da error). Cómo suenan se escucha en la página de sonidos.
+- **Música** (`apps/web/src/lib/music.ts`): cinco loops de 8 compases, uno para los menús ("Plaza") y uno por juego ("Ingenio", "Concurso", "Carrera" y "Memoria"). Cada canción dibuja cada semicorchea, y un programador las agenda un poco por adelantado para que el loop no se corte. Los bajos van una octava más arriba que en un disco, porque los parlantes de los celus casi no tocan por debajo de 150 Hz.
+- **Qué canción suena:** la de los menús, salvo que una pantalla pida otra con `useMusic`. `ChallengeRunner` pide la del juego desde la pantalla de antes de empezar. Al cambiar de canción hay un fundido, y entre menús no se reinicia. Va por su propio canal, más bajo que los efectos (`MUSIC_LEVEL`), y se pausa cuando la app queda en segundo plano.
+- **Cuándo baja:** mientras se prenden las luces de Largada y mientras se muestra la secuencia de Secuencia (`duckMusic`), y sola mientras suena una cortina o el puntaje del resultado.
+- **Música aparte:** el parlante de los juegos apaga todo; en el perfil, "Música" la apaga sin tocar los efectos (`emd:musica`).
+- **Juego limpio:** nada que suene da información que la pantalla no muestre. La señal de Largada no suena: el motor arranca después del toque, y la música baja al prenderse las luces, no al apagarse.
+- **Pruebas:** `synth.test.ts` y `music.test.ts` revisan con un contexto de mentira (`lib/testing/fake-audio.ts`) que cada sonido y cada compás arranque cuando debe y no rompa Web Audio (una rampa exponencial a cero da error). Cómo suenan se escucha en las páginas de sonidos y de música.
 
 ### Contrato de cada juego
 

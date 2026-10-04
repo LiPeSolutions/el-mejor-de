@@ -15,7 +15,7 @@
    - Esa base no trae los lugares (en Supabase se cargan con `import-places.sql`, que corre adentro de la base). Para probar Tu lugar y los rankings, cargá después de las migraciones `supabase/scripts/places-sample.sql`: el país, las provincias, los barrios de la Ciudad y los pueblos alrededor de Chivilcoy.
 5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`). El GPS se simula con `geolocation: { latitude, longitude, accuracy }` y `permissions: ["geolocation"]` en el contexto; sin el permiso, el navegador lo niega.
 
-## Estado actual (3/10/2026, noche)
+## Estado actual (4/10/2026)
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
@@ -37,7 +37,8 @@
   - Ya está en la práctica. En el reto del día rige desde el 4/10, y el primer día con reto de reflejos es el **lunes 5/10**. El 3/10 sigue el Reflejos de antes.
   - **Bots** (Rayo, Chispa, Turbo y Tortuga): en la práctica completan la pista; en el reto del día corren solo si no hay nadie más.
 - **Sonido:** efectos en los cuatro juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
-- **Pruebas:** 297 automáticas, todas pasan.
+- **Música:** un loop para el menú y uno por juego, más bajo que los efectos. Se apaga aparte en el perfil.
+- **Pruebas:** 303 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
 - **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
@@ -55,6 +56,27 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Música
+
+- **Pedido de la responsable del producto:** una melodía en loop para el menú y otra para cada juego, que tengan que ver con cada uno ("en Largada, una más rápida o intensa que en la trivia"). La escuchó en una página de prueba antes de sumarla, y dio el ok.
+- **Las cinco melodías** (`lib/music.ts`, hechas con código como los sonidos):
+  - **Menú, "Plaza":** alegre, con aire de cumbia, a 104 por minuto.
+  - **Diez Letras, "Ingenio":** marimba juguetona y tranquila, a 96.
+  - **Cinco Preguntas, "Concurso":** suspenso de programa de preguntas, a 112.
+  - **Largada, "Carrera":** la más rápida e intensa, a 150.
+  - **Secuencia, "Memoria":** calma, con un reloj de fondo, a 84.
+- **Cómo funciona:**
+  - Suena la del menú en el inicio, la práctica, el ranking, los grupos y el perfil. Cada juego pone la suya desde la pantalla de antes de empezar.
+  - Al cambiar de pantalla pasa de una a otra con un fundido corto, y entre menús no se corta.
+  - Va más baja que los efectos y baja más mientras suena una cortina o el puntaje.
+  - En Largada baja mientras se prenden las luces y no cambia en la señal, así no avisa cuándo largar. En Secuencia baja mientras se muestra la secuencia.
+  - Se pausa cuando la app queda en segundo plano.
+  - El parlante de los juegos apaga todo. En el perfil, "Música" la apaga y deja los efectos.
+- **Pruebas:** 303 automáticas (6 nuevas: cada compás de cada canción arranca a tiempo y sin errores de audio). En el navegador:
+  - no suena nada antes del primer toque, y después arranca la del menú;
+  - sigue entre menús sin cortarse, cada juego tiene la suya y al salir vuelve la del menú;
+  - el parlante y el perfil la apagan, y se pausa en segundo plano.
 
 ### 3/10/2026 (noche) — Sonido
 

@@ -17,6 +17,7 @@
 - ✅ Grupos privados con su ranking del día y de la semana, invitación por link o código, y corona semanal en vivo (festejo y palmarés).
 - ✅ Tu lugar con GPS y rankings por barrio, provincia y país, cada uno con su corona en vivo.
 - ✅ Largada, el nuevo juego de reflejos: una largada de autos contra los tiempos de hoy de tu grupo (y bots en la práctica), con podio, foto de llegada para compartir y la corona en juego. En el reto del día desde el 4/10/2026.
+- ✅ Sonidos y música hechos con código: efectos en cada juego, cortinas para el récord, el día cerrado y la corona, y un loop para el menú y cada juego.
 - ⏳ Vincular con Google.
 
 ## Documentos

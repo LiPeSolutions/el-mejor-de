@@ -2,7 +2,7 @@
 
 import { Volume2, VolumeX } from "lucide-react";
 import { useEffect } from "react";
-import { setSoundOn, unlockSound, useSoundOn } from "@/lib/sound";
+import { setMusicOn, setSoundOn, unlockSound, useMusicOn, useSoundOn } from "@/lib/sound";
 import { cx } from "./cx";
 import { IconButton } from "./IconButton";
 
@@ -29,25 +29,42 @@ export function SoundToggle({ tone = "white" }: { tone?: "white" | "light" | "gl
   );
 }
 
-/** "Sonido" with its switch, for the profile. */
+function Switch({ label, on, disabled = false, onChange }: { label: string; on: boolean; disabled?: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!on)}
+      className={cx("relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40", on ? "bg-brand" : "bg-ink-200")}
+    >
+      <span className={cx("absolute top-1 left-1 size-5 rounded-full bg-white shadow-sm transition-transform", on && "translate-x-5")} />
+    </button>
+  );
+}
+
+/** "Sonido" (everything) and "Música" (only the songs), for the profile. */
 export function SoundSetting() {
   const on = useSoundOn();
+  const music = useMusicOn();
   return (
-    <div className="flex items-center justify-between gap-3 rounded-row bg-white px-4 py-3 shadow-sm">
-      <div className="min-w-0">
-        <div className="text-sm font-bold">Sonido</div>
-        <div className="text-xs font-semibold text-ink-500">{on ? "Con el modo silencio del celu no suena" : "Apagado en este celu"}</div>
+    <div className="rounded-row bg-white px-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3 py-3">
+        <div className="min-w-0">
+          <div className="text-sm font-bold">Sonido</div>
+          <div className="text-xs font-semibold text-ink-500">{on ? "Con el modo silencio del celu no suena" : "Apagado en este celu"}</div>
+        </div>
+        <Switch label="Sonido" on={on} onChange={setSoundOn} />
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        aria-label="Sonido"
-        onClick={() => setSoundOn(!on)}
-        className={cx("relative h-7 w-12 shrink-0 rounded-full transition-colors", on ? "bg-brand" : "bg-ink-200")}
-      >
-        <span className={cx("absolute top-1 left-1 size-5 rounded-full bg-white shadow-sm transition-transform", on && "translate-x-5")} />
-      </button>
+      <div className="flex items-center justify-between gap-3 border-t border-line py-3">
+        <div className={cx("min-w-0", !on && "opacity-50")}>
+          <div className="text-sm font-bold">Música</div>
+          <div className="text-xs font-semibold text-ink-500">{!on ? "Con el sonido apagado no suena" : music ? "La del menú y la de cada juego" : "Solo los efectos"}</div>
+        </div>
+        <Switch label="Música" on={on && music} disabled={!on} onChange={setMusicOn} />
+      </div>
     </div>
   );
 }
