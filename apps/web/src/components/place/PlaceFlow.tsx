@@ -65,7 +65,7 @@ type Step =
 interface FlowProps {
   /** Where to go when done. */
   back: string;
-  /** Right after creating the account: "Paso 2 de 2". */
+  /** Right after creating the account: "Paso 3 de 3" (the character and the apodo came first). */
   signup: boolean;
   /** Straight to the check of the place already chosen. */
   verify: boolean;
@@ -171,7 +171,7 @@ function Flow({ account, back, signup, verify }: FlowProps & { account: PublicAc
     }
   };
 
-  const label = signup ? "Paso 2 de 2" : "Tu lugar";
+  const label = signup ? "Paso 3 de 3" : "Tu lugar";
   const header = <Header onBack={signup && trail.length === 1 ? undefined : goBack} label={label} />;
   const later = <TextButton onClick={leave}>Más tarde</TextButton>;
 

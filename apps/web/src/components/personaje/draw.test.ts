@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { avatarLook } from "./avatar";
 import { drawCharacter, type Look, type SvgNode } from "./draw";
 import { lookOf } from "./Personaje";
+import { RIGS } from "./rig";
 
 /*
  * The drawing against Claude Design's reference SVGs (docs/diseno/
@@ -196,6 +197,24 @@ describe("drawing", () => {
     expect(JSON.stringify(drawCharacter({ sp: "hornero", pose: "jump", animate: true }, "t"))).toContain("land");
     // In a badge, nothing moves.
     expect(JSON.stringify(drawCharacter({ sp: "hornero", pose: "cheer", animate: true, badge: true }, "t"))).not.toContain("swing");
+  });
+
+  it("crops a square around the head, or the head and shoulders, in every species", () => {
+    for (const sp of AVATAR_SPECIES) {
+      const { T, hw, hc = T + hw, neckY } = RIGS[sp]().A;
+      for (const crop of ["head", "bust"] as const) {
+        const drawing = drawCharacter({ sp, crop, head: "sombrero" }, "t");
+        const [x, y, w, h] = drawing.viewBox.split(" ").map(Number) as [number, number, number, number];
+        expect(w, `${sp} · ${crop}`).toBe(h);
+        expect(drawing.ratio).toBe(1);
+        expect(x).toBeLessThanOrEqual(50 - hw);
+        expect(x + w).toBeGreaterThanOrEqual(50 + hw);
+        expect(y).toBeLessThan(T);
+        expect(y + h).toBeGreaterThan(crop === "bust" ? neckY : hc + hw);
+        // Without the floor's shadow: right after the defs comes the character.
+        expect(drawing.children[1]!.tag).toBe("g");
+      }
+    }
   });
 
   it("names its clip paths after the ids it gets", () => {

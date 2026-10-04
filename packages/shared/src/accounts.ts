@@ -220,21 +220,22 @@ export interface Avatar {
 
 export const DEFAULT_AVATAR: Avatar = { species: 'hornero', color: 'natural', accessory: 'anteojos' };
 
-const PALETTE_COLORS = AVATAR_COLORS.filter((color): color is AvatarPaletteColor => color !== 'natural');
+/** The palette, without "natural": details, clothes and the badge's background. */
+export const AVATAR_PALETTE_COLORS = AVATAR_COLORS.filter((color): color is AvatarPaletteColor => color !== 'natural');
 
 /** The optional fields: the values each one takes, and whether it can be null ("nothing"). */
 const OPTIONAL_FIELDS = {
-  detail: { values: PALETTE_COLORS, nullable: true },
+  detail: { values: AVATAR_PALETTE_COLORS, nullable: true },
   eyes: { values: AVATAR_EYES, nullable: false },
   hair: { values: AVATAR_HAIR, nullable: true },
   marks: { values: AVATAR_MARKS, nullable: true },
   outfit: { values: AVATAR_OUTFITS, nullable: true },
-  outfitColor: { values: PALETTE_COLORS, nullable: false },
+  outfitColor: { values: AVATAR_PALETTE_COLORS, nullable: false },
   head: { values: AVATAR_HEADWEAR, nullable: true },
   face: { values: AVATAR_FACEWEAR, nullable: true },
   neck: { values: AVATAR_NECKWEAR, nullable: true },
   hand: { values: AVATAR_HELD, nullable: true },
-  background: { values: PALETTE_COLORS, nullable: false },
+  background: { values: AVATAR_PALETTE_COLORS, nullable: false },
 } as const satisfies Partial<Record<keyof Avatar, { values: readonly string[]; nullable: boolean }>>;
 
 /**
@@ -286,6 +287,11 @@ export function avatarWear(avatar: Avatar): {
     neck: avatar.neck !== undefined ? avatar.neck : zone === 'neck' ? (old as AvatarNeckwear) : null,
     hand: avatar.hand !== undefined ? avatar.hand : zone === 'hand' ? (old as AvatarHeld) : null,
   };
+}
+
+/** The same character with every zone spelled out and no first-version accessory: how the editor saves it. */
+export function avatarWithZones(avatar: Avatar): Avatar {
+  return { ...avatar, accessory: null, ...avatarWear(avatar) };
 }
 
 /** How the crown names the player: "El Mejor de…" or "La Mejor de…". */

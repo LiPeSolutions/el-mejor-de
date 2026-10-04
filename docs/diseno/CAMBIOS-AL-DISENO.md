@@ -35,7 +35,7 @@ El handoff original está en [`handoff/`](handoff/README.md). Al implementarlo, 
 | Festejo de corona (28 y 29) | Botón "Ver el ranking de la semana" blanco 18 % sobre las nubes | Las nubes van sobre una franja blanca abajo, con "Ver el grupo" (o "Ver el ranking", en las de un lugar) en azul claro y el pie en gris oscuro: se leen bien. Para un lugar: "¡Sos El Mejor de Caballito!", "…de la Ciudad de Buenos Aires!" o "…de Argentina!", con el nombre en dorado. Si jugó uno solo: "…porque fuiste el único que jugó. ¿Te animás a invitar a alguien?". Si empataron: "Empataste con Juli, pero llegaste primero" | Contraste y casos reales |
 | Palmarés (27) | Tarjetas doradas del lugar | Tarjetas doradas por grupo ("LOS DEL LABURO · Semana 41 · 1.300 pts") y por lugar (con un pin: "CABALLITO", "CIUDAD DE BUENOS AIRES", "ARGENTINA") en una fila que se desliza; tocar una vuelve a mostrar el festejo. Sin coronas: "Ver el ranking" | Coronas de grupos y de lugares |
 | Crear cuenta (17) | "Continuar con Google" o "con email", y el podio real de tu localidad | "Crear mi cuenta" (apodo y contraseña) o "Ya tengo cuenta". Podio decorativo, sin puntajes, y tres beneficios (sin email, lo de hoy pasa a tu cuenta, cualquier celu) | Decisión de producto (3/10/2026): cuentas sin email. Todavía no hay ranking para mostrar puestos reales |
-| Apodo y personaje (18) | Apodo, bicho, color y accesorio; "Paso 1 de 2" | Suma la contraseña y "¿Cómo querés que te nombremos?" (El / La Mejor, sin opción marcada de entrada). "Paso 1 de 2", y el paso 2 es tu lugar; quien viene de una invitación a un grupo va directo a sumarse y elige el lugar después. El anillo azul marca bicho, color y accesorio elegidos | Cuentas con contraseña; El / La se elige al crear la cuenta |
+| Apodo y personaje (18) | Apodo, bicho, color y accesorio; "Paso 1 de 2" | Desde el 4/10/2026 es el **editor de personaje** (ver [Editor de personaje](#editor-de-personaje)): "Paso 1 de 3", el personaje; "Paso 2 de 3", apodo, contraseña y "¿Cómo querés que te nombremos?" (El / La Mejor, sin opción marcada de entrada); "Paso 3 de 3", tu lugar. Quien viene de una invitación a un grupo hace los dos primeros, se suma y elige el lugar después | Cuentas con contraseña; El / La se elige al crear la cuenta; el editor, diseñado aparte |
 | Entrar | No está diseñado | Apodo y contraseña, con "¿Te olvidaste la contraseña?" (sin email todavía no se recupera) | Hace falta para volver a entrar |
 | Perfil (27) | Coronas, podios, palmarés y récords | Racha, días jugados, mejor día y semana; palmarés con las coronas de grupos y lugares; récords de práctica; "Tu lugar" (Chivilcoy · verificado) con "Cambiar", "Verificar" o "Elegir"; "Vincular con Google · Muy pronto" y "Salir de la cuenta". Editar personaje reusa la pantalla 18 | Todavía no guardamos los podios de cada día |
 | Antes de empezar un reto | No lo contempla | Si el celu conoce una cuenta pero no entraste: "No entraste como Tincho: este reto no va a quedar en tu cuenta · Entrar" | Para no perder un reto por jugarlo sin cuenta |
@@ -107,5 +107,24 @@ El diseño está en [`handoff-personajes/`](handoff-personajes/PERSONAJES.md) (e
 | Número de la camiseta | Outfit; sin número, el 10, y el 0 también da 10 | Outfit, la letra de la app; el 0 es 0 | El 0 es un número válido |
 | Nombres de las props (§7) | `pose`, `view`, `facing`, `badge` | Esos, más `badgeColor`, `crown` (la corona en la cabeza) y `faceWear` para el accesorio de la cara | `face` ya es la expresión |
 | Los datos de ejemplo | Sin `color` ni `accessory`, y con `hasCrown` | Los campos que faltan valen "natural" y nada; `hasCrown` no se guarda | La corona no se guarda: se gana |
-| Editor (§11) | Fuera de este paquete | La pantalla de personaje de hoy ofrece los 17 bichos, en tres filas de seis; color y accesorio, como antes | Decisión de producto (4/10/2026): el editor llega en otro paquete |
+| Editor (§11) | Fuera de este paquete | Llegó en su propio paquete: ver [Editor de personaje](#editor-de-personaje) | Decisión de producto (4/10/2026) |
+
+## Editor de personaje
+
+El diseño está en [`handoff-editor/`](handoff-editor/EDITOR.md) (dirección 1a, «Vitrina fija»): la tarjeta azul con el personaje queda fija y abajo un cajón con todas las opciones, en una lista y cinco pestañas. Sirve para crear la cuenta (el paso 1) y para editar (se guarda solo). Al implementarlo, estas cosas cambian respecto de esa guía:
+
+| Tema | En el diseño | Lo que se implementa | Por qué |
+|---|---|---|---|
+| Fila de ejemplo del ranking (Fondo) | «feli», al editar | Al crear la cuenta dice «Tu apodo» | El apodo se elige recién en el paso 2 |
+| Corona en la tarjeta (§12) | «La tarjeta la muestra igual que hoy» | No se muestra, como hasta ahora | La tarjeta del personaje nunca la mostró |
+| Botón atrás del celu (§3, opcional) | Opcional | En el paso 2 vuelve al paso 1, como la flecha | Es lo que se espera de ese botón |
+| Volver desde «Tu lugar» | No está en la guía | Con la cuenta ya creada, no aparece otra vez el paso 1: te lleva adonde ibas | La cuenta ya está hecha |
+| Lo escrito en el paso 2 | No está en la guía | El apodo, la contraseña y El / La siguen ahí si volvés al paso 1 y seguís | «Sin perder nada» |
+| Error del servidor al guardar | Cuatro estados del chip: reposo, guardando, guardado y sin conexión | Si el servidor responde con un error (por ejemplo, se cerró la sesión), el chip dice «No se guardó» y abajo aparece el motivo, como antes | «Sin conexión» no sería cierto |
+| Volver sin respuesta en 3 s (§8) | «Se sale cuando responde (hasta 3 s)» | A los 3 s sin respuesta no sale: avisa «No se guardó tu personaje», como si hubiera fallado, y un segundo toque sale igual | Que no se pierda el último cambio sin avisar |
+| El aviso «No se guardó tu personaje» | Sin lugar fijo | Abajo, sobre el cajón | Arriba tapaba la tarjeta |
+| Celdas al cambiar algo (§6) | Memoizar cada celda; si hace falta, dibujar solo lo cercano | La tarjeta y la celda elegida responden al toque, y las celdas se redibujan un momento después, sin trabar la pantalla. Cada parte del cajón se redibuja solo si cambia lo que muestra | Con el procesador 4 veces más lento, la tarjeta responde en menos de 100 ms y las celdas en medio segundo |
+| Pestañas | Separadas por igual (`space-between`), 11 px a cada lado | Cada una con su ancho y el espacio que sobra repartido entre las cinco | Así entran también en celus de 360 px |
+| Nube de la tarjeta | 210 px | 178 px en pantallas de 380 px de ancho o menos | En celus angostos se metía debajo de Deshacer, que es transparente |
+| El número de la camiseta | Stepper de 0 a 99 | Igual, con «−» apagado en 0 y «+» en 99 | No pasarse del rango |
 

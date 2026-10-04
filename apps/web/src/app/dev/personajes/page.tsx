@@ -41,6 +41,12 @@ const EXAMPLES: { name: string; crown?: boolean; avatar: Partial<Avatar> }[] = [
   { name: "Colo_88", avatar: { species: "perro", color: "dorado", marks: "parche", outfit: "rayada", outfitColor: "azul", head: "gorra", hand: "banderin", background: "azul" } },
 ];
 
+/** The editor's two crops (the cells of Cara and Accesorios), with what goes there on. */
+const CROPS: { name: string; props: Partial<PersonajeProps> }[] = [
+  { name: "Cabeza", props: { crop: "head", head: "sombrero", eyes: "brillo" } },
+  { name: "Busto", props: { crop: "bust", marks: "manchas", outfit: "camiseta", neck: "bufanda" } },
+];
+
 const CAST_COLUMNS = COLUMNS.filter((column) => ["Frente", "¾ derecha", "Saludo", "Salto", "Corona", "Avatar"].includes(column.name));
 
 /** `file`: the reference to compare with (scripts/qa/personajes.cjs). */
@@ -98,6 +104,24 @@ export default function DevCharacters() {
                   props={{ ...(column.props.badge ? badgeLook(avatar) : avatarLook(avatar)), crown, ...column.props }}
                   file={`ejemplos/${name.toLowerCase()}/${column.file}`}
                 />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2 className="mt-10 font-display text-3xl font-extrabold tracking-[-.02em]">Recortes del editor</h2>
+      <table className="mt-4 border-separate border-spacing-0 rounded-3xl bg-white shadow-md">
+        <tbody>
+          {CROPS.map((crop) => (
+            <tr key={crop.name}>
+              <th className="px-4 text-left font-display text-[17px] font-extrabold">{crop.name}</th>
+              {AVATAR_SPECIES.map((sp) => (
+                <td key={sp} className="px-1.5 py-3">
+                  <div className="grid h-[76px] w-20 place-items-center overflow-hidden rounded-row bg-surface-2">
+                    <Personaje sp={sp} {...crop.props} size={62} title={`${SPECIES_NAMES[sp]} · ${crop.name}`} />
+                  </div>
+                </td>
               ))}
             </tr>
           ))}

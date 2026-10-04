@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { AVATAR_SPECIES, DEFAULT_AVATAR, avatarWear, checkPassword, checkUsername, isUsernameBlocked, parseAvatar, usernameKey, type Avatar } from './accounts';
+import {
+  AVATAR_ACCESSORIES,
+  AVATAR_SPECIES,
+  DEFAULT_AVATAR,
+  avatarWear,
+  avatarWithZones,
+  checkPassword,
+  checkUsername,
+  isUsernameBlocked,
+  parseAvatar,
+  usernameKey,
+  type Avatar,
+} from './accounts';
 
 describe('usernameKey', () => {
   it('ignores case and accents, like the database', () => {
@@ -158,5 +170,22 @@ describe('avatarWear', () => {
     expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'anteojos', face: null }).face).toBeNull();
     // A zone the old accessory doesn't go to doesn't touch it.
     expect(avatarWear({ species: 'zorro', color: 'natural', accessory: 'anteojos', head: null }).face).toBe('anteojos');
+  });
+});
+
+describe('avatarWithZones', () => {
+  it('moves the old accessory to its zone and spells out the four zones', () => {
+    expect(avatarWithZones(DEFAULT_AVATAR)).toEqual({ species: 'hornero', color: 'natural', accessory: null, head: null, face: 'anteojos', neck: null, hand: null });
+    for (const accessory of AVATAR_ACCESSORIES) {
+      const old: Avatar = { species: 'zorro', color: 'coral', accessory, eyes: 'brillo' };
+      const zones = avatarWithZones(old);
+      expect(avatarWear(zones)).toEqual(avatarWear(old));
+      expect(parseAvatar(zones)).toEqual(zones);
+      expect(zones).toMatchObject({ accessory: null, eyes: 'brillo', color: 'coral' });
+    }
+  });
+
+  it('keeps the zones already set', () => {
+    expect(avatarWithZones({ species: 'gato', color: 'natural', accessory: 'boina', head: 'mono', hand: 'celu' })).toMatchObject({ accessory: null, head: 'mono', face: null, neck: null, hand: 'celu' });
   });
 });

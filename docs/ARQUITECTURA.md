@@ -209,6 +209,16 @@ Los personajes 2.0 (17 bichos, tres cuartos, 6 poses y avatar redondo) se dibuja
 - **Uso:** `avatarLook` da las props de un jugador y `badgeLook`, las del avatar redondo. Las props de antes siguen andando (`acc`, `prop` de las mascotas, `scarf`, `frame` del casco de Largada); las nuevas son `pose`, `view`, `facing`, `badge`, `badgeColor`, `crown` y una por cada opción. Cada personaje usa `useId` para sus recortes, así dos en la misma pantalla no se pisan.
 - **Movimiento:** el festejo sube los brazos y el salto aterriza (`animate-pj-swing` y `animate-pj-land` en `globals.css`). Fuera del avatar redondo, y apagado si el celu pide menos movimiento.
 - **Pruebas:** `draw.test.ts` compara cada bicho en cada vista y pose, los 8 ejemplos y cada opción con los 200 SVG de referencia, pieza por pieza. En el navegador, `/dev/personajes` (solo en desarrollo) muestra la hoja de modelos, y `scripts/qa/personajes.cjs` la compara píxel por píxel con esos SVG.
+- **El editor** (`apps/web/src/components/account/`; el diseño, en [`handoff-editor`](diseno/handoff-editor/EDITOR.md)):
+  - `CharacterEditor.tsx` arma la tarjeta fija y el cajón: las pestañas, que siguen al scroll; las secciones, y sus celdas. También tiene `useEditorHistory`, el Deshacer: una pila de estados en la que varios toques seguidos al número cuentan como uno.
+  - `CharacterForm.tsx` lo usa para crear la cuenta en pasos. El paso 2 suma una entrada al historial del navegador, así el botón atrás del celu vuelve al paso 1.
+  - Para editar, lo usa con `autosave.ts`: cada cambio sale 600 ms después del último, nunca dos pedidos a la vez, y gana el último. Reintenta al volver la conexión y, al salir, manda lo que quede pendiente.
+  - Al entrar a editar, `avatarWithZones` pasa el accesorio viejo a su zona, y desde ahí se guardan las cuatro zonas.
+- **Las celdas** muestran el personaje del jugador con cada opción:
+  - `crop="head"` o `"bust"` (en `draw.ts`) recorta un cuadrado de la cabeza, o de la cabeza y los hombros.
+  - Para que el toque responda al instante, la tarjeta dibuja el personaje actual y las celdas, uno un momento atrás (`useDeferredValue`). Cada parte del cajón se redibuja solo si cambian sus campos, y cada celda, solo si cambia lo que dibuja.
+  - `randomAvatar` (Al azar), `startingAvatar` (el bicho inicial) y `OPTION_NAMES` (los nombres de cada opción) están en `avatar.ts`.
+  - Las pruebas: `avatar.test.ts`, `autosave.test.ts` y los recortes en `draw.test.ts`. En el navegador, `scripts/qa/editor.cjs`.
 
 ### Batallas en vivo
 

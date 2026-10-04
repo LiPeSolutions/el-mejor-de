@@ -1,6 +1,6 @@
 import type { AvatarEyes, AvatarFacewear, AvatarHair, AvatarHeadwear, AvatarHeld, AvatarMarks, AvatarNeckwear, AvatarOutfit, AvatarPaletteColor } from "@repo/shared";
 import { createElement as h, useId, type CSSProperties, type ReactElement } from "react";
-import { drawCharacter, type Facing, type Look, type Pose, type SvgNode, type View } from "./draw";
+import { drawCharacter, type Crop, type Facing, type Look, type Pose, type SvgNode, type View } from "./draw";
 import type { BodyColors } from "./palette";
 import type { Face, GameProp } from "./pieces";
 import { RIGS, type Species } from "./rig";
@@ -13,14 +13,14 @@ import { RIGS, type Species } from "./rig";
 
 export type { BodyColors } from "./palette";
 export type { Face, GameProp } from "./pieces";
-export type { Facing, Pose, View } from "./draw";
+export type { Crop, Facing, Pose, View } from "./draw";
 export type { Species } from "./rig";
 /** The first version's accessories, and the crown: each one goes to its zone. */
 export type Accessory = "boina" | "gorra" | "anteojos" | "bufanda" | "mate" | "corona";
 
 export interface PersonajeProps {
   sp: Species;
-  /** Width in px; the height is 1.2× (1× in a badge). */
+  /** Width in px; the height is 1.2× (1× in a badge or a crop). */
   size?: number;
   face?: Face;
   /** First-version accessories; the zone props below win over them. */
@@ -58,6 +58,8 @@ export interface PersonajeProps {
   /** The round avatar, for rows and chips. */
   badge?: boolean;
   badgeColor?: AvatarPaletteColor;
+  /** Only the head ("head") or the head and shoulders ("bust"), in a square: the editor's cells. */
+  crop?: Crop;
 }
 
 /** Each species' own colors and eye line (the car's visor crops around the eyes). */
@@ -132,6 +134,7 @@ export function lookOf(props: PersonajeProps): Look {
     facing: props.facing,
     badge: props.badge && !props.frame,
     badgeColor: props.badgeColor,
+    crop: props.crop,
   };
 }
 

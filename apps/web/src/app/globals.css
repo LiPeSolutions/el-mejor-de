@@ -87,6 +87,11 @@
   /* Characters: the arms going up to cheer (from where each one rests, in --pj-from) and the jump landing. */
   --animate-pj-swing: pj-swing 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
   --animate-pj-land: pj-land 0.55s ease-out both;
+  /* The editor: the character's small jump on each change, and Al azar's icon turning half a turn. */
+  --animate-hop: hop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-hop-again: hop-again 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-half-turn: half-turn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-half-turn-again: half-turn-again 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -104,6 +109,22 @@
     55% { transform: translateY(1.5px); }
     78% { transform: translateY(-0.8px); }
     100% { transform: translateY(0); }
+  }
+  @keyframes hop {
+    0% { transform: scale(0.94); }
+    60% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  @keyframes hop-again {
+    0% { transform: scale(0.94); }
+    60% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  @keyframes half-turn {
+    from { transform: rotate(-180deg); }
+  }
+  @keyframes half-turn-again {
+    from { transform: rotate(-180deg); }
   }
   @keyframes pop {
     0% { transform: translateY(-90px) scale(0.5); opacity: 0; }

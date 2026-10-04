@@ -1,22 +1,12 @@
 "use client";
 
-import {
-  AVATAR_ACCESSORIES,
-  AVATAR_COLORS,
-  AVATAR_SPECIES,
-  DEFAULT_AVATAR,
-  USERNAME_RULES,
-  checkPassword,
-  checkUsername,
-  type Article,
-  type Avatar,
-  type AvatarAccessory,
-} from "@repo/shared";
+import { USERNAME_RULES, avatarWithZones, checkPassword, checkUsername, type Article, type Avatar } from "@repo/shared";
 import { Check, ChevronLeft, ChevronRight, LoaderCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { FloatingToast, useToast } from "@/components/games/chrome";
 import { Personaje } from "@/components/personaje/Personaje";
-import { COLOR_NAMES, SPECIES_NAMES, avatarLook, swatchColor } from "@/components/personaje/avatar";
+import { avatarLook, startingAvatar } from "@/components/personaje/avatar";
 import { Button } from "@/components/ui/Button";
 import { Cloud } from "@/components/ui/Cloud";
 import { cx } from "@/components/ui/cx";
@@ -28,47 +18,55 @@ import type { PublicAccount } from "@/lib/account-types";
 import { ApiError, accountApi } from "@/lib/api";
 import { placePath } from "@/lib/paths";
 import { createAccount } from "@/lib/session";
-import { Choices, PasswordField, TextField } from "./fields";
+import { useAutosave, type SaveStatus } from "./autosave";
+import { CharacterEditor, useEditorHistory, type EditorState } from "./CharacterEditor";
+import { PasswordField, TextField } from "./fields";
 
-const ACCESSORY_NAMES: Record<AvatarAccessory, string> = {
-  boina: "Boina",
-  gorra: "Gorra",
-  anteojos: "Anteojos",
-  bufanda: "Bufanda",
-  mate: "Mate",
-};
-
-/** "Apodo y personaje" (design 18): creates the account, or edits the character with `mode="edit"`. */
+/** "Tu personaje" (design 18, with the editor): creates the account in steps, or edits the character with `mode="edit"`. */
 export function CharacterForm({ mode, back }: { mode: "create" | "edit"; back: string }) {
   const account = useAccount();
-  if (account === undefined) return <Screen>{null}</Screen>;
+  // Signed in when the screen opened (not because the account was just made here).
+  const [openedSignedIn, setOpenedSignedIn] = useState<boolean | null>(null);
+  if (account !== undefined && openedSignedIn === null) setOpenedSignedIn(account !== null);
+  if (account === undefined || openedSignedIn === null) return <Screen>{null}</Screen>;
   if (mode === "edit") return account ? <EditCharacter account={account} back={back} /> : <SignedOut back={back} />;
+  if (openedSignedIn) return <AlreadySignedIn back={back} />;
   return <CreateAccount back={back} />;
 }
 
 /* ───────────── Pieces ───────────── */
 
-function Header({ back, label }: { back: string; label?: string }) {
+/** Leaves the screen: back to where they came from, or to `back` if they opened it directly. */
+function useLeave(back: string) {
   const router = useRouter();
+  return () => (window.history.length > 1 ? router.back() : router.push(back));
+}
+
+/** The back arrow and, on the right, the step or the saving chip. */
+function Header({ onBack, right }: { onBack: () => void; right?: ReactNode }) {
   return (
     <div className="flex items-center justify-between px-5">
-      <IconButton label="Volver" onClick={() => (window.history.length > 1 ? router.back() : router.push(back))}>
+      <IconButton label="Volver" onClick={onBack}>
         <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
       </IconButton>
-      {label && <div className="flex h-[34px] items-center rounded-full bg-white px-3.5 text-[13px] font-bold shadow-sm">{label}</div>}
+      {right}
     </div>
   );
 }
 
+function StepChip({ children }: { children: ReactNode }) {
+  return <div className="flex h-[34px] items-center rounded-full bg-white px-3.5 text-[13px] font-bold shadow-sm">{children}</div>;
+}
+
 const articleText = (article: Article) => (article === "la" ? "La Mejor de…" : "El Mejor de…");
 
-/** The blue tile with the character as it's being built. */
+/** Step 2's card: the character already made, with the apodo and El / La as they're chosen. */
 function CharacterHero({ avatar, name, article }: { avatar: Avatar; name?: string; article: Article | null }) {
   return (
-    <div className="relative mx-5 mt-3.5 flex min-h-[168px] items-end justify-between overflow-hidden rounded-hero bg-hero-brand px-[18px] pt-4 text-white shadow-hero">
+    <div className="relative mx-5 mt-3.5 flex h-[176px] shrink-0 items-end justify-between overflow-hidden rounded-hero bg-hero-brand pl-[18px] text-white shadow-hero">
       <span aria-hidden className="absolute inset-0 bg-hero-glow" />
       <Cloud className="-right-[30px] -bottom-[30px] w-[200px] opacity-95" />
-      <div className="relative min-w-0 pb-[18px]">
+      <div className="relative flex min-w-0 flex-col justify-center self-stretch">
         <div className="text-xs font-bold uppercase tracking-[.06em] text-white/85">Tu personaje</div>
         <div className={cx("mt-1.5 font-display leading-[1.05] font-extrabold tracking-[-.02em]", name && name.length > 10 ? "text-[22px]" : "text-[28px]")}>
           {name ? (
@@ -86,55 +84,6 @@ function CharacterHero({ avatar, name, article }: { avatar: Avatar; name?: strin
         <Personaje {...avatarLook(avatar)} size={140} anim="bob" title={name ? `El personaje de ${name}` : "Tu personaje"} />
       </div>
     </div>
-  );
-}
-
-function CharacterPicker({ avatar, onChange }: { avatar: Avatar; onChange: (avatar: Avatar) => void }) {
-  return (
-    <>
-      {/* 17 species: three rows of six. */}
-      <Choices
-        label="Elegí tu bicho"
-        options={AVATAR_SPECIES}
-        value={avatar.species}
-        onChange={(species) => onChange({ ...avatar, species })}
-        rowClassName="grid grid-cols-6 gap-x-1.5 gap-y-2"
-        render={(species) => ({
-          label: SPECIES_NAMES[species],
-          content: (
-            <span className="block h-9 w-[30px]">
-              <Personaje sp={species} size={30} />
-            </span>
-          ),
-        })}
-      />
-      <Choices
-        label="Color"
-        options={AVATAR_COLORS}
-        value={avatar.color}
-        onChange={(color) => onChange({ ...avatar, color })}
-        cellClassName="aspect-square max-w-[34px] rounded-full"
-        render={(color) => ({
-          label: COLOR_NAMES[color],
-          content: <span className="size-full rounded-full" style={{ background: swatchColor(color, avatar.species) }} />,
-        })}
-      />
-      <Choices
-        label="Accesorio"
-        options={[null, ...AVATAR_ACCESSORIES]}
-        value={avatar.accessory}
-        onChange={(accessory) => onChange({ ...avatar, accessory })}
-        render={(accessory) => ({
-          label: accessory ? ACCESSORY_NAMES[accessory] : "Nada",
-          caption: accessory ? ACCESSORY_NAMES[accessory] : "Nada",
-          content: (
-            <span className="block h-9 w-[30px]">
-              <Personaje {...avatarLook({ ...avatar, accessory })} size={30} />
-            </span>
-          ),
-        })}
-      />
-    </>
   );
 }
 
@@ -206,6 +155,16 @@ function AvailabilityStatus({ availability }: { availability: Availability | nul
 
 /* ───────────── Create ───────────── */
 
+/** The history entry of step 2, so the phone's back button goes to step 1. */
+const STEP_KEY = "emdStep";
+const isAccountStep = (state: unknown) => (state as Record<string, unknown> | null)?.[STEP_KEY] === "account";
+
+interface Fields {
+  username: string;
+  password: string;
+  article: Article | null;
+}
+
 interface Errors {
   username?: string | null;
   password?: string | null;
@@ -213,14 +172,75 @@ interface Errors {
   form?: string | null;
 }
 
+/** Step 1, the character; step 2, apodo and password; and then their place, unless they came to join a group. */
 function CreateAccount({ back }: { back: string }) {
   const router = useRouter();
-  // Step 2 is the place, except for whoever comes to join a group: that goes first.
+  const leave = useLeave(back);
+  // Whoever comes to join a group joins it right away and chooses their place later.
   const withPlace = !back.startsWith("/g/");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [article, setArticle] = useState<Article | null>(null);
-  const [avatar, setAvatar] = useState<Avatar>(DEFAULT_AVATAR);
+  const steps = withPlace ? 3 : 2;
+  const [step, setStep] = useState<"character" | "account">("character");
+  const history = useEditorHistory(() => ({ avatar: startingAvatar(), article: null }));
+  const [fields, setFields] = useState<Fields>({ username: "", password: "", article: null });
+
+  useEffect(() => {
+    const onPop = (event: PopStateEvent) => setStep(isAccountStep(event.state) ? "account" : "character");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  if (step === "account") {
+    return (
+      <AccountStep
+        avatar={history.state.avatar}
+        label={`Paso 2 de ${steps}`}
+        fields={fields}
+        onFields={setFields}
+        onBack={() => (isAccountStep(window.history.state) ? window.history.back() : setStep("character"))}
+        onCreated={() => router.replace(withPlace ? placePath({ back, signup: true }) : back)}
+      />
+    );
+  }
+  return (
+    <Screen fill>
+      <Header onBack={leave} right={<StepChip>Paso 1 de {steps}</StepChip>} />
+      <CharacterEditor
+        state={history.state}
+        onChange={(next, burst) => history.change(next, burst)}
+        onUndo={() => history.undo()}
+        canUndo={history.canUndo}
+        footer={
+          <Button
+            onClick={() => {
+              window.history.pushState({ [STEP_KEY]: "account" }, "");
+              setStep("account");
+            }}
+          >
+            Seguir
+            <ChevronRight className="size-[18px]" strokeWidth={2.6} />
+          </Button>
+        }
+      />
+    </Screen>
+  );
+}
+
+function AccountStep({
+  avatar,
+  label,
+  fields,
+  onFields,
+  onBack,
+  onCreated,
+}: {
+  avatar: Avatar;
+  label: string;
+  fields: Fields;
+  onFields: (update: (fields: Fields) => Fields) => void;
+  onBack: () => void;
+  onCreated: () => void;
+}) {
+  const { username, password, article } = fields;
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
 
@@ -248,7 +268,7 @@ function CreateAccount({ back }: { back: string }) {
     setErrors({});
     try {
       await createAccount({ username: local.username, password, avatar, article });
-      router.replace(withPlace ? placePath({ back, signup: true }) : back);
+      onCreated();
     } catch (cause) {
       const text = accountErrorText(cause);
       const code = cause instanceof ApiError ? cause.code : null;
@@ -272,13 +292,13 @@ function CreateAccount({ back }: { back: string }) {
           void submit();
         }}
       >
-        <Header back={back} label={withPlace ? "Paso 1 de 2" : "Tu cuenta"} />
+        <Header onBack={onBack} right={<StepChip>{label}</StepChip>} />
         <CharacterHero avatar={avatar} name={local.ok ? local.username : undefined} article={article} />
         <TextField
           label="Tu apodo"
           value={username}
           onChange={(value) => {
-            setUsername(value);
+            onFields((current) => ({ ...current, username: value }));
             setErrors((current) => ({ ...current, username: null, form: null }));
           }}
           status={!usernameError && <AvailabilityStatus availability={availability} />}
@@ -291,7 +311,7 @@ function CreateAccount({ back }: { back: string }) {
           label="Contraseña"
           value={password}
           onChange={(value) => {
-            setPassword(value);
+            onFields((current) => ({ ...current, password: value }));
             setErrors((current) => ({ ...current, password: null, form: null }));
           }}
           error={errors.password}
@@ -301,12 +321,11 @@ function CreateAccount({ back }: { back: string }) {
         <ArticleChoice
           value={article}
           onChange={(value) => {
-            setArticle(value);
+            onFields((current) => ({ ...current, article: value }));
             setErrors((current) => ({ ...current, article: null, form: null }));
           }}
           error={errors.article}
         />
-        <CharacterPicker avatar={avatar} onChange={setAvatar} />
         <div className="mt-auto px-5 pt-5">
           {errors.form && (
             <p role="alert" className="mb-3 rounded-row bg-white px-4 py-3 text-center text-sm font-bold text-danger shadow-sm">
@@ -324,52 +343,114 @@ function CreateAccount({ back }: { back: string }) {
   );
 }
 
+/** Back here after making the account (from "Tu lugar", say): it's made, so on to where they were going. */
+function AlreadySignedIn({ back }: { back: string }) {
+  const router = useRouter();
+  useEffect(() => router.replace(back), [router, back]);
+  return <Screen>{null}</Screen>;
+}
+
 /* ───────────── Edit ───────────── */
 
-function EditCharacter({ account, back }: { account: PublicAccount; back: string }) {
-  const router = useRouter();
-  const [avatar, setAvatar] = useState<Avatar>(account.avatar);
-  const [article, setArticle] = useState<Article>(account.article);
-  const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
+/** Waits this long for the last change when leaving, before saying it wasn't saved. */
+const LEAVE_WAIT_MS = 3000;
 
-  const save = async () => {
-    setSending(true);
-    setError(null);
-    try {
-      const { account: updated } = await accountApi.updateProfile({ avatar, article });
-      if (updated) saveAccount(updated);
-      router.replace(back);
-    } catch (cause) {
-      setError(accountErrorText(cause));
-      setSending(false);
-    }
+/** The editor, saved on every change: no button, and the chip at the top says how it went. */
+function EditCharacter({ account, back }: { account: PublicAccount; back: string }) {
+  const leave = useLeave(back);
+  // The first version's accessory goes to its zone: from here on, every zone is saved as it is.
+  const history = useEditorHistory(() => ({ avatar: avatarWithZones(account.avatar), article: account.article }));
+  const [status, saver] = useAutosave<EditorState>(async ({ avatar, article }) => {
+    const { account: updated } = await accountApi.updateProfile({ avatar, article: article ?? undefined });
+    if (updated) saveAccount(updated);
+  });
+  const [toast, showToast] = useToast(2500);
+  // Volver once couldn't save: the second time it leaves anyway.
+  const leaveAnyway = useRef(false);
+  const leaving = useRef(false);
+
+  // The server answered with an error (an expired session, say): its message goes at the bottom, as before.
+  const serverError = status.state === "failed" && status.cause instanceof ApiError ? status.cause : null;
+
+  const change = (next: EditorState, burst?: string) => {
+    if (!history.change(next, burst)) return;
+    saver.change(next);
+    leaveAnyway.current = false;
+  };
+
+  const goBack = async () => {
+    if (leaving.current) return;
+    if (leaveAnyway.current || !saver.pending()) return leave();
+    leaving.current = true;
+    const saved = await Promise.race([saver.flush(), new Promise<boolean>((resolve) => window.setTimeout(() => resolve(false), LEAVE_WAIT_MS))]);
+    leaving.current = false;
+    if (saved) return leave();
+    leaveAnyway.current = true;
+    showToast({ tone: "danger", icon: <X className="size-3.5" strokeWidth={3} />, text: "No se guardó tu personaje" });
   };
 
   return (
-    <Screen clouds={["-right-[60px] top-[300px] w-[170px] opacity-95"]}>
-      <Header back={back} label="Editar personaje" />
-      <CharacterHero avatar={avatar} name={account.username} article={article} />
-      <ArticleChoice value={article} onChange={setArticle} />
-      <CharacterPicker avatar={avatar} onChange={setAvatar} />
-      <div className="mt-auto px-5 pt-5">
-        {error && (
-          <p role="alert" className="mb-3 rounded-row bg-white px-4 py-3 text-center text-sm font-bold text-danger shadow-sm">
-            {error}
-          </p>
-        )}
-        <Button onClick={() => void save()} disabled={sending}>
-          {sending ? "Guardando…" : "Guardar cambios"}
-        </Button>
-      </div>
+    <Screen fill>
+      <Header onBack={() => void goBack()} right={<SaveChip status={status} onRetry={() => void saver.flush()} />} />
+      <CharacterEditor
+        state={history.state}
+        onChange={change}
+        onUndo={() => {
+          const previous = history.undo();
+          if (previous) saver.change(previous);
+        }}
+        canUndo={history.canUndo}
+        name={account.username}
+      />
+      {serverError && (
+        <p role="alert" className="absolute inset-x-5 bottom-[calc(env(safe-area-inset-bottom)+16px)] z-20 rounded-row bg-white px-4 py-3 text-center text-sm font-bold text-danger shadow-md">
+          {accountErrorText(serverError)}
+        </p>
+      )}
+      <FloatingToast toast={toast} className={serverError ? "bottom-[calc(env(safe-area-inset-bottom)+96px)]" : "bottom-[calc(env(safe-area-inset-bottom)+24px)]"} />
     </Screen>
   );
 }
 
+/** The header's chip while editing (pantallas/06): at rest, saving, saved for 2 s, or without connection (a tap tries again). */
+function SaveChip({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
+  const chip = "flex h-[34px] animate-chip-in items-center gap-[7px] rounded-full bg-white text-[13px] font-bold shadow-sm";
+  // A server that answered with an error isn't the connection: the message goes below (accountErrorText).
+  const failure = status.state === "failed" ? (status.cause instanceof ApiError ? "No se guardó" : "Sin conexión") : "";
+  return (
+    <div aria-live="polite">
+      {status.state === "idle" && <div className={cx(chip, "px-3.5")}>Editar personaje</div>}
+      {status.state === "saving" && (
+        <div className={cx(chip, "pr-3.5 pl-2 text-ink-700")}>
+          <span aria-hidden className="mx-0.5 size-4 animate-spin rounded-full border-[2.5px] border-ink-200 border-t-brand" />
+          Guardando…
+        </div>
+      )}
+      {status.state === "saved" && (
+        <div className={cx(chip, "pr-3.5 pl-2")}>
+          <span aria-hidden className="grid size-5 place-items-center rounded-full bg-success text-white">
+            <Check className="size-3" strokeWidth={3.2} />
+          </span>
+          Guardado
+        </div>
+      )}
+      {status.state === "failed" && (
+        <button type="button" onClick={onRetry} aria-label={`${failure}. Tocá para probar de nuevo`} className={cx(chip, "pr-3.5 pl-2 text-danger")}>
+          <span aria-hidden className="grid size-5 place-items-center rounded-full bg-danger text-white">
+            <X className="size-3" strokeWidth={3.2} />
+          </span>
+          {failure}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SignedOut({ back }: { back: string }) {
+  const leave = useLeave(back);
   return (
     <Screen>
-      <Header back={back} />
+      <Header onBack={leave} />
       <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
         <Personaje sp="hornero" acc={["anteojos"]} face="wow" size={110} />
         <h1 className="mt-4 font-display text-[28px] leading-tight font-extrabold">No entraste a tu cuenta</h1>

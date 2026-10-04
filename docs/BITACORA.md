@@ -21,10 +21,15 @@
 ## Estado actual (4/10/2026)
 
 - **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, los juegos que descansan, resumen del día, práctica con récords, racha y puntaje de la semana.
-- **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
+- **Cuentas** con apodo y contraseña, sin email: entrar, salir, perfil y editar personaje (se guarda solo).
+  - Crear la cuenta empieza por el personaje: paso 1, el personaje; paso 2, apodo, contraseña y El / La Mejor; paso 3, tu lugar.
+  - Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
 - **Personajes 2.0** (diseñados con Claude Design): 17 bichos, vista de tres cuartos, 6 poses y avatar redondo.
   - Saludan en el inicio, abrazan la corona en su festejo y en los podios el 1º salta. En las filas y las batallas va el avatar redondo, y quien todavía no jugó, dormido.
-  - Ojos, pelo, marcas, ropa y un accesorio por zona ya se dibujan, pero se van a elegir con el **editor nuevo**, que llega en otro paquete. Mientras, la pantalla de personaje ofrece los 17 bichos.
+  - **Editor de personaje** (Claude Design, «Vitrina fija»):
+    - el personaje queda fijo arriba y abajo hay un cajón con todas las opciones: bicho, colores, ojos, pelo, marcas, ropa con su color y número, un accesorio por zona y el fondo del avatar;
+    - cada opción se ve puesta en tu personaje;
+    - tiene Al azar y Deshacer.
 - **Grupos privados** con su ranking del día y de la semana y su **corona en vivo**:
   - Crear un grupo, invitar por WhatsApp o con el código, sumarse (también creando la cuenta desde el link), sacar a alguien e irse.
   - La corona la tiene quien va primero, y pasa a quien lo supera, con aviso.
@@ -36,7 +41,7 @@
   - **Valen solo las palabras conocidas** (unas 120.000, con el voseo y las argentinas) y es **apto para todo público**: las neutras del cuerpo sí, las eróticas, las vulgares y la jerga de drogas no.
 - **Base de datos conectada** (Supabase): cada reto del día se juega una sola vez por cuenta (o por navegador, sin cuenta) y lo controla el servidor. Los lugares oficiales de Argentina están cargados.
 - **Tu lugar y rankings por barrio, provincia y país:**
-  - Al crear la cuenta, el "Paso 2 de 2" es elegir tu lugar: con el GPS en un toque o a mano, y verificarlo.
+  - Al crear la cuenta, el "Paso 3 de 3" es elegir tu lugar: con el GPS en un toque o a mano, y verificarlo.
   - Ranking de tu barrio o localidad, tu provincia y el país, de hoy y de la semana. Cada uno tiene su corona en vivo, que la tiene el primero que verificó esa semana.
   - En el inicio, tu lugar arriba y tus puestos; en el resumen del día, tu puesto en los tres niveles; en el perfil, "Tu lugar" para cambiarlo.
   - La primera corona de los lugares también se entrega el **lunes 12/10**.
@@ -53,9 +58,9 @@
   - Se juegan **los cinco juegos**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
   - En Diez Letras, en el podio se ven las palabras de todos. En Secuencia, el que se equivoca queda afuera, y si se equivocan todos, desempate. En Tubitos, los 3 tableros del reto, cada uno en su versión.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 692 automáticas, todas pasan.
+- **Pruebas:** 705 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** el editor de personaje (llega en otro paquete de Claude Design), vincular con Google y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** vincular con Google y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -66,12 +71,53 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Código | GitHub `LiPeSolutions/el-mejor-de`, rama `claude/adoring-bardeen-19q4va`. CI con GitHub Actions: lint, tipos, pruebas y build en cada push. |
 | Publicación | Vercel, equipo `lipe-demos`, proyecto `el-mejor-de-web` (Root Directory `apps/web`, funciones en São Paulo `gru1`). Variables: `CHALLENGE_SECRET` (producción y previews) y `DATABASE_URL` (producción). Los previews no tienen base, así que ahí no hay cuentas. |
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
-| Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md); Largada y Tubitos, en [`handoff-largada`](diseno/handoff-largada/LARGADA.md) y [`handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
+| Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md). Largada, Tubitos, los personajes y el editor de personaje, en [`handoff-largada`](diseno/handoff-largada/LARGADA.md), [`handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md), [`handoff-personajes`](diseno/handoff-personajes/PERSONAJES.md) y [`handoff-editor`](diseno/handoff-editor/EDITOR.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
 | Contenido | Diccionario de Diez Letras (120.214 palabras conocidas de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Cómo se arma el diccionario y cómo sumar o sacar palabras, en su [README](../packages/content/README.md). Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
-| Pruebas en el navegador | [`scripts/qa`](../scripts/qa/README.md): la base local y las pruebas con celus simulados (batallas con tres celus, Tubitos). Se corren a mano, fuera de `pnpm check`. |
+| Pruebas en el navegador | [`scripts/qa`](../scripts/qa/README.md): la base local y las pruebas con celus simulados (batallas con tres celus, Tubitos, los personajes y el editor). Se corren a mano, fuera de `pnpm check`. |
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Editor de personaje
+
+- **Lo decidido** (responsable del producto, con Claude Design):
+  - El editor 1a, «Vitrina fija»: el personaje queda fijo arriba, en la tarjeta azul, y abajo hay un cajón con todas las opciones en una sola lista y cinco pestañas (Bicho, Cara, Ropa, Accesorios y Fondo).
+  - Crear la cuenta empieza por el personaje: paso 1, el personaje; paso 2, apodo, contraseña y El / La; paso 3, tu lugar. Quien entra por un grupo hace los dos primeros.
+  - Editar no tiene botón de guardar: cada cambio se guarda solo y el chip de arriba lo confirma.
+- **Qué se hizo:**
+  - **Cada opción se ve puesta en tu personaje.** Los ojos, el pelo y lo de la cabeza y la cara van en un recorte de la cabeza; las marcas y lo del cuello, de la cabeza y los hombros; la ropa y lo de la mano, de cuerpo entero.
+  - Las pestañas llevan a su parte de la lista y se marcan solas al desplazarse.
+  - «Color de la ropa» aparece con ropa o con la cara pintada, y «Número», solo con la camiseta.
+  - Con boina, gorra, gorro o sombrero, Pelo avisa que el gorro tapa el pelo y ofrece sacarlo.
+  - **Al azar** cambia todo de una, con otro bicho. **Deshacer** vuelve de a un cambio, y varios toques seguidos al número cuentan como uno.
+  - Para una cuenta nueva, el personaje arranca con un bicho al azar, en su color natural y sin nada puesto.
+  - Al editar, El / La se cambia en la misma tarjeta.
+  - **El guardado:**
+    - cada cambio se manda 600 ms después del último, y el chip pasa por «Guardando…» y «Guardado» antes de volver a «Editar personaje»;
+    - sin conexión dice «Sin conexión», y vuelve a probar al tocarlo o cuando vuelve la conexión;
+    - «Volver» espera a que se guarde el último cambio. Si no se puede, avisa «No se guardó tu personaje», y un segundo toque sale igual.
+  - Los personajes de antes se ven igual: el accesorio de antes aparece elegido en su zona, y desde el primer cambio se guarda ahí.
+  - Anda en pantallas bajas, en celus de 360 px y con movimiento reducido. Al elegir algo, el personaje de la tarjeta da un saltito.
+  - El paquete del diseño quedó en [`docs/diseno/handoff-editor`](diseno/handoff-editor/EDITOR.md), y lo que cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md#editor-de-personaje).
+- **Lo que resolvió Claude:**
+  - En Fondo, la fila de ejemplo del ranking dice «Tu apodo» al crear la cuenta, porque el apodo se elige después.
+  - La corona sigue sin verse en la tarjeta, como antes.
+  - El botón atrás del celu también vuelve del paso 2 al 1.
+  - Si después de crear la cuenta volvés para atrás desde «Tu lugar», ya no aparece de nuevo crear la cuenta: te lleva adonde ibas.
+  - El apodo y la contraseña del paso 2 no se pierden si volvés al paso 1.
+  - Si el servidor rechaza un guardado (por ejemplo, porque se cerró la sesión), el chip dice «No se guardó» y abajo aparece el motivo.
+  - Las celdas se redibujan un momento después del toque, así el personaje de la tarjeta responde al instante también en celus lentos.
+  - En celus angostos, la nube de la tarjeta es un poco más chica, para no tapar Deshacer.
+- **Probado:**
+  - 13 pruebas automáticas nuevas:
+    - los dos recortes en los 17 bichos;
+    - que Al azar siempre dé un personaje válido, con las proporciones pedidas;
+    - el bicho inicial y el paso del accesorio viejo a su zona;
+    - el guardado: que espere, que mande de a un pedido, que gane el último y que reintente si falla.
+  - En el navegador, `scripts/qa/editor.cjs` crea una cuenta de punta a punta y edita un personaje. Pasó 45 de 45 en 390 × 844 y en 360 × 740 con movimiento reducido.
+  - Con el procesador 4 veces más lento, como un celu de gama media, un cambio de bicho llega a la pantalla en menos de 70 ms y las celdas terminan en medio segundo.
+  - Los dos recortes, en los 17 bichos, en la hoja de desarrollo (`/dev/personajes`).
+- **Pendiente:** probarlo en el celu.
 
 ### 4/10/2026 — Diez Letras: solo palabras conocidas y para todo público
 
@@ -535,7 +581,7 @@ En orden sugerido.
    - Una de Cinco Preguntas, una de Largada y una de Diez Letras. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende, si la música suena junta y si en Diez Letras se entienden los puntos en vivo y las palabras del podio.
    - Y una de Secuencia (que los colores salgan a la vez en los dos celus, que se entienda quién quedó afuera y el desempate) y una de Tubitos (si los tiempos máximos de cada tablero están bien).
 2. **Probar en el celu** (responsable del producto):
-   - **Personajes 2.0:** elegir uno de los bichos nuevos en Perfil → tu personaje, y mirar el saludo del inicio, los podios y las filas del ranking.
+   - **El editor de personaje:** crear una cuenta nueva (el personaje es el paso 1) y, en Perfil → Editar personaje, cambiar cosas y ver que se guarden solas. Mirar también el saludo del inicio, los podios y las filas del ranking con el personaje nuevo.
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** jugar el reto o la práctica con el diccionario nuevo y avisar si alguna palabra conocida no vale o alguna rara sí: se corrige en un momento.
    - Salir y volver a entrar a la cuenta.
@@ -544,15 +590,15 @@ En orden sugerido.
 4. **Probar Largada en el celu** (responsable del producto): ya está en Practicar, y el lunes 5/10 sale el primer reto del día. Mirar el sonido de las luces, que se lea la señal y que "Contale al grupo" mande la foto por WhatsApp.
    - Para una segunda vuelta: la tarjeta "Pato todavía no largó · Desafiá a Pato" (opción 1c del diseño).
 5. **Probar Tu lugar en el celu** (responsable del producto): en Perfil → Tu lugar, "Usar mi ubicación", y después el ranking de los tres niveles.
-6. **El editor de personaje** (cuando llegue su paquete de Claude Design): las 4 pestañas para elegir ojos, pelo, marcas, ropa, el accesorio de cada zona y el fondo del avatar. El dibujo y los datos ya están.
-7. **Vincular con Google** (botón "Muy pronto" en el perfil):
+6. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
-8. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
+7. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Qué hacer con las contraseñas olvidadas sin Google.
-9. **Antes de abrir al público:**
+   - Si en el podio de las batallas de Diez Letras se muestran las palabras que hoy se tapan (como "pene").
+8. **Antes de abrir al público:**
    - Términos y privacidad.
    - Consulta legal sobre menores.
    - Modo sin conexión (PWA).

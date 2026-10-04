@@ -13,6 +13,7 @@ export type Pose = "idle" | "wave" | "cheer" | "jump" | "hugCrown" | "sleep";
 export type View = "front" | "threeQuarter";
 /** Which side of the screen the character looks to, in three-quarter view. */
 export type Facing = "left" | "right";
+export type Crop = "head" | "bust";
 
 export interface Look {
   sp: Species;
@@ -41,6 +42,8 @@ export interface Look {
   /** The round avatar: half the body inside a circle of `badgeColor`. */
   badge?: boolean;
   badgeColor?: AvatarPaletteColor;
+  /** A square around the head, or the head and shoulders: the editor's cells. Not with `badge`. */
+  crop?: Crop;
   /** Adds the pose's motion (the arms going up, the jump landing). */
   animate?: boolean;
 }
@@ -59,7 +62,7 @@ export interface Drawing {
   /** The defs (clip paths) and everything drawn, in order. */
   children: SvgNode[];
   viewBox: string;
-  /** Height over width: 1.2, or 1 for the round avatar. */
+  /** Height over width: 1.2, or 1 for the round avatar and the crops. */
   ratio: number;
 }
 
@@ -291,6 +294,14 @@ export function drawCharacter(look: Look, ids: string): Drawing {
     });
     bodyAttrs = { "clip-path": `url(#${ids}-badge)` };
     viewBox = `${(50 - s / 2).toFixed(1)} ${top.toFixed(1)} ${s.toFixed(1)} ${s.toFixed(1)}`;
+    ratio = 1;
+  } else if (look.crop) {
+    // A square from above the hats down to the chin (or the shoulders), wide enough for the head; no floor.
+    const top = A.T - 15;
+    const bottom = look.crop === "bust" ? A.neckY + 16 : A.hc + A.hw + 6;
+    const s = Math.max(bottom - top, 2 * A.hw + 22);
+    const y = top - (s - (bottom - top)) / 2;
+    viewBox = `${(50 - s / 2).toFixed(1)} ${y.toFixed(1)} ${s.toFixed(1)} ${s.toFixed(1)}`;
     ratio = 1;
   } else {
     // The floor's shadow; jumping, smaller and lighter, while the rest goes up.
