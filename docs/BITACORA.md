@@ -84,11 +84,13 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 - **Probado:**
   - 9 pruebas automáticas nuevas: las reglas, las consultas y una batalla entera en el servidor, que resuelve los tableros con el motor del juego. Una más para la Secuencia larga.
   - En el navegador, `scripts/qa/battle-tubitos.cjs` con tres celus: 11 de 11 en 390 × 844 y en 360 × 740.
+  - Una sala llena, con 10 jugadores, en el celu chico (`scripts/qa/battle-ten.cjs`): 5 de 5.
   - **Tubitos del reto, después de mover su lógica:** la práctica, 15 de 15, con y sin animaciones. Y el reto del día con el reloj del servidor corrido a mañana (arranca el 5/10): los 3 niveles, 4 de 4, y sus casos raros, 3 de 3.
 - **Corregido antes de publicar:**
   - el cartel "Esperando a…" se salía del ancho con nombres largos;
   - en la tabla se cortaban los nombres;
   - en el podio no se veía por qué ganaba uno con los mismos puntos;
+  - con 10 jugadores, la tira "En vivo" de Cinco Preguntas y de Tubitos no entraba en el celu chico: ahora se desliza de costado, como ya hacían Diez Letras y Secuencia;
   - el historial del grupo daba por terminada cualquier partida empezada hace más de 10 minutos. Con los juegos de antes no pasaba, pero una Secuencia larga entre dos muy buenos se cortaba a mitad. Ahora solo cierra las que terminaron por su reloj (con una prueba que lo confirma).
 - **Con esto, las batallas tienen los cinco juegos.**
 

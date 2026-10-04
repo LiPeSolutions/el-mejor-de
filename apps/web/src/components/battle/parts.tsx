@@ -112,9 +112,12 @@ export function AnsweredStrip({ faces, answered, verb = "Respondieron" }: { face
         <span>En vivo</span>
         <span className="normal-case tracking-normal">{count === faces.length ? `${verb} todos` : `${verb} ${count} de ${faces.length}`}</span>
       </div>
-      <div className="mt-2 flex justify-around gap-1">
+      {/* Up to 10 don't fit across a phone: then the row slides sideways. */}
+      <div className={cx("mt-2 flex gap-1 overflow-x-auto", faces.length <= 6 && "justify-around")}>
         {faces.map((face) => (
-          <FaceTile key={face.key} face={face} size={30} badge={answered.has(face.key) ? <AnsweredBadge /> : undefined} dim={!answered.has(face.key)} />
+          <div key={face.key} className="w-[52px] shrink-0">
+            <FaceTile face={face} size={30} badge={answered.has(face.key) ? <AnsweredBadge /> : undefined} dim={!answered.has(face.key)} />
+          </div>
         ))}
       </div>
     </div>
