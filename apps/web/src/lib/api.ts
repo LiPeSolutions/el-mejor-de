@@ -1,5 +1,6 @@
 import type { Article, Avatar, GroupColor, GroupEmblem, PlaceLevel } from "@repo/shared";
 import type { AccountResponse, AvailabilityResponse } from "./account-types";
+import type { BattleCreatedResponse, BattlePreview, BattleView, GroupBattlesResponse, TriviaQuestionView } from "./battle-types";
 import type {
   AnswerResponse,
   FinishResponse,
@@ -118,4 +119,26 @@ export const levelSlug = (level: PlaceLevel) => LEVEL_SLUGS[level];
 export const largadaApi = {
   /** Today's grid against `groupId` (or the first group), or the ghost without one. */
   grid: (groupId: string | null) => send<LargadaGridResponse>(groupId ? `/api/largada?grupo=${encodeURIComponent(groupId)}` : "/api/largada"),
+};
+
+const battle = (id: string, action = "") => `/api/batallas/${encodeURIComponent(id)}${action}`;
+const battleCode = (code: string) => `/api/batallas/codigo/${encodeURIComponent(code.trim())}`;
+
+export const battlesApi = {
+  /** Opens a room, from a group (one open at a time: it may answer the one already open) or loose. */
+  open: (groupId: string | null, game?: string) => send<BattleCreatedResponse>("/api/batallas", { groupId, game }),
+  state: (id: string) => send<BattleView>(battle(id)),
+  joinFromGroup: (id: string) => send<{ battleId: string }>(battle(id, "/sumarse"), {}),
+  preview: (code: string) => send<BattlePreview>(battleCode(code)),
+  join: (code: string) => send<{ battleId: string }>(battleCode(code), {}),
+  leave: (id: string) => send<{ ok: true }>(battle(id, "/salir"), {}),
+  remove: (id: string, userId: string) => send<{ ok: true }>(battle(id, "/sacar"), { userId }),
+  chooseGame: (id: string, game: string) => send<{ ok: true }>(battle(id, "/juego"), { game }),
+  start: (id: string) => send<{ ok: true }>(battle(id, "/empezar"), {}),
+  backToLobby: (id: string) => send<{ ok: true }>(battle(id, "/sala"), {}),
+  question: (id: string, round: number) => send<TriviaQuestionView>(battle(id, "/pregunta"), { round }),
+  answer: (id: string, round: number, choice: number) => send<{ ok: true }>(battle(id, "/respuesta"), { round, choice }),
+  largadaStart: (id: string, round: number, reactionMs: number | null, falseStart: boolean) =>
+    send<{ ok: true }>(battle(id, "/largada"), { round, reactionMs, falseStart }),
+  group: (groupId: string) => send<GroupBattlesResponse>(`/api/grupos/${encodeURIComponent(groupId)}/batallas`),
 };

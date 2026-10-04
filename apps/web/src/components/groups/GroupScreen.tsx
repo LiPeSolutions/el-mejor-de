@@ -4,6 +4,7 @@ import { addDays, crownTitle } from "@repo/shared";
 import { ChevronLeft, Crown, Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { GroupBattleStrip, GroupBattleTab, useGroupBattles } from "@/components/battle/GroupBattles";
 import { CrownBand, MeBar, Podium, RankingRow, daysLeftText, type RankedPlayer } from "@/components/ranking/Ranking";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Button } from "@/components/ui/Button";
@@ -25,10 +26,10 @@ import { CrownNotices, GroupsMessage } from "./parts";
 
 const CLOUDS = ["-left-[60px] top-[260px] w-[170px] opacity-80", "-right-[70px] top-[150px] w-[190px] opacity-80"];
 
-type View = "today" | "week";
+type View = "today" | "week" | "battles";
 
-/** Ranking del grupo (design 34), with the invitation sheet (33). */
-export function GroupScreen({ id, invite }: { id: string; invite: boolean }) {
+/** Ranking del grupo (design 34), with the invitation sheet (33), its live battle and the "Batallas" tab. */
+export function GroupScreen({ id, invite, tab }: { id: string; invite: boolean; tab?: "battles" }) {
   const account = useAccount();
   const request = useRequest(account ? `grupo:${id}:${account.id}` : null, () => groupsApi.detail(id));
   // Largada races against the last group opened.
@@ -69,7 +70,7 @@ export function GroupScreen({ id, invite }: { id: string; invite: boolean }) {
     );
   }
   if (!request.data) return <Screen nav>{null}</Screen>;
-  return <Loaded data={request.data} account={account} inviteOnOpen={invite} onChange={request.replace} />;
+  return <Loaded data={request.data} account={account} inviteOnOpen={invite} initialView={tab ?? "week"} onChange={request.replace} />;
 }
 
 const asPlayer = (row: StandingRow): RankedPlayer => ({ key: row.userId, name: row.username, avatar: row.avatar, score: row.score, isMe: row.isMe });
@@ -99,17 +100,21 @@ function Loaded({
   data,
   account,
   inviteOnOpen,
+  initialView,
   onChange,
 }: {
   data: GroupDetailResponse;
   account: PublicAccount;
   inviteOnOpen: boolean;
+  initialView: View;
   onChange: (data: GroupDetailResponse) => void;
 }) {
   const { group, week, today, standings, lastCrown } = data;
-  const [view, setView] = useState<View>("week");
+  const [view, setView] = useState<View>(initialView);
   const [inviting, setInviting] = useState(inviteOnOpen);
-  const rows = view === "week" ? standings.week : standings.today;
+  const battles = useGroupBattles(group.id);
+  const ranking = view !== "battles";
+  const rows = view === "today" ? standings.today : standings.week;
   const played = rows.filter((row) => row.position !== null);
   const crowned = view === "week" && week.hasCrown;
   const me = rows.find((row) => row.isMe);
@@ -178,39 +183,48 @@ function Loaded({
                 </>
               ),
             },
+            { value: "battles", label: "Batallas" },
           ]}
         />
       </div>
 
       <CrownNotices notices={notices} />
 
-      {showLastCrown && <LastCrown crown={lastCrown} mine={lastCrown.winner.userId === account.id} />}
-      {!week.hasCrown && view === "week" && (
-        <p className="mx-5 mt-3 rounded-row bg-gold-soft px-3.5 py-2.5 text-[13px] leading-[1.4] font-bold text-gold-ink">
-          La primera corona se entrega el lunes {formatDayMonth(week.firstCrownOn)}: gana quien más sume del lunes {formatDayMonth(addDays(week.firstCrownOn, -7))} al
-          domingo {formatDayMonth(addDays(week.firstCrownOn, -1))}.
-        </p>
-      )}
+      <GroupBattleStrip groupId={group.id} battles={battles} className="mt-3.5" />
 
-      <div className="pt-5">
-        <Podium top={[played[0], played[1], played[2]].map((row) => (row ? asPlayer(row) : undefined))} crowned={crowned} />
-      </div>
-      {played.length === 0 && (
-        <p className="px-8 pt-3 text-center text-sm font-semibold text-ink-700">
-          {view === "week" ? "Nadie jugó todavía esta semana. ¡Arrancá vos!" : "Nadie jugó todavía hoy. ¡Arrancá vos!"}
-        </p>
-      )}
+      {view === "battles" && <GroupBattleTab battles={battles} />}
 
-      <ul className="flex flex-col gap-2 px-4 pt-3" aria-label="Ranking">
-        {rows
-          .filter((row) => row.position === null || row.position > 3)
-          .map((row) => (
-            <RankingRow key={row.userId} position={row.position} player={asPlayer(row)} />
-          ))}
-      </ul>
+      {ranking && (
+        <>
+          {showLastCrown && <LastCrown crown={lastCrown} mine={lastCrown.winner.userId === account.id} />}
+          {!week.hasCrown && view === "week" && (
+            <p className="mx-5 mt-3 rounded-row bg-gold-soft px-3.5 py-2.5 text-[13px] leading-[1.4] font-bold text-gold-ink">
+              La primera corona se entrega el lunes {formatDayMonth(week.firstCrownOn)}: gana quien más sume del lunes {formatDayMonth(addDays(week.firstCrownOn, -7))} al
+              domingo {formatDayMonth(addDays(week.firstCrownOn, -1))}.
+            </p>
+          )}
+
+          <div className="pt-5">
+            <Podium top={[played[0], played[1], played[2]].map((row) => (row ? asPlayer(row) : undefined))} crowned={crowned} />
+          </div>
+          {played.length === 0 && (
+            <p className="px-8 pt-3 text-center text-sm font-semibold text-ink-700">
+              {view === "week" ? "Nadie jugó todavía esta semana. ¡Arrancá vos!" : "Nadie jugó todavía hoy. ¡Arrancá vos!"}
+            </p>
+          )}
+
+          <ul className="flex flex-col gap-2 px-4 pt-3" aria-label="Ranking">
+            {rows
+              .filter((row) => row.position === null || row.position > 3)
+              .map((row) => (
+                <RankingRow key={row.userId} position={row.position} player={asPlayer(row)} />
+              ))}
+          </ul>
+        </>
+      )}
 
       <div className="flex flex-col items-center gap-3 px-5 pt-5">
-        {played.length < 2 && (
+        {ranking && played.length < 2 && (
           <Button variant="secondary" size="md" onClick={() => setInviting(true)}>
             <UserPlus className="size-[18px]" strokeWidth={2.6} />
             Invitá a alguien para competir
@@ -224,7 +238,7 @@ function Loaded({
       {/* Room for the bar above the nav. */}
       <div aria-hidden className="h-[76px] shrink-0" />
 
-      {me && (
+      {me && ranking && (
         <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+100px)] z-30 mx-auto w-[calc(100%-32px)] max-w-[398px]">
           {crowned && me.position === 1 ? (
             <CrownBand

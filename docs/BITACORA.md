@@ -38,9 +38,12 @@
   - **Bots** (Rayo, Chispa, Turbo y Tortuga): en la práctica completan la pista; en el reto del día corren solo si no hay nadie más.
 - **Sonido:** efectos en los cuatro juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
 - **Música:** un loop para el menú y uno por juego, más bajo que los efectos. Se apaga aparte en el perfil.
-- **Pruebas:** 303 automáticas, todas pasan.
+- **Batallas en vivo:** de 2 a 10 amigos juegan a la vez, cada uno en su celu, desde un grupo (con el aviso "Pato armó una de Largada · Sumarme") o con un link.
+  - Por ahora, Largada y Cinco Preguntas, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
+  - No cuentan para rankings ni coronas.
+- **Pruebas:** 349 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** las batallas de Diez Letras y Secuencia, vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -56,6 +59,39 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Batallas en vivo
+
+- **Pedido de la responsable del producto:** poder jugar al mismo tiempo con los del grupo (o con un amigo, en un rato libre) a los juegos de la práctica.
+- **Decisiones (consultadas antes de empezar):**
+  - **Quiénes:** desde un grupo o con un link, con cuenta, de 2 a 10.
+  - **Formato:** un juego, con revancha u otro juego.
+  - **Ritmo:** todos a la par.
+  - **Qué cuenta:** para divertirse, con historial en el grupo.
+  - **Orden:** primero Largada y Cinco Preguntas.
+  - **Diseño:** bocetos antes de construir. Los vio en una página con las pantallas y dio el ok.
+  - **Vibración:** la de la señal de Largada se mantiene (se preguntó por el juego limpio).
+  - Todo quedó en [PLAN §2, §6 y §8](PLAN.md#batallas-en-vivo-decidido-el-4102026).
+- **Cómo funciona:**
+  - Quien arma la sala elige el juego y la empieza. Hay una cuenta regresiva a la vez en todos los celus.
+  - **Cinco Preguntas:** la misma pregunta para todos; se ve quién respondió pero no qué. La correcta aparece cuando respondieron todos (o se terminó el tiempo), con la tabla.
+  - **Largada:** las mismas luces se apagan al mismo tiempo en todos los celus; cuando tocaron todos, la carrera corre a la vez en todos. Gana el mejor promedio de 3.
+  - Al final, el podio, "Revancha" u "Otro juego", y cuántas batallas ganó cada uno en el grupo.
+  - Quien se va no frena a los demás. Quien llega con la partida empezada mira y juega la próxima. Si se va quien la armó, elige el siguiente. Quien la arma puede sacar a alguien.
+- **Qué se hizo:**
+  - **Reglas** (`packages/games/src/battles.ts`): cuándo abre y cierra cada pregunta y cada largada, y la tabla. El servidor no corre nada entre pedidos: cada pedido calcula dónde va la partida.
+  - **Base:** migración `battles` (salas, jugadores, partidas y jugadas) y sus consultas (`packages/db/src/battles.ts`).
+  - **Servidor** (`apps/web/src/server/battles.ts`) y 12 endpoints en `/api/batallas`. Las preguntas no repiten las de la sala ni las del reto de hoy.
+  - **Celu** (`lib/use-battle.ts`): pregunta seguido según lo que esté por pasar y sincroniza su reloj con el del servidor en cada respuesta.
+  - **Pantallas** (`components/battle`): el aviso y la pestaña "Batallas" en el grupo, la tarjeta "Batalla con amigos" en Práctica, la sala, la cuenta regresiva, Cinco Preguntas y Largada a la par, el podio y la página del link (`/b/código`), que deja crear la cuenta y vuelve sola.
+  - **Música:** en la sala suena al mismo compás en todos los celus. Durante la partida la pantalla no se apaga.
+- **Pruebas:**
+  - 349 automáticas (46 nuevas): reglas y tiempos, consultas, y una batalla entera con varios jugadores en el servidor.
+  - En el navegador, con tres celus simulados a la vez (390 × 844 y 360 × 740): el aviso del grupo, el link, las 5 preguntas, la tabla, 3 largadas (con una adelantada), los dos podios y el historial. También entrar con la partida empezada, la revancha, irse a la mitad y que pase el mando.
+- **Visto al probar:**
+  - Con la base de verdad las preguntas elegidas se guardaban mal; la base de prueba no lo mostraba. Corregido como en el resto de las consultas.
+  - En el grupo decía "Sumarme" a quien ya estaba adentro, y el aviso duraba demasiado después de que todos se iban. Corregidos.
+- **Pendiente:** batallas de Diez Letras y Secuencia, y quizás avisar en el inicio cuando hay una batalla en un grupo tuyo.
 
 ### 4/10/2026 — Música
 
@@ -290,24 +326,28 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 
 En orden sugerido.
 
-1. **Probar en el celu** (responsable del producto):
+1. **Probar una batalla en vivo** (responsable del producto), con alguien al lado o por WhatsApp:
+   - Desde el grupo, "Batalla en vivo · Armar", o desde Práctica, "Batalla con amigos".
+   - Una de Cinco Preguntas y una de Largada. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende y si la música suena junta.
+   - Después siguen las de Diez Letras y Secuencia (Secuencia por rondas, donde el que se equivoca queda afuera).
+2. **Probar en el celu** (responsable del producto):
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
    - Salir y volver a entrar a la cuenta.
    - Al probar las cuentas dijo que notó "2 cosas" y contó una (Siete Letras con conexión lenta). Si la otra no era lo de los botones, retomarla.
-2. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
-3. **Probar Largada en el celu** (responsable del producto): ya está en Practicar, y el lunes 5/10 sale el primer reto del día. Mirar el sonido de las luces, que se lea la señal y que "Contale al grupo" mande la foto por WhatsApp.
+3. **El lunes 12/10, la primera corona de los grupos:** revisar que se haya entregado bien (festejo y palmarés).
+4. **Probar Largada en el celu** (responsable del producto): ya está en Practicar, y el lunes 5/10 sale el primer reto del día. Mirar el sonido de las luces, que se lea la señal y que "Contale al grupo" mande la foto por WhatsApp.
    - Para una segunda vuelta: la tarjeta "Pato todavía no largó · Desafiá a Pato" (opción 1c del diseño).
-4. **Probar Tu lugar en el celu** (responsable del producto): en Perfil → Tu lugar, "Usar mi ubicación", y después el ranking de los tres niveles.
-5. **Vincular con Google** (botón "Muy pronto" en el perfil):
+5. **Probar Tu lugar en el celu** (responsable del producto): en Perfil → Tu lugar, "Usar mi ubicación", y después el ranking de los tres niveles.
+6. **Vincular con Google** (botón "Muy pronto" en el perfil):
    - Hay que crear una credencial OAuth en Google Cloud (Client ID web, con `game.lipesolutions.com` como origen).
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
-6. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
+7. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
-7. **Antes de abrir al público:**
+8. **Antes de abrir al público:**
    - Términos y privacidad.
    - Consulta legal sobre menores.
    - Modo sin conexión (PWA).
@@ -318,6 +358,7 @@ En orden sugerido.
 Para no tropezar dos veces:
 
 - **iPhone y los campos de texto:** con letra de menos de 16 px, Safari hace zoom al tocar el campo. Los campos de búsqueda van en 16 px.
+- **JSON y listas a la base:** van como texto y se convierten en SQL (`$1::text::jsonb`). Si no, postgres.js guarda el texto como un string de JSON. PGlite, la base de las pruebas, no lo muestra: solo aparece con la base de verdad (pasó con las batallas).
 - **País de la conexión:** Vercel lo manda en el encabezado `x-vercel-ip-country`. En local no viene, y entonces no se controla.
 - **Red de la sesión en la nube:**
   - No llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar).

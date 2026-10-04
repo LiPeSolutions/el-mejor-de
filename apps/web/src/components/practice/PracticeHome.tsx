@@ -2,6 +2,7 @@
 
 import { Clock, Play, Trophy } from "lucide-react";
 import Link from "next/link";
+import { PracticeBattleCard } from "@/components/battle/PracticeBattleCard";
 import { Personaje } from "@/components/personaje/Personaje";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { cx } from "@/components/ui/cx";
@@ -112,6 +113,8 @@ export function PracticeHome({ today }: { today: TodayInfo }) {
           </Link>
         </div>
       )}
+
+      <PracticeBattleCard />
       <BottomNav />
     </Screen>
   );

@@ -26,7 +26,7 @@ interface Props {
 type Phase = "loading" | "answering" | "revealed";
 
 /** Seconds-left ring (44 px). */
-function TimerRing({ fraction, seconds }: { fraction: number; seconds: number }) {
+export function TimerRing({ fraction, seconds }: { fraction: number; seconds: number }) {
   const radius = 19;
   const length = 2 * Math.PI * radius;
   return (

@@ -153,14 +153,19 @@ export function playSoundLater<K extends keyof typeof synth>(ms: number, name: K
 
 /* ───────────── Music ───────────── */
 
-let playing: { key: SongKey; song: Playing } | null = null;
-/** Game screens asking for their song; the last one wins, and with none it's the menus'. */
-const claims: SongKey[] = [];
+let playing: { key: SongKey; grid: number | null; song: Playing } | null = null;
+/**
+ * Screens asking for their song; the last one wins, and with none it's the
+ * menus'. A battle's room also gives the moment its loops count from, in
+ * this phone's clock (performance.timeOrigin + performance.now()), so every
+ * phone in the room plays in step.
+ */
+const claims: { key: SongKey; grid: number | null }[] = [];
 /** Below 1 while a game holds the music down (Largada's lights, Secuencia's sequence). */
 let ducking = 1;
 
 function applyMusic(): void {
-  const key = claims[claims.length - 1] ?? "menu";
+  const claim = claims[claims.length - 1] ?? { key: "menu" as const, grid: null };
   const allowed = audio !== null && musicBus !== null && audio.state === "running" && soundOn() && musicOn() && document.visibilityState === "visible";
   if (!allowed || !audio || !musicBus) {
     playing?.song.stop(0.3);
@@ -168,26 +173,31 @@ function applyMusic(): void {
     document.documentElement.dataset.musica = "";
     return;
   }
-  if (playing?.key === key) return;
+  if (playing?.key === claim.key && playing.grid === claim.grid) return;
   playing?.song.stop(0.6);
-  playing = { key, song: playSong(audio, musicBus, SONGS[key]) };
+  const grid = claim.grid === null ? undefined : audio.currentTime + (claim.grid - (performance.timeOrigin + performance.now())) / 1000;
+  playing = { key: claim.key, grid: claim.grid, song: playSong(audio, musicBus, SONGS[claim.key], grid) };
   if (ducking !== 1) playing.song.duck(ducking, 0.01);
   // Which song is playing, for tests (and anyone curious).
-  document.documentElement.dataset.musica = key;
+  document.documentElement.dataset.musica = claim.key;
 }
 
-/** A screen's song while it's on screen; without one, the menus' plays. */
-export function useMusic(key: SongKey): void {
+/**
+ * A screen's song while it's on screen; without one, the menus' plays.
+ * `grid` (this phone's clock, in ms) lines the loop up with other phones.
+ */
+export function useMusic(key: SongKey, grid: number | null = null): void {
   useEffect(() => {
-    claims.push(key);
+    const claim = { key, grid };
+    claims.push(claim);
     applyMusic();
     return () => {
-      const index = claims.lastIndexOf(key);
+      const index = claims.lastIndexOf(claim);
       if (index !== -1) claims.splice(index, 1);
       // The next screen may ask for its own right away: wait a moment before going back to the menus' song.
       window.setTimeout(applyMusic, 250);
     };
-  }, [key]);
+  }, [key, grid]);
 }
 
 /** Holds the music down to `level` (0–1) until `restoreMusic`. */

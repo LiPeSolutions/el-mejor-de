@@ -92,7 +92,7 @@ type Generated =
   | { game: "reflexes"; content: ReflexesContent | LargadaContent; solution: null }
   | { game: "sequence"; content: SequenceContent; solution: null };
 
-const CATEGORY_LABELS: Record<TriviaCategory, string> = {
+export const CATEGORY_LABELS: Record<TriviaCategory, string> = {
   argentina: "Argentina",
   football: "Fútbol",
   geography: "Geografía",

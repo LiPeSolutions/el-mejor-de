@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 3 de octubre de 2026 (coronas por barrio, provincia y país; grupos y corona en vivo; cómo se elige y se verifica el lugar; Diez Letras con puntos fijos; cuentas con apodo y contraseña; dirección `game.lipesolutions.com`).
+> Última actualización: 4 de octubre de 2026 (batallas en vivo; la vibración de la señal de Largada se mantiene; música en loop).
 
 ## 1. La idea
 
@@ -35,6 +35,7 @@ Lo que la hace distinta:
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
+| Batallas en vivo | **Jugar al mismo tiempo**, cada uno en su celu (4/10/2026): se arma una sala **desde un grupo** (sus miembros ven el aviso) **o con un link** para cualquiera, con cuenta y **de 2 a 10 jugadores**. Quien la arma elige **un juego** y al final hay **revancha u otro juego** en la misma sala. Todo **a la par**: las mismas preguntas y las mismas luces para todos a la vez. **No cuentan para rankings ni coronas**; el grupo guarda **quién ganó cada batalla**. Primero Largada y Cinco Preguntas; Diez Letras y Secuencia, en la tanda siguiente (ver §8). |
 | Truco | Online contra gente y mesas privadas. **Sin flor.** 1 vs 1, 2 vs 2 y 3 vs 3. |
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
 | Monetización | **Más adelante.** Idea inicial: comprar vidas. |
@@ -138,7 +139,7 @@ Si la corona se puede trucar, deja de valer. Por eso hay varias capas:
 3. **Detección de imposibles.** Por ejemplo, reflejos más rápidos de lo humanamente posible o un salto enorme de nivel de un día para otro. Esos puntajes se marcan para revisión.
 4. **Ubicación verificada** en los momentos clave (ver §5), cruzada con la ubicación aproximada de la conexión a internet.
 5. **Una persona, una cuenta.** Como crear una cuenta es fácil (apodo y contraseña), hay límites de cuentas por celu y por conexión, cada reto se juega una vez por cuenta, el ranking del lugar pide GPS y las coronas grandes se revisan.
-6. **El sonido no da ventaja.** Nada que suene dice algo que la pantalla no muestre: la señal de Largada es solo visual, porque con un sonido se reacciona unos 40 ms antes. La excepción decidida son las notas de Secuencia (3/10/2026).
+6. **El sonido no da ventaja.** Nada que suene dice algo que la pantalla no muestre: la señal de Largada es solo visual, porque con un sonido se reacciona unos 40 ms antes. La excepción decidida son las notas de Secuencia (3/10/2026). La **vibración de la señal de Largada** en Android viene del diseño y **se mantiene** (decidido el 4/10/2026), aunque a una vibración se reaccione unas centésimas antes y el iPhone no vibre.
 7. **Reportes y revisión.** Cualquiera puede reportar algo raro. Las coronas de provincia y de país por ahora se entregan solas; revisarlas a mano antes de entregarlas llega con el panel de administración. *(Propuesta.)*
 
 ## 7. Minijuegos
@@ -201,6 +202,7 @@ La responsable del producto la diseñó con Claude Design. El diseño completo, 
 | Compartir resultados | Imagen y texto con emojis para WhatsApp o historias, con un link que se ve lindo al compartirlo. | MVP |
 | Lista de amigos | Agregar amigos, ver sus resultados y un ranking entre ustedes. | Etapa 1.5 |
 | Desafíos 1 vs 1 | Retar a alguien a un minijuego: los dos juegan el mismo reto y gana el mejor puntaje. Cada uno juega cuando puede, dentro de las 24 horas. | Etapa 1.5 |
+| Batallas en vivo | Una sala de 2 a 10 amigos que juegan el mismo juego a la vez, desde un grupo o con un link. | **Hecho** (4/10/2026): Largada y Cinco Preguntas |
 
 Los grupos y el compartir van primero porque son los que más gente nueva traen.
 
@@ -213,6 +215,21 @@ Los grupos y el compartir van primero porque son los que más gente nueva traen.
 - **Corona del grupo:** en vivo, con las mismas reglas que la de los lugares (§4). La primera semana con corona es la del 5 al 11/10/2026: se entrega el lunes 12/10.
 - **Administración:** quien lo crea lo administra: cambia el nombre o el emblema, renueva el link y puede sacar a alguien. Cualquiera puede irse del grupo.
 - **Sin GPS:** los grupos no piden ubicación.
+
+### Batallas en vivo *(decidido el 4/10/2026)*
+
+La responsable del producto pidió poder jugar al mismo tiempo con los del grupo, "para cuando tenés un rato libre con algún amigo". Las pantallas se aprobaron con bocetos antes de construirlas.
+
+- **Quiénes:** de 2 a 10 jugadores, con cuenta. Se arma **desde un grupo**: arriba del ranking, "Batalla en vivo · Armar", y los miembros ven "Pato armó una de Largada · Sumarme". O **desde Práctica**, sin grupo. En los dos casos se puede invitar a cualquiera con el **link o el código** por WhatsApp; quien no tiene cuenta la crea y entra.
+- **La sala:** quien la arma elige el juego y la empieza; los demás esperan. Puede sacar a alguien de la sala, y esa persona no vuelve a esa batalla.
+- **A la par:** una cuenta regresiva en todos los celus a la vez y después:
+  - **Cinco Preguntas:** la misma pregunta para todos. Se ve quién ya respondió, pero no qué. La correcta aparece cuando respondieron todos o se terminó el tiempo, así nadie la puede cantar, y después de cada una se ve la tabla. Los puntos son los del juego.
+  - **Largada:** las mismas luces para todos, que se apagan al mismo tiempo en cada celu. Cuando todos tocaron, la carrera corre a la vez en todos los celus. Son 3 largadas, y gana el mejor promedio, con las penalidades del juego.
+  - **Diez Letras y Secuencia** llegan en la tanda siguiente: las mismas letras en los mismos 90 segundos, y Secuencia por rondas, donde el que se equivoca queda afuera.
+- **El final:** el podio de la batalla y **revancha** (otras preguntas, otras largadas) u **otro juego**, sin salir de la sala.
+- **Si alguien se va** o se le corta internet, la partida sigue sin esa persona. Quien llega con una partida empezada juega la próxima. Si se va quien la armó, elige el que entró después.
+- **No cuentan para rankings ni coronas**, que siguen saliendo de los retos del día. En el grupo, la pestaña **Batallas** muestra cuántas ganó cada uno y las últimas que se jugaron. Un empate arriba cuenta como ganada para cada uno.
+- **Sin chat**, como en el resto de la app. La música suena en todos los celus de la sala al mismo compás, y la pantalla no se apaga durante la partida.
 
 ## 9. Seguridad (todo público)
 
@@ -278,7 +295,8 @@ Cada etapa termina con algo que se puede jugar y probar.
 
 - Lista de amigos y ranking entre amigos.
 - Desafíos 1 vs 1.
-- Notificaciones: "salió el reto de hoy", "te pasaron en el ranking", "¡ganaste la corona!".
+- Batallas en vivo de Diez Letras y Secuencia (las de Largada y Cinco Preguntas ya están).
+- Notificaciones: "salió el reto de hoy", "te pasaron en el ranking", "¡ganaste la corona!", "Pato armó una batalla".
 - Más minijuegos.
 
 ### Etapa 2 — Truco

@@ -311,8 +311,12 @@ export interface Playing {
   duck(level: number, seconds?: number): void;
 }
 
-/** Plays `song` in a loop on `out`, scheduling a little ahead so it never stutters. */
-export function playSong(ctx: AudioContext, out: AudioNode, song: Song): Playing {
+/**
+ * Plays `song` in a loop on `out`, scheduling a little ahead so it never
+ * stutters. With `grid` (the context's time when the loop's first beat was
+ * or will be), phones that share a clock play in step: a battle's room.
+ */
+export function playSong(ctx: AudioContext, out: AudioNode, song: Song, grid?: number): Playing {
   const bus = ctx.createGain();
   bus.gain.setValueAtTime(0.0001, ctx.currentTime);
   bus.gain.exponentialRampToValueAtTime(song.level, ctx.currentTime + 0.6);
@@ -321,9 +325,19 @@ export function playSong(ctx: AudioContext, out: AudioNode, song: Song): Playing
   const total = song.bars * 16;
   let step = 0;
   let next = ctx.currentTime + 0.08;
+  /** Where the grid says we are now, from the next sixteenth on. */
+  const align = () => {
+    if (grid === undefined) return;
+    step = Math.max(0, Math.ceil((ctx.currentTime + 0.05 - grid) / sixteenth));
+    next = grid + step * sixteenth;
+  };
+  align();
   const schedule = () => {
     // A tab that was asleep starts again from now instead of rushing the missed notes.
-    if (next < ctx.currentTime - 0.2) next = ctx.currentTime + 0.05;
+    if (next < ctx.currentTime - 0.2) {
+      next = ctx.currentTime + 0.05;
+      align();
+    }
     while (next < ctx.currentTime + 0.15) {
       song.step(ctx, bus, next, step % total, sixteenth);
       step++;

@@ -16,7 +16,7 @@
 | Emails | **Ninguno por ahora** | Las cuentas no usan email. Si algún día se suma, Resend como servicio de envío. |
 | Anti-bots | **Cloudflare Turnstile** *(propuesta)* | Captcha invisible al registrarse, si los límites por navegador y por conexión no alcanzan. |
 | Tests | **Vitest** (lógica) + **Playwright** (punta a punta) | La lógica de juegos y puntajes tiene que estar muy bien testeada. |
-| Tiempo real (etapa 2) | A definir: **Colyseus** en Fly.io/Railway o **Cloudflare Durable Objects** | Para el truco: servidor autoritativo con estado oculto por jugador. |
+| Tiempo real | **Batallas:** el servidor fija la hora de cada momento y los celus preguntan seguido, con el reloj sincronizado (ver §4, "Batallas en vivo"). **Truco (etapa 2):** a definir, **Colyseus** en Fly.io/Railway o **Cloudflare Durable Objects** | Las batallas andan con lo que ya hay (Vercel y Supabase), sin otro servicio. El truco necesita un servidor autoritativo con estado oculto por jugador. |
 
 ## 2. Estructura del repositorio
 
@@ -182,6 +182,77 @@ Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLA
 - **Juego limpio:** nada que suene da información que la pantalla no muestre. La señal de Largada no suena: el motor arranca después del toque, y la música baja al prenderse las luces, no al apagarse.
 - **Pruebas:** `synth.test.ts` y `music.test.ts` revisan con un contexto de mentira (`lib/testing/fake-audio.ts`) que cada sonido y cada compás arranque cuando debe y no rompa Web Audio (una rampa exponencial a cero da error). Cómo suenan se escucha en las páginas de sonidos y de música.
 
+### Batallas en vivo
+
+Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su celu (decisiones en [PLAN §8](PLAN.md#batallas-en-vivo-decidido-el-4102026)). El código está en:
+
+- `packages/games/src/battles.ts`: las reglas y los tiempos, como funciones puras.
+- `apps/web/src/server/battles.ts` y `battle-content.ts`: quién puede hacer qué y qué se juega.
+- `packages/db/src/battles.ts`: las consultas.
+- `apps/web/src/components/battle`: las pantallas.
+- `apps/web/src/lib/use-battle.ts`: el reloj y las preguntas al servidor.
+
+**Sin proceso propio.** Ningún programa queda corriendo entre pedidos:
+
+- La partida guarda cuándo arranca y cada jugada.
+- Cada pedido calcula dónde está con `triviaFlow` / `largadaFlow`.
+- Una pregunta (o una largada) **cierra cuando jugaron todos los que siguen en la sala, o al vencer su tiempo**. Quien se fue durante la partida no la frena (`departures`), aunque vuelva.
+- Lo que sigue arranca a una hora fija después de ese cierre:
+  - en Cinco Preguntas, 5 s de tabla;
+  - en Largada, 0,7 s para que todos se enteren y la carrera.
+- Cuando la partida terminó, el primero que pregunta la escribe (`ended_at`, `results`, `winners`), una sola vez.
+- Una partida que nadie miró hasta el final se escribe al abrir el historial del grupo.
+
+**El reloj de cada celu.**
+
+- Cada respuesta trae la hora del servidor cuando llegó el pedido y cuando salió la respuesta (`serverAt`, `serverNow`).
+- Con eso el celu calcula, como NTP, cuánto está corrido su reloj. Se queda con la medición que menos tardó de las últimas 10, y le erra por unas decenas de milisegundos.
+- Así la pregunta aparece, y las luces se apagan, al mismo tiempo en todos los celus.
+
+**Preguntar seguido.** El celu pregunta `GET /api/batallas/{id}` según lo que esté por pasar:
+
+- cada 2 s en la sala y en el podio;
+- cada 0,7 s con una pregunta abierta, y cada 0,4 s si ya respondió;
+- cada 0,3 s después de la señal de Largada;
+- justo cuando arranca lo que sigue.
+
+Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No hace falta un servidor de websockets, y si algún día hay muchas batallas a la vez, se puede sumar un aviso en vivo (Supabase Realtime) sin cambiar las reglas.
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /api/batallas` | Abre una sala, desde un grupo (`groupId`) o suelta. Un grupo tiene una abierta por vez: pedir otra suma a la que hay. |
+| `GET /api/batallas/{id}` | La sala como la ve ese jugador: quiénes están, la etapa (`lobby`, `match`, `podium`, `closed`), la partida y la hora del servidor. |
+| `POST /api/batallas/{id}/juego` · `/empezar` · `/sala` | Quien la arma elige el juego, empieza (o la revancha) y vuelve a la sala ("Otro juego"). |
+| `POST /api/batallas/{id}/pregunta` · `/respuesta` | Cinco Preguntas: la pregunta, con las opciones en el orden de ese jugador, y la respuesta. |
+| `POST /api/batallas/{id}/largada` | Largada: el tiempo de reacción que midió el celu, o que se adelantó. |
+| `POST /api/batallas/{id}/sumarse` · `/salir` · `/sacar` | Sumarse desde el grupo, irse y sacar a alguien (quien la arma). |
+| `GET` · `POST /api/batallas/codigo/{código}` | Lo que muestra la página `/b/{código}` (anda sin cuenta) y sumarse con el código. |
+| `GET /api/grupos/{id}/batallas` | La batalla en vivo del grupo (para el aviso) y su historial: ganadas por miembro y las últimas 10. |
+
+- **Tablas:**
+  - `game.battles`: la sala, con el código, el grupo, quien la arma, el juego elegido y las preguntas ya jugadas.
+  - `game.battle_players`: quién está, con `seen_at` para saber quién sigue conectado.
+  - `game.battle_matches`: cada partida, con su contenido (los ids de las preguntas o las esperas de las luces), quiénes la juegan, quién se fue y el resultado.
+  - `game.battle_moves`: una jugada por jugador y ronda.
+  - Una sola partida abierta por sala (índice único).
+- **Juego limpio:**
+  - Los puntajes los calcula el servidor con las reglas de cada juego.
+  - En Cinco Preguntas, cada pregunta se entrega recién cuando abre (400 ms antes, como mucho), y su reloj corre desde que ese jugador la recibe. Cada uno ve las opciones en otro orden. Nadie ve la correcta ni qué eligieron los demás antes de que cierre. Las preguntas no repiten las de la sala ni las del reto de hoy.
+  - En Largada, las esperas son las mismas para todos y el celu mide la reacción desde el cuadro en que se apagan las luces, como en el reto del día. Una reacción que llega al servidor antes de lo posible (con 300 ms de margen de reloj) cuenta como adelantada y va a los logs.
+- **Límites:**
+  - 20 salas nuevas por hora por cuenta.
+  - Los códigos equivocados cuentan como los de los grupos: 10 por cuenta y 30 por conexión por hora.
+  - Un jugador está en una sala a la vez.
+  - Una sala sin nadie se cierra. En el grupo, el aviso solo aparece si alguien preguntó en los últimos 2 minutos.
+- **En el celu:**
+  - La música de la sala se alinea con el reloj del servidor (`useMusic(key, grid)`), así suena al mismo compás en todos los celus.
+  - Durante la partida se pide que la pantalla no se apague (Wake Lock).
+- **Pruebas:**
+  - Las reglas, en `packages/games/src/battles.test.ts`.
+  - Las consultas, sobre PGlite.
+  - Una batalla entera con tres jugadores, en `apps/web/src/server/battles.test.ts`.
+  - En el navegador, con tres celus simulados a la vez.
+
 ### Contrato de cada juego
 
 Cada juego de `packages/games` cumple esta interfaz:
@@ -285,6 +356,8 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | `group_code_failures` | **(Creada.)** Códigos de invitación equivocados, para los límites. |
 | `friendships` | Amistades y solicitudes (etapa 1.5). |
 | `duels` | Desafíos 1 vs 1 (etapa 1.5). |
+| `battles` / `battle_players` | **(Creadas.)** Salas de las batallas en vivo y quién está en cada una. |
+| `battle_matches` / `battle_moves` | **(Creadas.)** Cada partida de una sala, con su contenido y su resultado, y cada jugada. |
 | `reports` / `score_flags` | Reportes de usuarios y marcas automáticas para revisión. |
 | `trivia_questions` | Banco de preguntas con categoría, dificultad y estado de revisión. |
 
@@ -335,3 +408,4 @@ Las tablas viven en el esquema `game` (ver §4, "La base de datos"). **Row Level
 | Rankings vacíos al principio | Beta concentrada en pocas localidades, grupos privados como motor y mensajes que invitan a traer gente. |
 | Contenido (trivia y diccionario) | Banco inicial de preguntas armado con ayuda de IA y revisado a mano; diccionario libre filtrado para todo público. Verificar licencias. |
 | Notificaciones en iPhone | En iOS solo funcionan con la app instalada en la pantalla de inicio (iOS 16.4 o posterior): hay que guiar la instalación. |
+| Muchas batallas a la vez | Cada celu pregunta seguido (hasta unas 3 veces por segundo en los momentos clave). Con mucha gente: sumar avisos en vivo (Supabase Realtime) y preguntar menos, sin cambiar las reglas. |

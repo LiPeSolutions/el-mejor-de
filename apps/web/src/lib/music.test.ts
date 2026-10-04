@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { SONGS, type SongKey } from "./music";
+import { describe, expect, it, vi } from "vitest";
+import { SONGS, playSong, type SongKey } from "./music";
 import { fakeAudioContext } from "./testing/fake-audio";
 
 describe("the app's music", () => {
@@ -22,5 +22,27 @@ describe("the app's music", () => {
   it("goes faster in Largada than in the trivia, and calmest in Secuencia", () => {
     expect(SONGS.largada.bpm).toBeGreaterThan(SONGS.preguntas.bpm);
     expect(SONGS.secuencia.bpm).toBeLessThan(Math.min(SONGS.menu.bpm, SONGS.letras.bpm, SONGS.preguntas.bpm));
+  });
+});
+
+describe("music in a battle's room", () => {
+  it("puts phones that share a clock on the same beat, whenever each one starts", () => {
+    vi.stubGlobal("window", { setInterval: () => 0, clearInterval: () => undefined, setTimeout: () => 0 });
+    const song = SONGS.largada;
+    const sixteenth = 60 / song.bpm / 4;
+    const grid = 1.234;
+    const firstBeats = [5, 7.3].map((now) => {
+      const { ctx, starts } = fakeAudioContext();
+      (ctx as unknown as { currentTime: number }).currentTime = now;
+      playSong(ctx as AudioContext, ctx.destination, song, grid);
+      const first = Math.min(...starts);
+      expect(first).toBeGreaterThanOrEqual(now);
+      return first;
+    });
+    for (const first of firstBeats) {
+      const beats = (first - grid) / sixteenth;
+      expect(Math.abs(beats - Math.round(beats))).toBeLessThan(1e-6);
+    }
+    vi.unstubAllGlobals();
   });
 });
