@@ -17,16 +17,19 @@ import type { TodayInfo } from "@/lib/today-types";
 export function recordLabel(game: GameTheme, record: PracticeRecord | undefined): string {
   if (!record) return "—";
   if (game.id === "reflexes" && record.best !== undefined) return `${record.best} ms`;
-  if (game.id === "sequence" && record.best !== undefined) return `Nivel ${record.best}`;
+  if ((game.id === "sequence" || game.id === "water-sort") && record.best !== undefined) return `Nivel ${record.best}`;
   return formatNumber(record.score);
 }
 
-function PracticeTile({ game, record }: { game: GameTheme; record: string | null }) {
+function PracticeTile({ game, record, wide = false }: { game: GameTheme; record: string | null; wide?: boolean }) {
   const onGold = game.colors.on !== "#FFFFFF";
   return (
     <Link
       href={`/practicar/${game.slug}`}
-      className="relative flex min-h-[176px] flex-col overflow-hidden rounded-[24px] bg-(--game) px-3.5 pt-3.5 text-(--game-on) transition active:scale-[.98]"
+      className={cx(
+        "relative flex min-h-[176px] flex-col overflow-hidden rounded-[24px] bg-(--game) px-3.5 pt-3.5 text-(--game-on) transition active:scale-[.98]",
+        wide && "col-span-2 min-h-[150px]",
+      )}
       style={{ ...gameStyle(game), boxShadow: `0 12px 26px ${game.shadow.replace(/[\d.]+\)$/, onGold ? ".35)" : ".3)")}` }}
     >
       <span
@@ -87,8 +90,14 @@ export function PracticeHome({ today }: { today: TodayInfo }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 px-5 pt-4">
-        {GAME_LIST.map((game) => (
-          <PracticeTile key={game.id} game={game} record={state ? recordLabel(game, state.records[game.id]) : null} />
+        {GAME_LIST.map((game, index) => (
+          <PracticeTile
+            key={game.id}
+            game={game}
+            record={state ? recordLabel(game, state.records[game.id]) : null}
+            // With an odd number of games, the last one takes the whole row.
+            wide={GAME_LIST.length % 2 === 1 && index === GAME_LIST.length - 1}
+          />
         ))}
       </div>
 

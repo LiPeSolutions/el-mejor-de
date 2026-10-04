@@ -11,5 +11,7 @@ export function zeroResult(game: GameId): ChallengeResult {
       return { game, score: 0, averageMs: null, rounds: [] };
     case "sequence":
       return { game, score: 0, levelReached: 0, longestSequence: 0 };
+    case "water-sort":
+      return { game, score: 0, solvedCount: 0, levels: [] };
   }
 }

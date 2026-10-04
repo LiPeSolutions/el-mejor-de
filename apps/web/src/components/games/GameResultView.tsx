@@ -13,6 +13,7 @@ import { Screen } from "@/components/ui/Screen";
 import type { ChallengeResult } from "@/lib/challenge-types";
 import { formatNumber } from "@/lib/format";
 import { gameStyle, type GameTheme } from "@/lib/games";
+import { clockText } from "@/lib/tubitos";
 import { playSound, playSoundLater } from "@/lib/sound";
 
 interface DailyProps {
@@ -189,7 +190,49 @@ function Detail({ result }: { result: ChallengeResult }) {
         </Card>
       );
     }
+    case "water-sort": {
+      const solved = result.levels.filter((level) => level.solved);
+      const moves = solved.reduce((sum, level) => sum + level.moves, 0);
+      const par = solved.reduce((sum, level) => sum + level.par, 0);
+      return (
+        <Card>
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-bold">{solved.length === 0 ? "Ningún nivel resuelto" : `${moves} movimientos`}</span>
+            {solved.length > 0 && <span className="text-[13px] font-bold text-ink-500">el mínimo era {par}</span>}
+          </div>
+          <Divider />
+          <div className="grid grid-cols-3 gap-1.5">
+            {[0, 1, 2].map((index) => {
+              const level = result.levels[index];
+              return level?.solved ? (
+                <div key={index} className="rounded-xl bg-tubitos-light px-1.5 py-2 text-center">
+                  <div className="text-[11px] font-bold text-tubitos-dark">Nivel {index + 1}</div>
+                  <div className="font-display text-lg leading-tight font-extrabold tabular-nums">{level.moves} mov.</div>
+                  <div className="text-[11px] font-semibold text-ink-500 tabular-nums">
+                    {clockText(level.timeMs)} · +{level.points}
+                  </div>
+                </div>
+              ) : (
+                <div key={index} className="rounded-xl border-2 border-dashed border-ink-300 px-1.5 py-2 text-center">
+                  <div className="text-[11px] font-bold text-ink-500">Nivel {index + 1}</div>
+                  <div className="font-display text-lg leading-tight font-extrabold text-ink-300">—</div>
+                  <div className="text-[11px] font-semibold text-ink-500">sin resolver</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-center text-[11px] font-semibold text-ink-500">movimientos, tiempo y puntos de cada nivel</div>
+        </Card>
+      );
+    }
   }
+}
+
+/** Tubitos' headline: how many of the three levels came out. */
+function solvedLevelsTitle(solvedCount: number): string {
+  if (solvedCount === 0) return "No resolviste el nivel 1";
+  if (solvedCount === 3) return "Resolviste los 3 niveles";
+  return `Resolviste ${solvedCount} de 3 niveles`;
 }
 
 /** The score lands with its sound; a new practice record gets its little tune after it. */
@@ -239,6 +282,9 @@ export function GameResultView(props: Props) {
           <div className="mt-2 font-display text-[30px] leading-none font-extrabold tracking-[-.03em]">
             {result.levelReached === 0 ? "No pasaste el nivel 1" : `Llegaste al nivel ${result.levelReached}`}
           </div>
+        )}
+        {result.game === "water-sort" && (
+          <div className="mt-2 font-display text-[30px] leading-none font-extrabold tracking-[-.03em]">{solvedLevelsTitle(result.solvedCount)}</div>
         )}
         <div className="mt-1.5 flex items-baseline justify-center gap-1.5">
           <div className="font-display text-[84px] leading-none font-extrabold tracking-[-.05em] tabular-nums">

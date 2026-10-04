@@ -1,6 +1,6 @@
 import type { Rng } from './rng';
 
-export const GAME_IDS = ['seven-letters', 'five-questions', 'reflexes', 'sequence'] as const;
+export const GAME_IDS = ['seven-letters', 'five-questions', 'reflexes', 'sequence', 'water-sort'] as const;
 export type GameId = (typeof GAME_IDS)[number];
 
 export type GameCategory = 'words' | 'trivia' | 'skill' | 'logic';
@@ -22,6 +22,12 @@ export interface GameRngs {
 export interface EvaluationContext {
   /** Real time the server measured between starting and finishing the attempt. */
   serverElapsedMs?: number;
+  /**
+   * Games revealed level by level (Tubitos): for each level, the time the
+   * server saw between serving it and hearing it was solved (null if it
+   * doesn't know).
+   */
+  levelServerMs?: ReadonlyArray<number | null>;
 }
 
 export interface GameResult {

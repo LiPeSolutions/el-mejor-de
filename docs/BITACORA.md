@@ -17,7 +17,7 @@
 
 ## Estado actual (4/10/2026)
 
-- **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, el juego que descansa, resumen del día, práctica con récords, racha y puntaje de la semana.
+- **App publicada** en https://game.lipesolutions.com (también en https://el-mejor-de-web.vercel.app). Se puede jugar: inicio, los 3 retos del día con su resultado, los juegos que descansan, resumen del día, práctica con récords, racha y puntaje de la semana.
 - **Cuentas** con apodo y contraseña, sin email: crear cuenta (personaje y El / La Mejor), entrar, salir, perfil y editar personaje. Lo jugado ese día sin cuenta pasa a la cuenta nueva, y en otro celu se ve lo jugado.
 - **Grupos privados** con su ranking del día y de la semana y su **corona en vivo**:
   - Crear un grupo, invitar por WhatsApp o con el código, sumarse (también creando la cuenta desde el link), sacar a alguien e irse.
@@ -36,14 +36,18 @@
 - **Largada** reemplaza a Reflejos: una largada de autos contra los tiempos de hoy de tu grupo, con podio, foto de llegada para compartir por WhatsApp y la franja de la corona.
   - Ya está en la práctica. En el reto del día rige desde el 4/10, y el primer día con reto de reflejos es el **lunes 5/10**. El 3/10 sigue el Reflejos de antes.
   - **Bots** (Rayo, Chispa, Turbo y Tortuga): en la práctica completan la pista; en el reto del día corren solo si no hay nadie más.
-- **Sonido:** efectos en los cuatro juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
-- **Música:** un loop para el menú y uno por juego, más bajo que los efectos. Se apaga aparte en el perfil.
+- **Tubitos**, el quinto juego (lógica): ordenar colores en tubos, diseñado con Claude Design.
+  - Ya está en la práctica, con niveles sin fin desde el que sigue a tu récord.
+  - En el reto del día entra el **lunes 5/10**, con 3 niveles seguidos (6, 8 y 10 tubos). Desde ese día se juegan 3 de los 5 juegos y descansan 2; ese lunes tocan Diez Letras, Largada y Tubitos.
+  - El servidor arma los tableros, calcula el mínimo de movimientos, entrega cada nivel cuando resolviste el anterior y cronometra cada uno.
+- **Sonido:** efectos en los juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
+- **Música:** un loop para el menú y uno por juego (el de Tubitos, "Laboratorio"), más bajo que los efectos. Se apaga aparte en el perfil.
 - **Batallas en vivo:** de 2 a 10 amigos juegan a la vez, cada uno en su celu, desde un grupo (con el aviso "Pato armó una de Largada · Sumarme") o con un link.
   - Por ahora, Largada y Cinco Preguntas, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 349 automáticas, todas pasan.
+- **Pruebas:** 392 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** las batallas de Diez Letras y Secuencia, vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** las batallas de Diez Letras y Secuencia (y quizás de Tubitos), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -54,11 +58,40 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Código | GitHub `LiPeSolutions/el-mejor-de`, rama `claude/adoring-bardeen-19q4va`. CI con GitHub Actions: lint, tipos, pruebas y build en cada push. |
 | Publicación | Vercel, equipo `lipe-demos`, proyecto `el-mejor-de-web` (Root Directory `apps/web`, funciones en São Paulo `gru1`). Variables: `CHALLENGE_SECRET` (producción y previews) y `DATABASE_URL` (producción). Los previews no tienen base, así que ahí no hay cuentas. |
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
-| Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
+| Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md); Largada y Tubitos, en [`handoff-largada`](diseno/handoff-largada/LARGADA.md) y [`handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
 | Contenido | Diccionario de Diez Letras (365.648 palabras de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Tubitos, el quinto juego
+
+- **Pedido de la responsable del producto:** sumar Tubitos (el clásico "water sort", ordenar colores en tubos), que diseñó con Claude Design. Mandó un zip con la guía, las pantallas y el diseño de referencia, y pidió que le preguntara las dudas antes de empezar.
+- **Decisiones (consultadas antes de empezar):**
+  - **Rotación:** se siguen jugando 3 retos por día y descansan 2. Cada juego sale 3 de cada 5 días y ninguno descansa dos días seguidos.
+  - **Desde cuándo:** al día siguiente de publicarlo, el **lunes 5/10/2026**. Ese día tocan Diez Letras, Largada y Tubitos, así Largada estrena en el reto del día como estaba previsto. En la práctica, desde ya.
+  - **Reiniciar y deshacer:** como en el diseño. Reiniciar vuelve los movimientos a 0 y el reloj sigue; hay 3 deshacer por nivel y no descuentan.
+  - **Música:** una propia, "Laboratorio".
+  - Quedó en [PLAN §2 y §7](PLAN.md#tubitos-decidido-y-construido-el-4102026); lo que cambió respecto del diseño, en [CAMBIOS-AL-DISENO](diseno/CAMBIOS-AL-DISENO.md#tubitos). La guía y las pantallas, en [`docs/diseno/handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md).
+- **Cómo funciona:**
+  - **Reto del día:** 3 niveles seguidos, de 6, 8 y 10 tubos. Todos tienen el mismo tablero, con los colores y el orden de los tubos cambiados. El servidor calcula el mínimo de movimientos de cada nivel y entrega el siguiente recién cuando resolviste el anterior.
+  - **Puntaje:** 250, 350 y 400 por nivel: 70 % por los movimientos contra el mínimo y 30 % por el tiempo. Lo calcula el servidor, que también cronometra cada nivel por su cuenta, así no sirve trucar el reloj del celu.
+  - **Práctica:** niveles sin fin desde el que viene después de tu récord, con "Siguiente nivel", "Volver a Practicar" y "Repetir nivel".
+- **Qué se hizo:**
+  - **Motor** (`packages/games/src/games/water-sort.ts`): las reglas, el armado de los tableros, el buscador de la solución más corta, la corrección rejugando cada paso, las marcas de juego limpio y el puntaje. El buscador tarda milisegundos y se comprobó contra una búsqueda completa.
+  - **Rotación de 5 juegos** (`packages/games/src/lineup.ts`), sin tocar los días anteriores.
+  - **Servidor:** `/api/retos/resuelto` (un nivel resuelto, con su recibo) y `/api/retos/nivel` (el siguiente). Migración `water_sort`: la base acepta el juego nuevo.
+  - **Pantallas:** el tablero de tubos de vidrio y el vertido animado (el tubo vuela, se inclina con el líquido horizontal y cae el chorro). También los avisos, deshacer y reiniciar, el corcho de cada tubo listo, la victoria de cada nivel (reto y práctica), el resultado con los 3 niveles y la baldosa y el récord en Práctica. Hay versión para tablet y para movimiento reducido.
+  - **Sonidos y música:** el gluglú del vertido, el "plop" del corcho y la canción "Laboratorio".
+  - El aviso "Hoy Tubitos descansa" dice "Tubitos se estrena mañana" hasta el lunes.
+- **Pruebas:**
+  - 392 automáticas (43 nuevas): las reglas, el buscador, la corrección y sus marcas, la rotación, las medidas del tablero y el servidor con los 3 niveles.
+  - En el navegador, con una prueba que juega sola (lee los tubos de la pantalla y los resuelve):
+    - la práctica entera en celus de 390 × 844 y 360 × 740 y en una tablet de 820 × 1180;
+    - el reto del día con los 3 niveles y el resultado, con y sin movimiento reducido;
+    - salir en la victoria de un nivel (cuenta lo resuelto) y cerrar la app a mitad (cuenta como jugado).
+- **Visto al probar:** al empezar un nivel los dos botones se veían apagados y la pantalla parecía trabada (ahora Reiniciar se ve siempre), y la baldosa de Tubitos dejaba un hueco en Práctica (ahora ocupa toda la fila).
+- **Pendiente:** decidir si Tubitos entra a las batallas en vivo, sumar el grupo en el juego y en la victoria (segunda vuelta del diseño) y calibrar el puntaje con la beta.
 
 ### 4/10/2026 — Batallas en vivo
 

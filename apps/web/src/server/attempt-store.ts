@@ -1,5 +1,5 @@
 import "server-only";
-import { claimAttempt, finishAttempt, getAttempt, questionServedAt, type Attempt, type Queryable } from "@repo/db";
+import { attemptMoment, attemptMoments, claimAttempt, finishAttempt, getAttempt, type Attempt, type Queryable } from "@repo/db";
 import type { Flag, GameId } from "@repo/games";
 import { zeroResult } from "@/lib/challenge-results";
 import type { ChallengeResult, PlayedAttempt } from "@/lib/challenge-types";
@@ -72,15 +72,31 @@ export async function recordExpired(claims: AttemptClaims, now = Date.now()): Pr
   await closeWithZero(db, claims, now);
 }
 
-/** When a trivia question was first shown in this attempt, so asking again doesn't restart its clock. */
-export async function questionShownAt(claims: AttemptClaims, index: number, now = Date.now()): Promise<number> {
+/**
+ * The first time something happened in this attempt (a trivia question
+ * shown, a Tubitos level served or solved), so asking again doesn't restart
+ * its clock. Without a database, or in practice, it's now.
+ */
+export async function momentOf(claims: AttemptClaims, key: string, now = Date.now()): Promise<number> {
   const db = database();
   if (!db || claims.mode !== "daily") return now;
-  const servedAt = await questionServedAt(db, claims.id, index, now);
-  // Null: finished, so no more questions. (No row at all means it began before the database.)
-  if (servedAt === null) {
+  const moment = await attemptMoment(db, claims.id, key, now);
+  // Null: finished, so nothing more. (No row at all means it began before the database.)
+  if (moment === null) {
     if ((await getAttempt(db, claims.id))?.status === "finished") throw new HttpError(409, "finished");
     return now;
   }
-  return servedAt;
+  return moment;
+}
+
+/** When a trivia question was first shown in this attempt. */
+export function questionShownAt(claims: AttemptClaims, index: number, now = Date.now()): Promise<number> {
+  return momentOf(claims, String(index), now);
+}
+
+/** Every moment kept for this attempt (see `momentOf`), or null without a database. */
+export async function momentsOf(claims: AttemptClaims): Promise<Record<string, number> | null> {
+  const db = database();
+  if (!db || claims.mode !== "daily") return null;
+  return attemptMoments(db, claims.id);
 }

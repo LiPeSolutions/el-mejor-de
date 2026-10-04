@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:relative;width:{{ b.w }}px;height:{{ b.h }}px;margin:0 auto;filter:{{ b.filter }}">
+  <sc-for list="{{ racks }}" as="r" hint-placeholder-count="2">
+    <div style="position:absolute;left:{{ r.x }}px;top:{{ r.y }}px;width:{{ r.w }}px;height:{{ r.h }}px;border-radius:999px;background:{{ r.bg }};box-shadow:{{ r.shadow }}"></div>
+  </sc-for>
+  <sc-for list="{{ tubes }}" as="t" hint-placeholder-count="6">
+    <div style="position:absolute;left:{{ t.x }}px;top:{{ t.y }}px;width:{{ t.w }}px;height:{{ t.h }}px">
+      <dc-import name="Tubo" t="{{ t }}" estilo="{{ estilo }}" hint-size="46px,140px"></dc-import>
+    </div>
+  </sc-for>
+  <sc-if value="{{ b.stream }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:{{ b.stream.x }}px;top:{{ b.stream.y }}px;width:{{ b.stream.w }}px;height:{{ b.stream.h }}px;border-radius:999px;background:{{ b.stream.color }};box-shadow:0 0 0 2px {{ b.stream.halo }}"></div>
+  </sc-if>
+  <sc-if value="{{ b.moving }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:{{ b.moving.x }}px;top:{{ b.moving.y }}px;width:{{ b.moving.w }}px;height:{{ b.moving.h }}px">
+      <dc-import name="Tubo" t="{{ b.moving }}" estilo="{{ estilo }}" hint-size="46px,140px"></dc-import>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:350,&quot;height&quot;:440},&quot;b&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;},&quot;estilo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;probeta&quot;,&quot;ficha&quot;,&quot;noche&quot;],&quot;default&quot;:&quot;probeta&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const b = this.props.b || { w: 350, h: 420, filter: 'none' };
+    return {
+      b,
+      racks: b.racks || [],
+      tubes: b.tubes || [],
+      estilo: this.props.estilo || 'probeta',
+    };
+  }
+}
+</script>
+</body>
+</html>

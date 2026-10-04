@@ -9,7 +9,7 @@ import { createElement as h, type ReactElement } from "react";
 export type Species = "carpincho" | "hornero" | "pinguino" | "zorro" | "rana" | "llama" | "pelusa" | "nioqui";
 export type Face = "happy" | "joy" | "wow" | "wink" | "sleep";
 export type Accessory = "boina" | "gorra" | "anteojos" | "bufanda" | "mate" | "corona";
-export type GameProp = "letra" | "pregunta" | "rayo" | "bandera";
+export type GameProp = "letra" | "pregunta" | "rayo" | "bandera" | "tubo";
 
 export interface BodyColors {
   main: string;
@@ -412,6 +412,27 @@ export function Personaje(o: PersonajeProps): ReactElement {
           [5, 10],
           [15, 10],
         ].map(([x, y]) => h("rect", { key: `${x}-${y}`, x, y, width: 5, height: 5, fill: "#23263A" })),
+      ),
+    );
+  }
+
+  if (o.prop === "tubo") {
+    // Tubitos: a test tube held up in the hand. Simple shapes, like the other props.
+    const [hx, hy] = hand;
+    const x = hx + 5;
+    const top = hy - 30;
+    const w = 10;
+    const len = 30;
+    k.push(
+      h(
+        "g",
+        { key: "tb", transform: `rotate(14 ${x + w / 2} ${top + len / 2})` },
+        h("rect", { x, y: top, width: w, height: len, rx: w / 2, fill: "#FFFFFF" }),
+        h("rect", { x, y: top + 12, width: w, height: len - 12, rx: w / 2, fill: "#2EC4B6" }),
+        h("rect", { x, y: top + 12, width: w, height: 5, fill: "#2EC4B6" }),
+        h("rect", { x: x + 2, y: top + 3, width: 2.2, height: 8, rx: 1.1, fill: "#FFFFFF", opacity: 0.9 }),
+        h("rect", { x, y: top, width: w, height: len, rx: w / 2, fill: "none", stroke: "#B8BDD6", strokeWidth: 1.4 }),
+        h("rect", { x: x - 1.8, y: top - 2, width: w + 3.6, height: 3.6, rx: 1.8, fill: "#B8BDD6" }),
       ),
     );
   }

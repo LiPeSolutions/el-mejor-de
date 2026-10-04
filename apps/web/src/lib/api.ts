@@ -7,6 +7,8 @@ import type {
   LevelResponse,
   QuestionResponse,
   StartResponse,
+  WaterSortLevelResponse,
+  WaterSortSolvedResponse,
   WordCheckResponse,
 } from "./challenge-types";
 import type { GameSlug } from "./games";
@@ -55,12 +57,18 @@ const post = <T>(path: string, body: unknown) => send<T>(`/api/retos/${path}`, b
 
 export const api = {
   startDaily: (slot: number) => post<StartResponse>("empezar", { mode: "daily", slot }),
-  startPractice: (game: GameSlug) => post<StartResponse>("empezar", { mode: "practice", game }),
+  /** `level`: Tubitos goes on from there. */
+  startPractice: (game: GameSlug, level?: number) => post<StartResponse>("empezar", { mode: "practice", game, ...(level ? { level } : {}) }),
   checkWord: (token: string, word: string) => post<WordCheckResponse>("palabra", { token, word }),
   question: (token: string, index: number) => post<QuestionResponse>("pregunta", { token, index }),
   answer: (token: string, questionToken: string, choice: number | null) =>
     post<AnswerResponse>("respuesta", { token, questionToken, choice }),
   level: (token: string, level: number, inputs: number[]) => post<LevelResponse>("nivel", { token, level, inputs }),
+  /** Tubitos: a solved level, with what was played on it. */
+  solved: (token: string, level: number, played: { events: unknown[]; durationMs: number }, levelToken?: string) =>
+    post<WaterSortSolvedResponse>("resuelto", { token, level, ...played, ...(levelToken ? { levelToken } : {}) }),
+  /** Tubitos: the next level, with the receipt of the one before. */
+  nextBoard: (token: string, level: number, receipt: string) => post<WaterSortLevelResponse>("nivel", { token, level, receipt }),
   finish: (token: string, log: unknown) => post<FinishResponse>("terminar", { token, log }),
 };
 

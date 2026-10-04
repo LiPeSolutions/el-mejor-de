@@ -57,7 +57,7 @@ el-mejor-de/
 **Semillas secretas.** Cada reto usa dos generadores de azar derivados con HMAC-SHA256 de un secreto del servidor (`dailyRngs` en `@repo/games/server`):
 
 - **`shared`** = `HMAC(secreto, fecha, slot)`: igual para todos. Elige las letras, las preguntas, etc.
-- **`player`** = `HMAC(secreto, fecha, slot, usuario)`: único por jugador. Ordena las opciones y genera las versiones propias (esperas de Largada, secuencia de Secuencia).
+- **`player`** = `HMAC(secreto, fecha, slot, usuario)`: único por jugador. Ordena las opciones y genera las versiones propias (esperas de Largada, secuencia de Secuencia, colores y orden de los tubos de Tubitos).
 
 Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron genera los retos del día siguiente y guarda el contenido en `daily_challenges` (así un cambio de diccionario o de preguntas no altera un día ya publicado); la solución nunca sale del servidor.
 
@@ -68,6 +68,7 @@ Sin el secreto nadie puede calcular por adelantado el reto de mañana. Un cron g
    - **Cinco Preguntas:** las preguntas se piden de a una (`/next`); el servidor cronometra cada una y corrige.
    - **Diez Letras:** cada palabra se verifica en el servidor mientras el jugador sigue (el diccionario no se manda al celu), y la lista final se corrige en el servidor.
    - **Largada y Secuencia:** el cliente manda el registro de eventos (toques y tiempos) y el servidor lo valida.
+   - **Tubitos:** cada nivel se pide recién cuando el anterior está resuelto; el servidor lo comprueba con los pasos del nivel y anota cuándo lo entregó y cuándo se resolvió.
 3. `POST /api/daily/{fecha}/{slot}/finish` → el servidor valida con `packages/games`, calcula el puntaje (0–1.000) y corre los chequeos de plausibilidad.
 4. Si un intento no se termina, al vencer su tiempo máximo se cierra con lo que haya.
 
@@ -77,11 +78,12 @@ La API de los retos es autoritativa. Lo que necesita para jugar viaja firmado, y
 
 | Endpoint (`POST`) | Qué hace |
 |---|---|
-| `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`). Devuelve un **token firmado** y solo lo necesario para jugar. |
+| `/api/retos/empezar` | Arranca un reto del día (`{ mode: "daily", slot }`) o una práctica (`{ mode: "practice", game }`; Tubitos suma `level`, el nivel de la carrera). Devuelve un **token firmado** y solo lo necesario para jugar. |
 | `/api/retos/palabra` | Diez Letras: dice si una palabra vale y cuántos puntos da (el diccionario no se manda al celu). El celu no espera la respuesta para seguir: la palabra aparece al instante y se marca cuando llega (si falla la conexión, reintenta). El puntaje final sale de todo lo enviado, verificado o no. |
 | `/api/retos/pregunta` | Cinco Preguntas: entrega una pregunta por vez, con la hora del servidor adentro. Si se pide de nuevo, conserva la hora de la primera vez. |
 | `/api/retos/respuesta` | Corrige la respuesta, mide el tiempo del lado del servidor y devuelve un **recibo firmado**. |
-| `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. |
+| `/api/retos/nivel` | Secuencia: entrega la secuencia siguiente solo si la anterior se repitió bien. Tubitos: entrega el tablero siguiente con el **recibo** del anterior, y un token con la hora en que lo entregó (si se pide de nuevo, conserva la primera). |
+| `/api/retos/resuelto` | Tubitos: recibe los pasos de un nivel, los rejuega y, si lo resuelven, devuelve los puntos y un **recibo firmado** con cuándo se entregó y cuándo se resolvió. |
 | `/api/retos/terminar` | Recibe el registro del juego, recalcula todo desde la semilla y devuelve el puntaje. Un reto se corrige **una sola vez**: si se manda de nuevo, vuelve el resultado guardado. |
 
 - **Token del intento:** id del intento, juego, fecha, slot, jugador y hora de inicio, firmados con HMAC. El servidor regenera el contenido desde la semilla en cada pedido (con un caché en memoria), así que el contenido no se guarda. Un token vencido (pasado el tiempo máximo del juego más dos minutos) se rechaza.
@@ -167,15 +169,29 @@ El juego de reflejos desde el 4/10/2026 (decisiones en [PLAN §7](PLAN.md#largad
 - **Sonido y vibración:** un golpe seco por luz con Web Audio, que se habilita al tocar "Empezar"; en el iPhone respeta el modo silencio (`audioSession` "ambient"). Vibra donde se puede (en Android sí, en el iPhone no).
 - **Récords de práctica:** el de Reflejos se guarda marcado como de Largada; el del juego anterior ya no se muestra.
 
+### Tubitos
+
+El quinto juego, de lógica: en la práctica desde el 4/10/2026 y en el reto del día desde el 5/10/2026 (decisiones en [PLAN §7](PLAN.md#tubitos-decidido-y-construido-el-4102026), diseño en [`docs/diseno/handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md)). Es `water-sort` en el código y en la base. El motor está en `packages/games/src/games/water-sort.ts`; el servidor, en `apps/web/src/server/challenges.ts`; las pantallas, en `apps/web/src/components/games/WaterSortPlay.tsx` y `apps/web/src/components/tubitos`, y las medidas, en `apps/web/src/lib/tubitos.ts`.
+
+- **Tablero:** tubos de 4 capas, cada uno de abajo hacia arriba como índices de `WATER_SORT_COLORS` (los 8 líquidos en el orden en que entran: 4 con 6 tubos, 6 con 8 y 8 con 10). Las reglas (`checkPour`, `pour`, `isSolved`, `hasPours`, `colorsLeft`) son las mismas en el celu y en el servidor.
+- **Mínimo de movimientos (par):** `solveWaterSort` busca la solución más corta con A* sobre tableros donde el orden de los tubos no importa (cada tubo es un número y el tablero, los tubos ordenados). La estimación nunca se pasa (cada pase une a lo sumo un tramo de un color con otro, y un color que no está en el fondo de ningún tubo necesita al menos un pase a un tubo vacío), así que la primera solución es la más corta; se comprobó contra una búsqueda completa. Tarda milisegundos. Si una búsqueda llegara a su tope (300.000 tableros), se queda con una solución más larga y el par queda marcado como no exacto.
+- **Armado:** con la semilla `shared`, los colores al azar en los tubos llenos y 2 vacíos al final, sin tubos listos de entrada y con un mínimo de pases (10, 16 y 22) para que no sea fácil. Cada tablero se resuelve una vez por servidor (caché por semilla). Con la semilla `player`, cada jugador lo recibe con los colores cambiados y otro orden de los tubos llenos: el mismo par.
+- **Registro:** `{ levels: { events, durationMs, receipt? }[] }`, con `pour` (de qué tubo a cuál), `undo` y `restart`, cada uno con su `t` (ms desde que empezó el nivel). El servidor rejuega cada nivel: pases permitidos, como mucho 3 deshacer desde el último reinicio y el tablero resuelto. Los movimientos que cuentan son los pases desde el último reinicio.
+- **Tiempo justo:** el de cada nivel es el del celu (hasta el pase que lo resuelve), pero nunca menos que lo que vio el servidor menos 2 s de margen. El servidor anota en `attempts.progress` cuándo entregó cada nivel (`level:N`, el primero es el comienzo del intento) y cuándo se enteró de que se resolvió (`solved:N`), la primera vez (`momentOf`, como las preguntas); sin base, los recibos firmados lo dicen. Así no conviene mirar el nivel siguiente durante la pausa: recién se entrega al tocar "Siguiente nivel".
+- **Marcas:** `illegal-move` (alta), `unsolved-level` (alta: pasos en un nivel que no debió entregarse), `below-par` (alta, con par exacto), `too-fast-input` (menos de 150 ms entre pases, en promedio) y `clock-mismatch`.
+- **Práctica:** cada nivel es un intento propio (`claims.level`), con un motor de un nivel del tamaño que le toca (`waterSortPracticeRules`). El celu pide el nivel siguiente a su récord (`emd:practica`, `best`); no hay que mandarle nada al servidor al terminar.
+- **Pantalla:** el tablero ocupa el lugar que queda entre las instrucciones y los botones (`boardLayout`, con las medidas del diseño, más bajas en pantallas de 800 px o menos y achicadas si todavía no entran; en tablets paradas, más grandes). Cada tubo es un botón del alto de su columna. El vertido son transiciones de CSS en cuatro etapas (levantar, inclinar, verter y volver); el líquido inclinado queda horizontal con `tippedLiquid` (franjas y un `clip-path`), y el chorro y el tubo que se llena crecen con la animación `fill-up`. Con movimiento reducido, el líquido pasa con un fundido.
+- **Rotación:** `dailyLineup` usa los 4 juegos hasta el 4/10/2026 y los 5 desde `WATER_SORT_FROM` (5/10/2026), con 2 que descansan por día (ver "Contrato de cada juego").
+
 ### Sonido
 
 Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLAN §2](PLAN.md#2-decisiones-tomadas)).
 
-- **Los sonidos** (`apps/web/src/lib/synth.ts`): cada uno se dibuja sobre cualquier contexto de audio (el parlante, o uno sin parlante para escucharlos o medirlos) desde un momento dado, y dice cuánto dura. Son osciladores con envolventes y ruido filtrado: letras que suben por una escala pentatónica, campanitas para acertar, un "bonk" para el error, el tic del reloj, las notas de Secuencia (un acorde de La mayor, como el Simón), el golpe de las luces y el motor de Largada, y las cortinas (día cerrado, récord, corona).
+- **Los sonidos** (`apps/web/src/lib/synth.ts`): cada uno se dibuja sobre cualquier contexto de audio (el parlante, o uno sin parlante para escucharlos o medirlos) desde un momento dado, y dice cuánto dura. Son osciladores con envolventes y ruido filtrado: letras que suben por una escala pentatónica, campanitas para acertar, un "bonk" para el error, el tic del reloj, las notas de Secuencia (un acorde de La mayor, como el Simón), el golpe de las luces y el motor de Largada, el gluglú del vertido y el "plop" del corcho de Tubitos, y las cortinas (día cerrado, récord, corona).
 - **El parlante** (`apps/web/src/lib/sound.ts`): un solo `AudioContext` para toda la app, con un limitador para que los sonidos encimados no saturen. Los navegadores solo dejan sonar después de un toque: `SoundUnlock` (en el layout) lo abre en el primero y lo reabre si el celu lo pausó. En el iPhone usa la sesión de audio "ambient": respeta la tecla de silencio y no corta la música que esté sonando.
 - **Prendido o apagado:** arranca prendido; apagarlo queda en el celu (`emd:sonido`). Se cambia con el parlante de la cabecera de los juegos (`SoundToggle`) o en el perfil (`SoundSetting`).
 - **Cuándo suena:** cada juego llama a `playSound` en el momento justo (al tocar, al corregir, en los últimos segundos). Los resultados cuentan el puntaje con un sonido (`useResultSound`); el récord, la corona y el día cerrado (una vez por día, `emd:sonido-dia`) tienen su cortina.
-- **Música** (`apps/web/src/lib/music.ts`): cinco loops de 8 compases, uno para los menús ("Plaza") y uno por juego ("Ingenio", "Concurso", "Carrera" y "Memoria"). Cada canción dibuja cada semicorchea, y un programador las agenda un poco por adelantado para que el loop no se corte. Los bajos van una octava más arriba que en un disco, porque los parlantes de los celus casi no tocan por debajo de 150 Hz.
+- **Música** (`apps/web/src/lib/music.ts`): seis loops de 8 compases, uno para los menús ("Plaza") y uno por juego ("Ingenio", "Concurso", "Carrera", "Memoria" y "Laboratorio", la de Tubitos, con burbujas). Cada canción dibuja cada semicorchea, y un programador las agenda un poco por adelantado para que el loop no se corte. Los bajos van una octava más arriba que en un disco, porque los parlantes de los celus casi no tocan por debajo de 150 Hz.
 - **Qué canción suena:** la de los menús, salvo que una pantalla pida otra con `useMusic`. `ChallengeRunner` pide la del juego desde la pantalla de antes de empezar. Al cambiar de canción hay un fundido, y entre menús no se reinicia. Va por su propio canal, más bajo que los efectos (`MUSIC_LEVEL`), y se pausa cuando la app queda en segundo plano.
 - **Cuándo baja:** mientras se prenden las luces de Largada y mientras se muestra la secuencia de Secuencia (`duckMusic`), y sola mientras suena una cortina o el puntaje del resultado.
 - **Música aparte:** el parlante de los juegos apaga todo; en el perfil, "Música" la apaga sin tocar los efectos (`emd:musica`).
@@ -259,21 +275,21 @@ Cada juego de `packages/games` cumple esta interfaz:
 
 ```ts
 interface GameDefinition<Content, Solution, Log, Result extends { score: number; flags: Flag[] }> {
-  id: GameId;                    // 'seven-letters' | 'five-questions' | 'reflexes' | 'sequence'
+  id: GameId;                    // 'seven-letters' | 'five-questions' | 'reflexes' | 'sequence' | 'water-sort'
   category: 'words' | 'trivia' | 'skill' | 'logic';
   maxDurationMs: number;         // después de esto el servidor cierra el intento
   generate(rngs: { shared: Rng; player: Rng }): { content: Content; solution: Solution };
-  evaluate(content: Content, solution: Solution, log: Log, ctx?: { serverElapsedMs?: number }): Result;
+  evaluate(content: Content, solution: Solution, log: Log, ctx?: { serverElapsedMs?: number; levelServerMs?: (number | null)[] }): Result;
 }
 ```
 
-- `content` es lo que el jugador puede ver (Cinco Preguntas y Secuencia lo revelan de a partes); `solution` nunca sale del servidor.
+- `content` es lo que el jugador puede ver (Cinco Preguntas, Secuencia y Tubitos lo revelan de a partes); `solution` nunca sale del servidor.
 - `evaluate` corrige, puntúa (0–1.000) y devuelve **marcas** (`flags`) de plausibilidad: `severity: 'high'` significa que el puntaje no cuenta hasta revisarlo.
 - Los juegos que necesitan datos se crean con ellos: `createSevenLetters(diccionario, reglas)` y `createFiveQuestions(bancoDePreguntas)`.
 - **Reglas por fecha:** un reto del día nunca cambia después de publicado. Diez Letras (`TEN_LETTERS_RULES`: 10 letras, puntos fijos) rige desde el 4/10/2026 (`TEN_LETTERS_FROM` en `apps/web/src/server/challenges.ts`). Los días anteriores se regeneran con las reglas de Siete Letras (`SEVEN_LETTERS_RULES`), y la práctica usa siempre las actuales. Igual con Largada (`LARGADA_FROM`, 4/10/2026), que reemplaza al Reflejos de cambio de color. Así se van a manejar los próximos ajustes de puntajes.
 - **Diccionario de palabras:** 365.648 palabras de 3 a 10 letras (`packages/content`). Para buscar rápido qué palabras se arman con las letras del día, cada palabra tiene una máscara de bits con sus letras.
 - La misma lógica corre en el cliente (juego libre, con `practiceRngs()`) y en el servidor (retos diarios, con `dailyRngs()`).
-- `dailyLineup(fecha)` arma los 3 retos del día: rota el juego que descansa.
+- `dailyLineup(fecha)` arma los 3 retos del día. Hasta el 4/10/2026, con 4 juegos, descansaba uno por día. Desde el 5/10/2026 (`WATER_SORT_FROM`), con 5, descansan el del número del día y el de dos lugares después: cada juego sale 3 de cada 5 días y ninguno descansa dos días seguidos. El primer día tocan Diez Letras, Largada y Tubitos. `rotationGames(fecha)` dice qué juegos estaban en la rotación ese día.
 - La API valida la forma de cada registro (esquema) antes de pasárselo al motor.
 
 ### Agujeros conocidos y cómo los cerramos
@@ -284,7 +300,8 @@ interface GameDefinition<Content, Solution, Log, Result extends { score: number;
 | Pasarse las respuestas (la palabra o las preguntas del día) | Tiempo límite corto, orden mezclado y, si hace falta, contenido distinto por jugador con dificultad equivalente. |
 | Bots o scripts en juegos de habilidad (dependen del reloj del celu) | Rangos humanos (por ejemplo, reflejos de menos de 100 ms son imposibles), análisis de varianza, verificación en el podio y revisión manual de coronas grandes. Si un juego resulta demasiado trucable, sale de los retos diarios y queda solo como juego libre. |
 | GPS falso | Cruce con la región por IP (headers `x-vercel-ip-*`), precisión reportada, viajes imposibles y re-verificación en momentos clave. |
-| Cuentas múltiples | Un intento por cuenta, cada cuenta con sus propias variantes (Largada, Secuencia), límites de cuentas nuevas, señales de conexión y navegador, y revisión de patrones. |
+| Cuentas múltiples | Un intento por cuenta, cada cuenta con sus propias variantes (Largada, Secuencia, Tubitos), límites de cuentas nuevas, señales de conexión y navegador, y revisión de patrones. |
+| Trucar el reloj del celu (Tubitos) | El servidor cronometra cada nivel por su cuenta (de entregarlo a enterarse de que se resolvió) y nunca cuenta mucho menos que eso. El nivel siguiente recién se entrega al tocar "Siguiente nivel". |
 
 ## 5. Lugares y verificación de ubicación
 

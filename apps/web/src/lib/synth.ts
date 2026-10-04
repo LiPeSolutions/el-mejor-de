@@ -262,6 +262,28 @@ export const synth = {
     return 0.45;
   },
 
+  /** Tubitos: liquid going into a tube, a short "glug-glug" for each layer (300 ms each, like the animation). */
+  pour(ctx: Ctx, out: AudioNode, t: number, layers = 1): number {
+    const count = Math.min(4, Math.max(1, Math.round(layers)));
+    for (let layer = 0; layer < count; layer++) {
+      const at = t + layer * 0.3;
+      // Each glug is a bubble: a quick sweep up that fades, a bit higher as the tube fills.
+      const base = 260 + layer * 40;
+      voice(ctx, out, { freq: base, to: base * 2.6, start: at, dur: 0.07, gain: 0.16, attack: 0.004 });
+      voice(ctx, out, { freq: base * 1.2, to: base * 3, start: at + 0.12, dur: 0.06, gain: 0.11, attack: 0.004 });
+      noise(ctx, out, { start: at, dur: 0.22, gain: 0.035, filter: "lowpass", freq: 700, to: 1400 });
+    }
+    return count * 0.3;
+  },
+
+  /** Tubitos: the cork going on a finished tube, a "plop". */
+  cork(ctx: Ctx, out: AudioNode, t: number): number {
+    voice(ctx, out, { freq: 720, to: 190, start: t, dur: 0.09, gain: 0.26, attack: 0.002 });
+    voice(ctx, out, { type: "triangle", freq: 1400, to: 500, start: t, dur: 0.04, gain: 0.05, attack: 0.001 });
+    noise(ctx, out, { start: t, dur: 0.03, gain: 0.08, filter: "bandpass", freq: 2200, q: 1.5 });
+    return 0.1;
+  },
+
   /** The score counting up on a result, and how it lands. */
   reveal(ctx: Ctx, out: AudioNode, t: number, score: number): number {
     const steps = [N.C5, N.D5, N.E5, N.G5, N.A5, N.C6, N.D6, N.E6];

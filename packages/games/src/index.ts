@@ -10,6 +10,7 @@ export * from './games/five-questions';
 export * from './games/largada';
 export * from './games/reflexes';
 export * from './games/sequence';
+export * from './games/water-sort';
 export * from './battles';
 
 /** Random generators for free play (practice), which never counts for rankings. */

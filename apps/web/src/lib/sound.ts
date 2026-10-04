@@ -213,9 +213,10 @@ export function restoreMusic(): void {
   playing?.song.duck(1, 0.4);
 }
 
-export function vibrate(ms: number): void {
+/** A vibration, or a pattern of them (`[15, 60, 15]`: buzz, pause, buzz). */
+export function vibrate(pattern: number | number[]): void {
   try {
-    navigator.vibrate?.(ms);
+    navigator.vibrate?.(pattern);
   } catch {
     // Not supported (iPhone): no vibration.
   }

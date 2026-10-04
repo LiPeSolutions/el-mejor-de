@@ -9,7 +9,7 @@
 🛠️ **Etapa 0: cimientos.** Ya se puede jugar.
 
 - ✅ Plan del producto y brief de diseño.
-- ✅ Motor de los 4 minijuegos (generar retos, corregir, puntuar y detectar trampas) y reglas de la competencia, con pruebas automáticas.
+- ✅ Motor de los 5 minijuegos (generar retos, corregir, puntuar y detectar trampas) y reglas de la competencia, con pruebas automáticas.
 - ✅ Diseño de pantallas (Claude Design), guardado en [`docs/diseno/handoff`](docs/diseno/handoff/README.md).
 - ✅ Web app jugable y publicada en Vercel ([game.lipesolutions.com](https://game.lipesolutions.com)): inicio, los 3 retos del día con su resultado, resumen del día, práctica con récords, racha y puntaje de la semana. Los puntajes los calcula el servidor.
 - ✅ Base de datos en Supabase (São Paulo), conectada a la app: un solo intento por reto controlado por el servidor, y los lugares oficiales de Argentina cargados (provincias, departamentos y 4.037 localidades).
@@ -17,6 +17,7 @@
 - ✅ Grupos privados con su ranking del día y de la semana, invitación por link o código, y corona semanal en vivo (festejo y palmarés).
 - ✅ Tu lugar con GPS y rankings por barrio, provincia y país, cada uno con su corona en vivo.
 - ✅ Largada, el nuevo juego de reflejos: una largada de autos contra los tiempos de hoy de tu grupo (y bots en la práctica), con podio, foto de llegada para compartir y la corona en juego. En el reto del día desde el 4/10/2026.
+- ✅ Tubitos, el quinto juego (lógica): ordenar colores en tubos. En el reto del día son 3 niveles seguidos, desde el 5/10/2026; en la práctica, niveles sin fin.
 - ✅ Sonidos y música hechos con código: efectos en cada juego, cortinas para el récord, el día cerrado y la corona, y un loop para el menú y cada juego.
 - ✅ Batallas en vivo: de 2 a 10 amigos juegan Largada o Cinco Preguntas a la vez, cada uno en su celu, desde un grupo o con un link, con podio, revancha e historial en el grupo.
 - ⏳ Vincular con Google.

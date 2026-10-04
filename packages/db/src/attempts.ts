@@ -134,13 +134,13 @@ export async function getAttempt(db: Queryable, id: string): Promise<Attempt | n
 }
 
 /**
- * When a trivia question was first shown in this attempt. The first call
- * stores `now`; later calls return that same moment, so asking for the
- * question again doesn't restart its clock. Null when the attempt doesn't
- * exist or is already finished.
+ * The first moment something happened in a started attempt: a trivia
+ * question shown, a Tubitos level served or solved. The first call stores
+ * `now`; later calls return that same moment, so asking again doesn't
+ * restart a clock. Null when the attempt doesn't exist or is already
+ * finished.
  */
-export async function questionServedAt(db: Queryable, attemptId: string, index: number, now: number): Promise<number | null> {
-  const key = String(index);
+export async function attemptMoment(db: Queryable, attemptId: string, key: string, now: number): Promise<number | null> {
   const rows = await db.query<{ served_at: number }>(
     `update game.attempts
      set progress = jsonb_set(progress, array['served', $2], coalesce(progress #> array['served', $2], to_jsonb($3::float8)))
@@ -149,6 +149,18 @@ export async function questionServedAt(db: Queryable, attemptId: string, index: 
     [attemptId, key, now],
   );
   return rows[0]?.served_at ?? null;
+}
+
+/** When a trivia question was first shown in this attempt (see `attemptMoment`). */
+export function questionServedAt(db: Queryable, attemptId: string, index: number, now: number): Promise<number | null> {
+  return attemptMoment(db, attemptId, String(index), now);
+}
+
+/** Every moment `attemptMoment` stored for an attempt, by key (empty if there's no such attempt). */
+export async function attemptMoments(db: Queryable, attemptId: string): Promise<Record<string, number>> {
+  const rows = await db.query<{ served: string | null }>(`select (progress -> 'served')::text as served from game.attempts where id = $1::uuid`, [attemptId]);
+  const served = rows[0]?.served ? (JSON.parse(rows[0].served) as Record<string, unknown>) : {};
+  return Object.fromEntries(Object.entries(served).filter((entry): entry is [string, number] => typeof entry[1] === 'number'));
 }
 
 /** An account's attempts from `fromDate` on, oldest first: for a browser that just signed in. */

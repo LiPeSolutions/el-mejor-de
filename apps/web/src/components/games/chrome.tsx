@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Chip";
+import { cx } from "@/components/ui/cx";
 import { IconButton } from "@/components/ui/IconButton";
 import { SoundToggle } from "@/components/ui/Sound";
 import { Toast, type ToastTone } from "@/components/ui/Toast";
@@ -25,12 +26,24 @@ export function GameHeader({ title, right, onClose, dark = false }: { title: Rea
   );
 }
 
-/** "PUNTAJE 540" on the left, another stat on the right. */
-export function ScoreRow({ score, label, value }: { score: number; label: string; value: ReactNode }) {
+/** "PUNTAJE 540" on the left (or another count, like Tubitos' moves), another stat on the right. */
+export function ScoreRow({
+  score,
+  label,
+  value,
+  scoreLabel = "Puntaje",
+  className,
+}: {
+  score: number;
+  label: string;
+  value: ReactNode;
+  scoreLabel?: string;
+  className?: string;
+}) {
   return (
-    <div className="flex items-end justify-between px-6 pt-[18px]">
+    <div className={cx("flex items-end justify-between px-6 pt-[18px]", className)}>
       <div>
-        <Label>Puntaje</Label>
+        <Label>{scoreLabel}</Label>
         <div className="mt-0.5 font-display text-4xl leading-none font-extrabold tracking-[-.03em] tabular-nums">{formatNumber(score)}</div>
       </div>
       <div className="text-right">

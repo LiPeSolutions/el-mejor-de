@@ -12,13 +12,16 @@ import {
   createReflexes,
   createSequence,
   createSevenLetters,
+  createWaterSort,
   dailyLineup,
   fiveQuestionsPoints,
+  gradeWaterSortLevel,
   normalizeWord,
   practiceRngs,
   sevenLettersScore,
   sevenLettersWordPoints,
   usesLargada,
+  waterSortPracticeRules,
   type FiveQuestionsContent,
   type FiveQuestionsSolution,
   type Flag,
@@ -30,6 +33,8 @@ import {
   type SevenLettersContent,
   type SevenLettersSolution,
   type TriviaCategory,
+  type WaterSortContent,
+  type WaterSortLog,
 } from "@repo/games";
 import { dailyRngs } from "@repo/games/server";
 import { toGameDate } from "@repo/shared";
@@ -41,6 +46,9 @@ import type {
   LevelResponse,
   QuestionResponse,
   StartView,
+  WaterSortBoardView,
+  WaterSortLevelResponse,
+  WaterSortSolvedResponse,
   WordCheckResponse,
 } from "@/lib/challenge-types";
 import { HttpError } from "./http";
@@ -68,6 +76,8 @@ export interface AttemptClaims {
   account?: string;
   /** Practice only: random seed. */
   seed?: string;
+  /** Practice Tubitos only: the level of the endless run (its size depends on it). */
+  level?: number;
   startedAt: number;
 }
 
@@ -86,11 +96,26 @@ interface ReceiptClaims {
   elapsedMs: number;
 }
 
+/** A Tubitos level after the first: when it was served. */
+interface LevelClaims {
+  v: 1;
+  a: string;
+  /** The level, from 1. */
+  l: number;
+  servedAt: number;
+}
+
+/** A Tubitos level the server saw solved: when it was served and when it heard it was solved. */
+interface SolvedClaims extends LevelClaims {
+  solvedAt: number;
+}
+
 type Generated =
   | { game: "seven-letters"; content: SevenLettersContent; solution: SevenLettersSolution }
   | { game: "five-questions"; content: FiveQuestionsContent; solution: FiveQuestionsSolution }
   | { game: "reflexes"; content: ReflexesContent | LargadaContent; solution: null }
-  | { game: "sequence"; content: SequenceContent; solution: null };
+  | { game: "sequence"; content: SequenceContent; solution: null }
+  | { game: "water-sort"; content: WaterSortContent; solution: null };
 
 export const CATEGORY_LABELS: Record<TriviaCategory, string> = {
   argentina: "Argentina",
@@ -115,6 +140,7 @@ function buildEngines() {
     "five-questions": createFiveQuestions(TRIVIA_QUESTIONS),
     reflexes: createReflexes(),
     sequence: createSequence(),
+    "water-sort": createWaterSort(),
   };
 }
 
@@ -126,6 +152,20 @@ type Engines = ReturnType<typeof buildEngines>;
 let engines: Engines | undefined;
 let sevenLettersEngine: Engines["seven-letters"] | undefined;
 const getEngines = () => (engines ??= buildEngines());
+
+/** Practice Tubitos: one board per attempt, of the size its level has (6, 8 or 10 tubes). */
+const practiceWaterSort = new Map<number, Engines["water-sort"]>();
+
+function waterSortEngine(claims: Pick<AttemptClaims, "mode" | "level">): Engines["water-sort"] {
+  if (claims.mode === "daily") return getEngines()["water-sort"];
+  const rules = waterSortPracticeRules(claims.level ?? 1);
+  let engine = practiceWaterSort.get(rules.tubes);
+  if (!engine) {
+    engine = createWaterSort({ levels: [rules], exactPar: false });
+    practiceWaterSort.set(rules.tubes, engine);
+  }
+  return engine;
+}
 
 function usesSevenLetters(claims: Pick<AttemptClaims, "mode" | "date">): boolean {
   return claims.mode === "daily" && claims.date < TEN_LETTERS_FROM;
@@ -171,13 +211,22 @@ function generate(claims: AttemptClaims): Generated {
     case "sequence":
       generated = { game: claims.game, ...all[claims.game].generate(rngs) };
       break;
+    case "water-sort":
+      generated = { game: claims.game, ...waterSortEngine(claims).generate(rngs) };
+      break;
   }
   cache.set(key, generated);
   if (cache.size > CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
   return generated;
 }
 
-function startView(generated: Generated): StartView {
+function boardView(content: WaterSortContent, level: number, levelToken?: string): WaterSortBoardView {
+  const board = content.levels[level - 1];
+  if (!board) throw new HttpError(400, "invalid-level");
+  return { level, tubes: board.tubes, par: board.par, parExact: board.parExact, ...(levelToken ? { levelToken } : {}) };
+}
+
+function startView(generated: Generated, claims: AttemptClaims): StartView {
   switch (generated.game) {
     case "seven-letters":
       return {
@@ -208,10 +257,20 @@ function startView(generated: Generated): StartView {
         showMsPerItem: generated.content.showMsPerItem,
         sequence: generated.content.sequence.slice(0, generated.content.startLength),
       };
+    case "water-sort":
+      return {
+        game: generated.game,
+        capacity: generated.content.capacity,
+        undos: generated.content.undosPerLevel,
+        levels: generated.content.levels.length,
+        practiceLevel: claims.mode === "practice" ? (claims.level ?? 1) : null,
+        board: boardView(generated.content, 1),
+      };
   }
 }
 
-export type StartInput = { mode: "daily"; slot: number } | { mode: "practice"; game: GameId };
+/** `level`: where a practice Tubitos run goes on (the level after the player's record). */
+export type StartInput = { mode: "daily"; slot: number } | { mode: "practice"; game: GameId; level?: number };
 
 /** Who plays: the browser, and the account when signed in. */
 export interface Player {
@@ -228,9 +287,10 @@ export function startAttempt(input: StartInput, player: Player, now = Date.now()
     if (!game) throw new HttpError(400, "invalid-slot");
     claims = { v: 1, id: randomUUID(), mode: "daily", game, date, slot: input.slot, ...who, startedAt: now };
   } else {
-    claims = { v: 1, id: randomUUID(), mode: "practice", game: input.game, date, slot: -1, ...who, seed: randomUUID(), startedAt: now };
+    const level = input.game === "water-sort" ? { level: Math.min(9_999, Math.max(1, Math.floor(input.level ?? 1))) } : {};
+    claims = { v: 1, id: randomUUID(), mode: "practice", game: input.game, date, slot: -1, ...who, seed: randomUUID(), ...level, startedAt: now };
   }
-  return { token: signToken(claims), claims, view: startView(generate(claims)) };
+  return { token: signToken(claims), claims, view: startView(generate(claims), claims) };
 }
 
 /** How long an attempt stays playable: the game's maximum length plus two minutes of slack. */
@@ -319,6 +379,79 @@ export function nextLevel(claims: AttemptClaims, level: number, inputs: number[]
   return { level, sequence: content.sequence.slice(0, previousLength + 1) };
 }
 
+/** Longest a Tubitos level can be logged for. */
+const MAX_LEVEL_MS = 60 * 60_000;
+
+const waterSortEvent = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("pour"), from: z.number().int().min(0).max(11), to: z.number().int().min(0).max(11), t: z.number().min(0).max(MAX_LEVEL_MS) }),
+  z.object({ type: z.literal("undo"), t: z.number().min(0).max(MAX_LEVEL_MS) }),
+  z.object({ type: z.literal("restart"), t: z.number().min(0).max(MAX_LEVEL_MS) }),
+]);
+
+/** One Tubitos level as the phone played it. */
+export const waterSortLevelLog = z.object({ events: z.array(waterSortEvent).max(2_000), durationMs: z.number().min(0).max(MAX_LEVEL_MS) });
+
+/** When a Tubitos level was served: the first one with the attempt; the next ones say it in their token. */
+function levelServedAt(claims: AttemptClaims, level: number, levelToken: string | undefined): number {
+  if (level === 1) return claims.startedAt;
+  const served = readToken<LevelClaims>(levelToken);
+  if (!served || served.v !== 1 || served.a !== claims.id || served.l !== level) throw new HttpError(401, "invalid-level-token");
+  return served.servedAt;
+}
+
+/**
+ * A Tubitos level the phone says it solved: the server plays it back and,
+ * if it's right, answers with what it's worth and a receipt the next level
+ * asks for. `solvedAt` gives when the server first heard of it.
+ */
+export async function solveWaterSortLevel(
+  claims: AttemptClaims,
+  input: z.infer<typeof waterSortLevelLog> & { level: number; levelToken?: string },
+  solvedAt: () => number | Promise<number> = Date.now,
+): Promise<WaterSortSolvedResponse> {
+  const { content } = generatedFor(claims, "water-sort");
+  if (input.level < 1 || input.level > content.levels.length) throw new HttpError(400, "invalid-level");
+  const servedAt = levelServedAt(claims, input.level, input.levelToken);
+  if (!gradeWaterSortLevel(content, input.level - 1, input).result.solved) throw new HttpError(400, "not-solved");
+  const at = await solvedAt();
+  const { moves, par, timeMs, points } = gradeWaterSortLevel(content, input.level - 1, input, Math.max(0, at - servedAt)).result;
+  const receipt = signToken({ v: 1, a: claims.id, l: input.level, servedAt, solvedAt: at } satisfies SolvedClaims);
+  return { level: input.level, receipt, moves, par, timeMs, points };
+}
+
+/** Tubitos' next level, once the receipt shows the one before was solved. `servedAt` gives when it was first served. */
+export async function nextWaterSortLevel(
+  claims: AttemptClaims,
+  level: number,
+  receipt: string,
+  servedAt: () => number | Promise<number> = Date.now,
+): Promise<WaterSortLevelResponse> {
+  const { content } = generatedFor(claims, "water-sort");
+  const solved = readToken<SolvedClaims>(receipt);
+  if (!solved || solved.v !== 1 || solved.a !== claims.id || solved.l !== level - 1) throw new HttpError(401, "invalid-receipt");
+  if (level < 2 || level > content.levels.length) throw new HttpError(400, "invalid-level");
+  const at = await servedAt();
+  return { board: boardView(content, level, signToken({ v: 1, a: claims.id, l: level, servedAt: at } satisfies LevelClaims)) };
+}
+
+/**
+ * How long the server saw each Tubitos level take, from serving it to
+ * hearing it was solved: from the moments the database kept, else from the
+ * receipts in the log. A level without either ends now.
+ */
+function waterSortServerMs(claims: AttemptClaims, content: WaterSortContent, log: z.infer<typeof waterSortLog>, now: number, moments: Record<string, number> | null) {
+  return content.levels.map((_, index) => {
+    const level = index + 1;
+    const played = log.levels[index];
+    if (!played) return null;
+    const receipt = readToken<SolvedClaims>(played.receipt);
+    const valid = receipt?.v === 1 && receipt.a === claims.id && receipt.l === level ? receipt : null;
+    const servedAt = level === 1 ? claims.startedAt : (moments?.[`level:${level}`] ?? valid?.servedAt ?? null);
+    const solvedAt = moments?.[`solved:${level}`] ?? valid?.solvedAt ?? now;
+    return servedAt === null ? null : Math.max(0, solvedAt - servedAt);
+  });
+}
+
 const sevenLettersLog = z.object({
   submissions: z.array(z.object({ word: z.string().max(20), atMs: z.number() })).max(300),
 });
@@ -329,6 +462,7 @@ const reflexesLog = z.object({
 const sequenceLog = z.object({
   levels: z.array(z.object({ inputs: z.array(z.number().int()).max(40), durationMs: z.number() })).max(30),
 });
+const waterSortLog = z.object({ levels: z.array(waterSortLevelLog.extend({ receipt: z.string().max(2_000).optional() })).max(3) });
 
 function reportFlags(claims: AttemptClaims, flags: Flag[]) {
   if (flags.length === 0) return;
@@ -337,7 +471,16 @@ function reportFlags(claims: AttemptClaims, flags: Flag[]) {
   );
 }
 
-export function gradeAttempt(claims: AttemptClaims, log: unknown, now = Date.now()): { result: ChallengeResult; flags: Flag[] } {
+/**
+ * Grades an attempt's log. `moments` are what the database kept while it was
+ * played (when each Tubitos level was served and solved), if there's one.
+ */
+export function gradeAttempt(
+  claims: AttemptClaims,
+  log: unknown,
+  now = Date.now(),
+  moments: Record<string, number> | null = null,
+): { result: ChallengeResult; flags: Flag[] } {
   const all = enginesFor(claims);
   const context = { serverElapsedMs: now - claims.startedAt };
   const generated = generate(claims);
@@ -426,6 +569,19 @@ export function gradeAttempt(claims: AttemptClaims, log: unknown, now = Date.now
           score: result.score,
           levelReached: result.levelReached,
           longestSequence: result.longestSequence,
+        };
+      }
+      case "water-sort": {
+        const parsed = waterSortLog.parse(log);
+        const levelServerMs = waterSortServerMs(claims, generated.content, parsed, now, moments);
+        const played: WaterSortLog = { levels: parsed.levels.map(({ events, durationMs }) => ({ events, durationMs })) };
+        const result = waterSortEngine(claims).evaluate(generated.content, null, played, { ...context, levelServerMs });
+        flags = result.flags;
+        return {
+          game: "water-sort",
+          score: result.score,
+          solvedCount: result.solvedCount,
+          levels: result.levels.map(({ solved, moves, par, timeMs, points }) => ({ solved, moves, par, timeMs, points })),
         };
       }
     }

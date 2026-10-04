@@ -10,6 +10,7 @@ const ARGS: Partial<Record<SoundName, unknown[]>> = {
   pad: [2, 0.38],
   place: [1],
   reveal: [920],
+  pour: [3],
 };
 
 describe("the app's sounds", () => {

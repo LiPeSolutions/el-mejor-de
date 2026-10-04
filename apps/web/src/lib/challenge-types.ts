@@ -10,7 +10,22 @@ export type StartView =
   | { game: "reflexes"; version?: undefined; delaysMs: number[]; maxReactionMs: number }
   /** Largada: five lights, one every `lightMs`, then each start's own wait before they go out. */
   | { game: "reflexes"; version: "largada"; lights: number; lightMs: number; delaysMs: number[]; maxReactionMs: number }
-  | { game: "sequence"; pads: number; startLength: number; showMsPerItem: number; sequence: number[] };
+  | { game: "sequence"; pads: number; startLength: number; showMsPerItem: number; sequence: number[] }
+  /** Tubitos: the first level's board (the next ones come after solving each). `practiceLevel` is the run's level in practice. */
+  | { game: "water-sort"; capacity: number; undos: number; levels: number; practiceLevel: number | null; board: WaterSortBoardView };
+
+/** A Tubitos board as the player sees it: tubes left to right, each one bottom to top, as WATER_SORT_COLORS indexes. */
+export interface WaterSortBoardView {
+  /** 1 to 3 in the daily challenge, 1 in practice. */
+  level: number;
+  tubes: number[][];
+  /** Moves of the best solution, shown once it's solved. */
+  par: number;
+  /** False when a shorter solution might exist. */
+  parExact: boolean;
+  /** When the server served it, signed (the levels after the first). */
+  levelToken?: string;
+}
 
 export interface StartResponse {
   token: string;
@@ -48,6 +63,21 @@ export interface LevelResponse {
   sequence: number[];
 }
 
+/** A Tubitos level the server checked as solved, with what it's worth. */
+export interface WaterSortSolvedResponse {
+  level: number;
+  /** Proof that it was solved, and when: the next level asks for it. */
+  receipt: string;
+  moves: number;
+  par: number;
+  timeMs: number;
+  points: number;
+}
+
+export interface WaterSortLevelResponse {
+  board: WaterSortBoardView;
+}
+
 export type ChallengeResult =
   | {
       game: "seven-letters";
@@ -80,7 +110,14 @@ export type ChallengeResult =
       bestMs: number | null;
       rounds: Array<{ outcome: ReflexesOutcome; reactionMs: number | null }>;
     }
-  | { game: "sequence"; score: number; levelReached: number; longestSequence: number };
+  | { game: "sequence"; score: number; levelReached: number; longestSequence: number }
+  | {
+      game: "water-sort";
+      score: number;
+      solvedCount: number;
+      /** The three levels; an unsolved one has 0 points. */
+      levels: Array<{ solved: boolean; moves: number; par: number; timeMs: number; points: number }>;
+    };
 
 /** A daily challenge this player already took (the 409 "already-played" answer). */
 export interface PlayedAttempt {

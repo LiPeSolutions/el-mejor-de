@@ -84,6 +84,11 @@ function pad(ctx: Ctx, out: AudioNode, t: number, notes: readonly number[], dur:
   }
 }
 
+/** A bubble: a sine sliding up a fifth and gone, "blup". */
+function bubble(ctx: Ctx, out: AudioNode, t: number, note: number, gain: number): void {
+  voice(ctx, out, { freq: hz(note), to: hz(note + 7), start: t, dur: 0.09, gain, attack: 0.003 });
+}
+
 function lead(ctx: Ctx, out: AudioNode, t: number, note: number, dur: number, gain: number, type: OscillatorType = "square", bright = 2200): void {
   voice(ctx, out, { type, freq: hz(note), start: t, dur, gain, attack: 0.008, hold: dur * 0.45, lowpass: bright });
 }
@@ -109,7 +114,7 @@ export interface Song {
   step(ctx: Ctx, out: AudioNode, t: number, step: number, sixteenth: number): void;
 }
 
-export type SongKey = "menu" | "letras" | "preguntas" | "largada" | "secuencia";
+export type SongKey = "menu" | "letras" | "preguntas" | "largada" | "secuencia" | "tubitos";
 
 function melody(ctx: Ctx, out: AudioNode, t: number, phrase: Phrase | undefined, at: number, sixteenth: number, play: (note: number, dur: number) => void): void {
   for (const [step, note, length] of phrase ?? []) if (step === at) play(note, length * sixteenth);
@@ -197,6 +202,28 @@ const MEMORIA: Record<string, Chord> = {
 };
 const MEMORIA_BARS = ["A", "A", "Fsm", "Fsm", "D", "D", "E", "E"];
 const MEMORIA_SPARKLE: Phrase[] = [[], [[8, 93, 4], [12, 88, 6]], [], [[8, 92, 4], [12, 85, 6]], [], [[8, 90, 4], [12, 86, 6]], [], [[8, 88, 4], [12, 92, 6]]];
+
+/** Tubitos: calm and bubbly, a little lab where things go "blup" (G major, 92 BPM). */
+const LABORATORIO: Record<string, Chord> = {
+  G: { root: 43, tones: [67, 71, 74] },
+  Em: { root: 40, tones: [64, 67, 71] },
+  C: { root: 48, tones: [64, 67, 72] },
+  D: { root: 50, tones: [66, 69, 74] },
+  Bm: { root: 47, tones: [66, 71, 74] },
+};
+const LABORATORIO_BARS = ["G", "Em", "C", "D", "G", "Bm", "C", "D"];
+const LABORATORIO_TUNE: Phrase[] = [
+  [[0, 79, 2], [4, 83, 2], [8, 81, 4]],
+  [[0, 79, 2], [2, 76, 2], [8, 74, 6]],
+  [[0, 76, 2], [4, 79, 2], [8, 84, 4], [12, 83, 2]],
+  [[0, 81, 6], [8, 78, 4], [12, 74, 2]],
+  [[0, 79, 2], [4, 83, 2], [8, 86, 4]],
+  [[0, 83, 2], [2, 81, 2], [8, 78, 6]],
+  [[0, 76, 2], [4, 79, 2], [8, 84, 2], [10, 83, 2], [12, 81, 2]],
+  [[0, 78, 4], [4, 81, 4], [8, 79, 8]],
+];
+/** Where a bubble rises in each bar, each one a note of the chord. */
+const BUBBLE_STEPS = [3, 7, 11, 14];
 
 export const SONGS: Record<SongKey, Song> = {
   menu: {
@@ -301,6 +328,27 @@ export const SONGS: Record<SongKey, Song> = {
       }
       if (at % 4 === 0) voice(ctx, out, { freq: at % 8 === 0 ? 950 : 720, start: t, dur: 0.05, gain: 0.03, attack: 0.002 });
       melody(ctx, out, t, MEMORIA_SPARKLE[bar], at, s, (note, dur) => chime(ctx, out, t, note, dur + 0.4, 0.02));
+    },
+  },
+  tubitos: {
+    key: "tubitos",
+    title: "Laboratorio",
+    bpm: 92,
+    bars: 8,
+    level: 0.9,
+    step(ctx, out, t, step, s) {
+      const bar = Math.floor(step / 16);
+      const at = step % 16;
+      const chord = LABORATORIO[LABORATORIO_BARS[bar]!]!;
+      if (at === 0) bass(ctx, out, t, chord.root + 12, 3 * s, 0.11, 700);
+      if (at === 6) bass(ctx, out, t, chord.root + 12, 2 * s, 0.08, 700);
+      if (at === 8) bass(ctx, out, t, chord.root + 19, 3 * s, 0.1, 700);
+      if (at === 4 || at === 12) stab(ctx, out, t, chord.tones, 1.2 * s, 0.026);
+      const bubbleIndex = BUBBLE_STEPS.indexOf(at);
+      if (bubbleIndex !== -1) bubble(ctx, out, t, chord.tones[bubbleIndex % chord.tones.length]! + 12, 0.05);
+      if (at === 0) kick(ctx, out, t, 0.16);
+      if (at % 4 === 2) shaker(ctx, out, t, 0.025);
+      melody(ctx, out, t, LABORATORIO_TUNE[bar], at, s, (note, dur) => marimba(ctx, out, t, note, dur + 0.15, 0.06));
     },
   },
 };

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isProbeta }}" hint-placeholder-val="{{ true }}">
+  <div style="position:relative;width:{{ t.w }}px;height:{{ t.h }}px;transform:{{ t.transform }};transform-origin:50% 0">
+    <sc-if value="{{ t.target }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:2.5px dashed #FF6FA5;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;background:rgba(255,111,165,.08)"></div>
+      <div style="position:absolute;left:50%;top:-46px;transform:translateX(-50%);display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 6px 14px rgba(255,111,165,.4)"><lucide-icon name="arrow-down" size="16" stroke-width="3"></lucide-icon></div>
+    </sc-if>
+    <div style="position:absolute;left:0;right:0;top:6px;bottom:0;box-sizing:border-box;border:2.5px solid #FFFFFF;border-top:0;border-radius:0 0 {{ t.r }}px {{ t.r }}px;background:rgba(255,255,255,.42);box-shadow:0 10px 20px rgba(35,38,58,.10);overflow:hidden">
+      <sc-if value="{{ t.upright }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column-reverse">
+          <sc-for list="{{ layers }}" as="l" hint-placeholder-count="2">
+            <div style="position:relative;flex:none;height:{{ l.h }}px;background:{{ l.bg }};display:grid;place-items:center;color:{{ l.mark }}">
+              <sc-if value="{{ l.top }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.35)"></span></sc-if>
+              <sc-if value="{{ l.showIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ l.icon }}" size="{{ l.iconSize }}" stroke-width="2" fill="{{ l.mark }}"></lucide-icon></sc-if>
+              <sc-if value="{{ l.showShape }}" hint-placeholder-val="{{ false }}"><span style="{{ l.shape }}"></span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ t.pour }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;clip-path:{{ t.clip }}">
+          <sc-for list="{{ bands }}" as="b" hint-placeholder-count="2">
+            <div style="position:absolute;left:0;right:0;top:{{ b.top }}px;height:{{ b.h }}px;background:{{ b.bg }};color:{{ b.mark }}">
+              <span style="position:absolute;left:{{ t.markLeft }};top:50%;transform:translate(-50%,-50%) rotate({{ t.counter }}deg)">
+                <sc-if value="{{ b.showIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ b.icon }}" size="{{ b.iconSize }}" stroke-width="2" fill="{{ b.mark }}"></lucide-icon></sc-if>
+                <sc-if value="{{ b.showShape }}" hint-placeholder-val="{{ false }}"><span style="{{ b.shape }}"></span></sc-if>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <span style="position:absolute;left:16%;top:8px;bottom:24%;width:5px;border-radius:3px;background:rgba(255,255,255,.55)"></span>
+    </div>
+    <div style="position:absolute;left:-4px;right:-4px;top:0;height:8px;border-radius:4px;background:#FFFFFF;box-shadow:0 2px 6px rgba(35,38,58,.10)"></div>
+    <sc-if value="{{ t.sel }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:3px solid #FF6FA5;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;box-shadow:0 16px 28px rgba(255,111,165,.35)"></div>
+    </sc-if>
+    <sc-if value="{{ t.invalid }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:3px solid #E2504C;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;box-shadow:0 12px 24px rgba(226,80,76,.3)"></div>
+    </sc-if>
+    <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:14%;right:14%;top:-9px;height:14px;border-radius:4px 4px 2px 2px;background:#E8CDA3;box-shadow:inset 0 -3px 0 #C9A074"></div>
+      <div style="position:absolute;left:50%;top:-40px;transform:translateX(-50%);display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#1FA093;color:#FFFFFF;box-shadow:0 6px 14px rgba(31,160,147,.35)"><lucide-icon name="check" size="14" stroke-width="3.2"></lucide-icon></div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFicha }}" hint-placeholder-val="{{ false }}">
+  <div style="position:relative;width:{{ t.w }}px;height:{{ t.h }}px;transform:{{ t.transform }};transform-origin:50% 0">
+    <sc-if value="{{ t.target }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;box-sizing:border-box;border:2px dashed #FF6FA5;border-radius:22px;background:#FFF0F6"></div>
+    </sc-if>
+    <sc-if value="{{ t.open }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;box-sizing:border-box;border-radius:16px;background:#F1F2FA;box-shadow:inset 0 0 0 1px #E4E7F4">
+        <sc-if value="{{ t.upright }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:5px;right:5px;bottom:5px;display:flex;flex-direction:column-reverse;gap:3px">
+            <sc-for list="{{ layers }}" as="l" hint-placeholder-count="2">
+              <div style="flex:none;height:{{ l.h }}px;border-radius:9px;background:{{ l.bg }};transform:{{ l.tf }};box-shadow:{{ l.sh }};display:grid;place-items:center;color:{{ l.mark }}">
+                <sc-if value="{{ l.showIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ l.icon }}" size="{{ l.iconSize }}" stroke-width="2" fill="{{ l.mark }}"></lucide-icon></sc-if>
+                <sc-if value="{{ l.showShape }}" hint-placeholder-val="{{ false }}"><span style="{{ l.shape }}"></span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ t.pour }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:5px;border-radius:11px;overflow:hidden">
+            <div style="position:absolute;inset:0;clip-path:{{ t.clip }}">
+              <sc-for list="{{ bands }}" as="b" hint-placeholder-count="2">
+                <div style="position:absolute;left:0;right:0;top:{{ b.top }}px;height:{{ b.h }}px;background:{{ b.bg }};box-shadow:inset 0 -3px 0 #F1F2FA"></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;overflow:hidden;border-radius:16px;background:{{ t.doneBg }};box-shadow:{{ t.doneShadow }};display:flex;justify-content:center;padding-top:10px;box-sizing:border-box;color:{{ t.doneMark }}">
+        <span style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span>
+        <span style="position:relative;display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:{{ t.doneChip }}"><lucide-icon name="check" size="16" stroke-width="3.2"></lucide-icon></span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ t.sel }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;box-sizing:border-box;border:3px solid #FF6FA5;border-radius:22px;box-shadow:0 14px 26px rgba(255,111,165,.32)"></div>
+    </sc-if>
+    <sc-if value="{{ t.invalid }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;box-sizing:border-box;border:3px solid #E2504C;border-radius:22px;box-shadow:0 12px 24px rgba(226,80,76,.28)"></div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isNoche }}" hint-placeholder-val="{{ false }}">
+  <div style="position:relative;width:{{ t.w }}px;height:{{ t.h }}px;transform:{{ t.transform }};transform-origin:50% 0">
+    <sc-if value="{{ t.target }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:2.5px dashed #FF6FA5;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;background:rgba(255,111,165,.12)"></div>
+      <div style="position:absolute;left:50%;top:-46px;transform:translateX(-50%);display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 0 18px rgba(255,111,165,.6)"><lucide-icon name="arrow-down" size="16" stroke-width="3"></lucide-icon></div>
+    </sc-if>
+    <div style="position:absolute;left:0;right:0;top:6px;bottom:0;box-sizing:border-box;border:2px solid rgba(255,255,255,.36);border-top:0;border-radius:0 0 {{ t.r }}px {{ t.r }}px;background:rgba(255,255,255,.06);overflow:hidden">
+      <sc-if value="{{ t.upright }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column-reverse">
+          <sc-for list="{{ layers }}" as="l" hint-placeholder-count="2">
+            <div style="position:relative;flex:none;height:{{ l.h }}px;background:{{ l.bg }};display:grid;place-items:center;color:{{ l.mark }}">
+              <sc-if value="{{ l.top }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.4)"></span></sc-if>
+              <sc-if value="{{ l.showIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ l.icon }}" size="{{ l.iconSize }}" stroke-width="2" fill="{{ l.mark }}"></lucide-icon></sc-if>
+              <sc-if value="{{ l.showShape }}" hint-placeholder-val="{{ false }}"><span style="{{ l.shape }}"></span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ t.pour }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;clip-path:{{ t.clip }}">
+          <sc-for list="{{ bands }}" as="b" hint-placeholder-count="2">
+            <div style="position:absolute;left:0;right:0;top:{{ b.top }}px;height:{{ b.h }}px;background:{{ b.bg }};color:{{ b.mark }}">
+              <span style="position:absolute;left:{{ t.markLeft }};top:50%;transform:translate(-50%,-50%) rotate({{ t.counter }}deg)">
+                <sc-if value="{{ b.showIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ b.icon }}" size="{{ b.iconSize }}" stroke-width="2" fill="{{ b.mark }}"></lucide-icon></sc-if>
+                <sc-if value="{{ b.showShape }}" hint-placeholder-val="{{ false }}"><span style="{{ b.shape }}"></span></sc-if>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <span style="position:absolute;left:16%;top:8px;bottom:24%;width:4px;border-radius:3px;background:rgba(255,255,255,.2)"></span>
+    </div>
+    <div style="position:absolute;left:-4px;right:-4px;top:0;height:7px;border-radius:4px;background:rgba(255,255,255,.55)"></div>
+    <sc-if value="{{ t.sel }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:3px solid #FFFFFF;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;box-shadow:0 0 26px rgba(255,111,165,.55)"></div>
+    </sc-if>
+    <sc-if value="{{ t.invalid }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:-7px;right:-7px;top:-7px;bottom:-7px;box-sizing:border-box;border:3px solid #E2504C;border-radius:13px 13px {{ t.ringR }}px {{ t.ringR }}px;box-shadow:0 0 22px rgba(226,80,76,.5)"></div>
+    </sc-if>
+    <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:14%;right:14%;top:-9px;height:14px;border-radius:4px 4px 2px 2px;background:#FFFFFF;box-shadow:inset 0 -3px 0 #D9DDF3"></div>
+      <div style="position:absolute;left:50%;top:-40px;transform:translateX(-50%);display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#1FA093;color:#FFFFFF;box-shadow:0 0 16px rgba(31,160,147,.6)"><lucide-icon name="check" size="14" stroke-width="3.2"></lucide-icon></div>
+    </sc-if>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:120,&quot;height&quot;:240},&quot;t&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;},&quot;estilo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;probeta&quot;,&quot;ficha&quot;,&quot;noche&quot;],&quot;default&quot;:&quot;probeta&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const t = this.props.t || { w: 52, h: 160, transform: 'none', r: 26, ringR: 33, upright: true, open: true };
+    const e = this.props.estilo || 'probeta';
+    return {
+      t,
+      layers: t.layers || [],
+      bands: t.bands || [],
+      isProbeta: e === 'probeta',
+      isFicha: e === 'ficha',
+      isNoche: e === 'noche',
+    };
+  }
+}
+</script>
+</body>
+</html>

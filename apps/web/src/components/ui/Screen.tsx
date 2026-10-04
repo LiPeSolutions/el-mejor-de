@@ -18,15 +18,17 @@ interface ScreenProps {
   backdrop?: Backdrop;
   /** Leaves room for the floating bottom nav. */
   nav?: boolean;
+  /** On tablets, a column up to 760 px instead of the phone's 430 (Tubitos' board). */
+  wide?: boolean;
   className?: string;
   style?: CSSProperties;
 }
 
 /** Phone-first page: a centered 430 px column with the sky background and clouds. */
-export function Screen({ children, clouds = [], backdrop = "sky", nav = false, className, style }: ScreenProps) {
+export function Screen({ children, clouds = [], backdrop = "sky", nav = false, wide = false, className, style }: ScreenProps) {
   return (
     <main
-      className={cx("relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col overflow-hidden", BACKDROPS[backdrop])}
+      className={cx("relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col overflow-hidden", wide && "md:max-w-[760px]", BACKDROPS[backdrop])}
       style={style}
     >
       {clouds.map((cloud) => (

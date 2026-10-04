@@ -1,9 +1,9 @@
 import { usesLargada, type GameId } from "@repo/games";
-import { Brain, CircleHelp, Clock, Flag, Grid2x2, Trophy, Type, Zap, type LucideIcon } from "lucide-react";
+import { Brain, CircleHelp, Clock, Flag, Grid2x2, TestTubes, Trophy, Type, Zap, type LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { PersonajeProps } from "@/components/personaje/Personaje";
 
-export type GameSlug = "letras" | "preguntas" | "reflejos" | "secuencia";
+export type GameSlug = "letras" | "preguntas" | "reflejos" | "secuencia" | "tubitos";
 
 interface Fact {
   Icon: LucideIcon;
@@ -34,6 +34,8 @@ export interface GameTheme {
   gradient: string;
   mascot: PersonajeProps;
   resultFace: NonNullable<PersonajeProps["face"]>;
+  /** How practice differs, when it does (Tubitos' levels never end). */
+  practice?: { howTo: string; facts: readonly [Fact, Fact] };
 }
 
 export const GAMES: Record<GameId, GameTheme> = {
@@ -129,6 +131,36 @@ export const GAMES: Record<GameId, GameTheme> = {
     gradient: "linear-gradient(90deg,#FFD978,#FFC53D)",
     mascot: { sp: "llama", c: { main: "#FFC53D", light: "#FFF0C2", dark: "#D9971A" }, face: "wow" },
     resultFace: "joy",
+  },
+  "water-sort": {
+    id: "water-sort",
+    slug: "tubitos",
+    name: "Tubitos",
+    lines: ["Tubitos"],
+    kicker: "Lógica",
+    howTo: "Pasá los colores de un tubo a otro hasta que cada tubo tenga uno solo. Son 3 niveles: con menos movimientos y menos tiempo, más puntos.",
+    facts: [
+      { Icon: TestTubes, value: "3 niveles", label: "6, 8 y 10 tubos" },
+      { Icon: Trophy, value: "1.000", label: "con pocos movimientos" },
+    ],
+    startNote: "El reloj arranca cuando tocás",
+    duration: "unos 3 minutos",
+    shortDuration: "3\u00A0min",
+    praise: "¡Qué orden!",
+    Icon: TestTubes,
+    heroClass: "bg-hero-tubitos",
+    colors: { main: "#FF6FA5", dark: "#C94A7F", light: "#FFD6E7", on: "#FFFFFF", title: "#C94A7F" },
+    shadow: "rgba(255,111,165,.35)",
+    gradient: "linear-gradient(90deg,#FF8DB8,#FF6FA5)",
+    mascot: { sp: "pinguino", c: { main: "#FF6FA5", light: "#FFD6E7", dark: "#C94A7F" }, prop: "tubo" },
+    resultFace: "joy",
+    practice: {
+      howTo: "Pasá los colores de un tubo a otro hasta que cada tubo tenga uno solo. Los niveles no se terminan: seguís desde el que viene después de tu récord.",
+      facts: [
+        { Icon: TestTubes, value: "Sin fin", label: "de 6 a 10 tubos" },
+        { Icon: Trophy, value: "Récord", label: "tu nivel más alto" },
+      ],
+    },
   },
 };
 

@@ -24,7 +24,13 @@ import { WaitingPill } from "./parts";
 
 const CLOUDS = ["-right-[60px] top-[90px] w-[180px] opacity-95", "-left-[50px] bottom-[180px] w-[220px] opacity-95"];
 
-const SONG_FOR: Record<GameId, SongKey> = { "seven-letters": "letras", "five-questions": "preguntas", reflexes: "largada", sequence: "secuencia" };
+const SONG_FOR: Record<GameId, SongKey> = {
+  "seven-letters": "letras",
+  "five-questions": "preguntas",
+  reflexes: "largada",
+  sequence: "secuencia",
+  "water-sort": "tubitos",
+};
 
 /** The games a room can choose: the two of the first batch, and the ones on their way. */
 const CHOICES = [

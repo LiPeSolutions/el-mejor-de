@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createUser } from './accounts';
-import { claimAttempt, finishAttempt, questionServedAt, userAttemptsSince } from './attempts';
+import { attemptMoment, attemptMoments, claimAttempt, finishAttempt, questionServedAt, userAttemptsSince } from './attempts';
 import { testDatabase, type TestDatabase } from './testing';
 
 let db: TestDatabase;
@@ -139,6 +139,17 @@ describe('questionServedAt', () => {
     const { attempt: started } = await claimAttempt(db, attempt({ game: 'five-questions' }));
     await finishAttempt(db, started.id, grade(200));
     expect(await questionServedAt(db, started.id, 2, START + 70_000)).toBeNull();
+  });
+});
+
+describe('attemptMoment', () => {
+  it('keeps when each Tubitos level was served and solved, and lists them', async () => {
+    const { attempt: started } = await claimAttempt(db, attempt({ game: 'water-sort' }));
+    expect(await attemptMoment(db, started.id, 'solved:1', START + 30_000)).toBe(START + 30_000);
+    expect(await attemptMoment(db, started.id, 'level:2', START + 40_000)).toBe(START + 40_000);
+    expect(await attemptMoment(db, started.id, 'level:2', START + 99_000)).toBe(START + 40_000);
+    expect(await attemptMoments(db, started.id)).toEqual({ 'solved:1': START + 30_000, 'level:2': START + 40_000 });
+    expect(await attemptMoments(db, '00000000-0000-4000-8000-000000000000')).toEqual({});
   });
 });
 

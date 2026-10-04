@@ -21,7 +21,9 @@ describe("the app's music", () => {
 
   it("goes faster in Largada than in the trivia, and calmest in Secuencia", () => {
     expect(SONGS.largada.bpm).toBeGreaterThan(SONGS.preguntas.bpm);
-    expect(SONGS.secuencia.bpm).toBeLessThan(Math.min(SONGS.menu.bpm, SONGS.letras.bpm, SONGS.preguntas.bpm));
+    expect(SONGS.secuencia.bpm).toBeLessThan(Math.min(SONGS.menu.bpm, SONGS.letras.bpm, SONGS.preguntas.bpm, SONGS.tubitos.bpm));
+    // Tubitos is calm too: slower than the menus.
+    expect(SONGS.tubitos.bpm).toBeLessThan(SONGS.menu.bpm);
   });
 });
 

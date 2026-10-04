@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    @font-face { font-family: 'Outfit'; src: url('fonts/outfit-latin.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: url('fonts/plus-jakarta-sans-latin.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
+    body { margin: 0; background: #F1F2FA; color: #23263A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+    a { color: #4F6BFF; text-decoration: none; } a:hover { color: #3F58E6; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  </style>
+  <script src="lucide-icons.js"></script>
+  <script src="personaje.js"></script>
+</helmet>
+<section id="t1" data-screen-label="Tubitos · turno 1" style="padding:72px 72px 140px;display:flex;flex-direction:column;gap:72px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#23263A">
+
+  <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+    <div style="max-width:720px;display:flex;flex-direction:column;gap:16px">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#6C7191">Minijuego nuevo · turno 1</div>
+      <h1 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:60px;line-height:1;font-weight:800;letter-spacing:-.03em">Tubitos</h1>
+      <p style="margin:0;font-size:16px;line-height:1.55;font-weight:500;color:#4B5070">Ordenar líquidos de colores en tubos, hecho con las piezas de El Mejor de. Hay tres direcciones completas: <a href="#1a">1a</a> Probeta, <a href="#1b">1b</a> Fichas y <a href="#1c">1c</a> Noche. Cada una trae los estados del juego, la victoria en el reto y en la práctica, y la versión para tablet.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Reto del día: 3 niveles (6, 8 y 10 tubos)</div>
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Practicar: niveles sin fin</div>
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Puntos por movimientos y tiempo</div>
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Deshacer: 3 por nivel</div>
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Reiniciar: vuelve a 0 movimientos</div>
+        <div style="display:flex;height:34px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)">Vertido clásico · 4 capas por tubo</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;width:390px;box-sizing:border-box;padding:20px;border-radius:22px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6C7191">GameTheme nuevo</div>
+      <div style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;overflow:hidden;border-radius:28px;padding:20px 20px 0;color:#FFFFFF;background-image:linear-gradient(165deg,#FF8DB8 0%,#FF6FA5 60%,#F25A93 100%);box-shadow:0 16px 32px rgba(255,111,165,.3)">
+        <div style="position:absolute;inset:0;background-image:radial-gradient(120% 80% at 85% -10%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%)"></div>
+        <div style="position:relative;padding-bottom:22px">
+          <div style="display:inline-flex;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.22)">Lógica</div>
+          <div style="margin-top:8px;font-family:Outfit,system-ui,sans-serif;font-size:32px;line-height:1.05;font-weight:800;letter-spacing:-.02em">Tubitos</div>
+        </div>
+        <div style="position:relative;margin-right:-4px;height:144px;width:124px;flex:none">
+          <div style="position:absolute;top:54%;left:50%;width:122px;height:122px;transform:translate(-50%,-50%);border-radius:999px;background:rgba(255,255,255,.38)"></div>
+          <div style="position:relative;margin:0 auto;height:144px;width:120px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.28))"><em-personaje sp="pinguino" size="120" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:34px;border-radius:12px;background:#FF6FA5"></span><span style="font-size:11px;font-weight:700;color:#6C7191">main #FF6FA5</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:34px;border-radius:12px;background:#C94A7F"></span><span style="font-size:11px;font-weight:700;color:#6C7191">dark / title #C94A7F</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:34px;border-radius:12px;background:#FFD6E7"></span><span style="font-size:11px;font-weight:700;color:#6C7191">light #FFD6E7</span></div>
+      </div>
+      <p style="margin:0;font-size:13px;line-height:1.5;font-weight:600;color:#4B5070">Ícono <b>test-tubes</b> · praise «¡Qué orden!» · pingüino en los colores del juego con un tubito (prop nuevo) · sombra con el main al 35 %.</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;width:360px;box-sizing:border-box;padding:20px;border-radius:22px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6C7191">Marcas para daltonismo</div>
+      <div style="display:grid;grid-template-columns:1fr 44px 44px 44px;gap:8px;align-items:center;font-size:11px;font-weight:700;color:#6C7191">
+        <span>Color</span><span style="text-align:center">1a</span><span style="text-align:center">1b</span><span style="text-align:center">1c</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;filter:{{ filter }}">
+        <sc-for list="{{ legend }}" as="g" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:1fr 44px 44px 44px;gap:8px;align-items:center">
+            <span style="font-size:13px;font-weight:700">{{ g.name }}</span>
+            <span style="display:grid;place-items:center;height:30px;border-radius:9px;background:{{ g.ic.bg }};color:{{ g.ic.mark }}"><lucide-icon name="{{ g.ic.icon }}" size="16" stroke-width="2" fill="{{ g.ic.mark }}"></lucide-icon></span>
+            <span style="height:30px;border-radius:9px;background:{{ g.pt.bg }}"></span>
+            <span style="display:grid;place-items:center;height:30px;border-radius:9px;background:{{ g.sh.bg }}"><span style="{{ g.sh.shape }}"></span></span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:0;font-size:12px;line-height:1.45;font-weight:600;color:#4B5070">Siempre visibles y sutiles. Los cuatro primeros usan el ícono de su color en Secuencia. El reto de 6 tubos usa 4 colores, el de 8 usa 6 y el de 10, los 8.</p>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:140px">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="#1a" style="display:inline-flex;height:36px;align-items:center;padding:0 14px;border-radius:999px;background:#23263A;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">1a</a>
+        <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:36px;font-weight:800;letter-spacing:-.02em">Probeta</h2>
+      </div>
+      <p style="margin:0;max-width:860px;font-size:15px;line-height:1.55;font-weight:500;color:#4B5070">Tubos de vidrio parados en gradillas blancas, sobre el cielo de la app. Cada color lleva su ícono. Arriba van la fila de puntaje de Secuencia y los avisos en toast. Abajo, las píldoras de nivel de Largada y dos botones blancos grandes para el pulgar. La victoria es la pantalla de resultado de siempre.</p>
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <sc-for list="{{ A }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ f.title }}</div>
+            <div data-screen-label="{{ f.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+              <div style="position:absolute;left:-60px;bottom:50px;width:220px;aspect-ratio:10/7;opacity:.7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)">{{ f.levelTxt }}</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:18px 24px 0">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Movimientos</div>
+                    <div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:36px;line-height:1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums">{{ f.moves }}</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div>
+                    <div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:24px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums">{{ f.time }}</div>
+                  </div>
+                </div>
+                <div style="height:34px;margin-top:8px;display:flex;align-items:center;justify-content:center;padding:0 20px">
+                  <sc-if value="{{ f.instr }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:15px;font-weight:600;color:#4B5070">{{ f.instr }}</p></sc-if>
+                  <sc-if value="{{ f.toastDanger }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;white-space:nowrap;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:800;background:#E2504C;color:#FFFFFF;box-shadow:0 8px 18px rgba(226,80,76,.35)"><lucide-icon name="x" size="14" stroke-width="3"></lucide-icon>{{ f.toastDanger }}</div></sc-if>
+                  <sc-if value="{{ f.toastSuccess }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;white-space:nowrap;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:800;background:#1FA093;color:#FFFFFF;box-shadow:0 8px 18px rgba(31,160,147,.35)"><lucide-icon name="check" size="14" stroke-width="3"></lucide-icon>{{ f.toastSuccess }}</div></sc-if>
+                </div>
+                <div style="padding:0 20px"><dc-import name="Tablero" b="{{ f.board }}" estilo="probeta" hint-size="350px,430px"></dc-import></div>
+                <div style="margin-top:auto;display:flex;justify-content:center;gap:8px;padding:0 20px">
+                  <sc-for list="{{ f.pills }}" as="p" hint-placeholder-count="3">
+                    <sc-if value="{{ p.done }}" hint-placeholder-val="{{ false }}"><div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums">{{ p.text }}</div></sc-if>
+                    <sc-if value="{{ p.current }}" hint-placeholder-val="{{ true }}"><div style="display:flex;height:34px;box-sizing:border-box;align-items:center;border-radius:999px;padding:0 14px;border:2px solid #23263A;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">{{ p.text }}</div></sc-if>
+                    <sc-if value="{{ p.pending }}" hint-placeholder-val="{{ false }}"><div style="height:34px;width:52px;box-sizing:border-box;border-radius:999px;border:2px dashed #B8BDD6"></div></sc-if>
+                  </sc-for>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 20px 0">
+                  <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800;opacity:{{ f.undoOpacity }}"><lucide-icon name="undo-2" size="20" stroke-width="2.6"></lucide-icon>Deshacer<span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#F1F2FA;font-size:14px;font-variant-numeric:tabular-nums">{{ f.undoTxt }}</span></div>
+                  <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800"><lucide-icon name="rotate-ccw" size="20" stroke-width="2.6"></lucide-icon>Reiniciar</div>
+                </div>
+                <p style="margin:0;padding:12px 20px 0;text-align:center;font-size:13px;font-weight:600;color:#4B5070">Solo sobre el mismo color o en un tubo vacío</p>
+              </div>
+              <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ f.note }}</p></sc-if>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ vA }}" as="v" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ v.title }}</div>
+            <div data-screen-label="{{ v.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+              <div style="position:absolute;left:-70px;top:120px;width:200px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:absolute;right:-60px;top:260px;width:170px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:absolute;left:-40px;bottom:120px;width:220px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:absolute;inset:0;pointer-events:none">
+                <sc-for list="{{ confA }}" as="c" hint-placeholder-count="10"><span style="position:absolute;left:{{ c.l }};top:{{ c.t }}px;width:{{ c.w }}px;height:{{ c.h }}px;border-radius:2px;background:{{ c.c }};transform:{{ c.r }}"></span></sc-for>
+              </div>
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+                <div style="display:flex;justify-content:center;padding:0 20px">
+                  <div style="display:flex;height:34px;align-items:center;gap:6px;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.08)">
+                    <sc-if value="{{ v.daily }}" hint-placeholder-val="{{ true }}"><span style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF6FA5"></span></sc-if>
+                    <sc-if value="{{ v.practice }}" hint-placeholder-val="{{ false }}"><lucide-icon name="gamepad-2" size="16" stroke-width="2.4"></lucide-icon></sc-if>
+                    {{ v.chipTxt }}
+                  </div>
+                </div>
+                <div style="margin-top:16px;display:flex;justify-content:center"><em-personaje sp="pinguino" size="84" face="joy" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje></div>
+                <div style="margin-top:6px;text-align:center">
+                  <div style="font-size:14px;font-weight:700;color:#6C7191">¡Qué orden!</div>
+                  <div style="margin-top:8px;font-family:Outfit,system-ui,sans-serif;font-size:30px;line-height:1;font-weight:800;letter-spacing:-.03em">{{ v.headline }}</div>
+                  <div style="margin-top:6px;display:flex;align-items:baseline;justify-content:center;gap:8px">
+                    <div style="font-family:Outfit,system-ui,sans-serif;font-size:84px;line-height:1;font-weight:800;letter-spacing:-.05em;font-variant-numeric:tabular-nums">{{ v.moves }}</div>
+                    <div style="font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:700;color:#6C7191">movimientos</div>
+                  </div>
+                  <div style="margin-top:6px;font-size:14px;font-weight:700;color:#6C7191">{{ v.sub }}</div>
+                </div>
+                <div style="margin:18px 20px 0;display:grid;grid-template-columns:repeat(3,1fr);border-radius:22px;background:#FFFFFF;padding:14px 4px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <div style="text-align:center"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums">{{ v.time }}</div></div>
+                  <div style="text-align:center;border-left:1px solid #EDEFF8"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Deshacer</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800">{{ v.undo }}</div></div>
+                  <div style="text-align:center;border-left:1px solid #EDEFF8"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">{{ v.third }}</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800">{{ v.thirdVal }}</div></div>
+                </div>
+                <sc-if value="{{ v.daily }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:16px;display:flex;justify-content:center;gap:8px">
+                    <div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">14 mov.</div>
+                    <div style="display:flex;height:34px;box-sizing:border-box;align-items:center;border-radius:999px;padding:0 14px;border:2px solid #23263A;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">Nivel 2</div>
+                    <div style="height:34px;width:52px;box-sizing:border-box;border-radius:999px;border:2px dashed #B8BDD6"></div>
+                  </div>
+                </sc-if>
+                <div style="margin-top:auto;padding:14px 20px 0;display:flex;flex-direction:column;gap:10px">
+                  <div style="position:relative;display:flex;height:74px;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800"><span style="position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span><span style="position:relative;display:flex;align-items:center;gap:10px">Siguiente nivel<lucide-icon name="chevron-right" size="22" stroke-width="2.8"></lucide-icon></span></div>
+                  <div style="display:flex;height:52px;align-items:center;justify-content:center;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">{{ v.back }}</div>
+                  <sc-if value="{{ v.practice }}" hint-placeholder-val="{{ false }}"><div style="display:flex;height:40px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div></sc-if>
+                  <p style="margin:0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">{{ v.foot }}</p>
+                </div>
+              </div>
+              <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ v.note }}</p></sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1a · 08 · Tablet · jugando</div>
+          <div data-screen-label="1a 08 Tablet jugando" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-70px;bottom:120px;width:300px;aspect-ratio:10/7;opacity:.7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:absolute;right:-80px;top:200px;width:260px;aspect-ratio:10/7;opacity:.6;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:48px 0 40px">
+              <div style="width:100%;max-width:760px;margin:0 auto;flex:1;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)">Nivel 3</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:18px 24px 0">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Movimientos</div>
+                    <div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:36px;line-height:1;font-weight:800;letter-spacing:-.03em">21</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div>
+                    <div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:24px;line-height:1;font-weight:800">1:12</div>
+                  </div>
+                </div>
+                <div style="height:34px;margin-top:8px;display:flex;align-items:center;justify-content:center"><p style="margin:0;font-size:15px;font-weight:600;color:#4B5070">Lima · elegí dónde pasarlo</p></div>
+                <dc-import name="Tablero" b="{{ tA.board }}" estilo="probeta" hint-size="700px,712px"></dc-import>
+                <div style="margin-top:auto;display:flex;justify-content:center;gap:8px">
+                  <div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">14 mov.</div>
+                  <div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">19 mov.</div>
+                  <div style="display:flex;height:34px;box-sizing:border-box;align-items:center;border-radius:999px;padding:0 14px;border:2px solid #23263A;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">Nivel 3</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:480px;margin:16px auto 0">
+                  <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800"><lucide-icon name="undo-2" size="20" stroke-width="2.6"></lucide-icon>Deshacer<span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#F1F2FA;font-size:14px">1</span></div>
+                  <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800"><lucide-icon name="rotate-ccw" size="20" stroke-width="2.6"></lucide-icon>Reiniciar</div>
+                </div>
+                <p style="margin:0;padding-top:12px;text-align:center;font-size:13px;font-weight:600;color:#4B5070">Solo sobre el mismo color o en un tubo vacío</p>
+              </div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">En tablet el juego sale de la columna de 430 px: la cabecera y el tablero llegan hasta 760 px y los tubos crecen (capas de 60 px, 78 px de ancho). El orden de las cosas es el mismo del celu y los botones quedan centrados abajo, de 480 px.</p></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1a · 09 · Tablet · victoria en la práctica</div>
+          <div data-screen-label="1a 09 Tablet victoria" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;left:-60px;top:180px;width:280px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:absolute;right:-50px;top:440px;width:240px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:absolute;left:-40px;bottom:160px;width:300px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:absolute;inset:0;pointer-events:none">
+              <sc-for list="{{ confTA }}" as="c" hint-placeholder-count="14"><span style="position:absolute;left:{{ c.l }};top:{{ c.t }}px;width:{{ c.w }}px;height:{{ c.h }}px;border-radius:2px;background:{{ c.c }};transform:{{ c.r }}"></span></sc-for>
+            </div>
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;box-sizing:border-box;padding:48px 0 40px">
+              <div style="width:430px;display:flex;flex-direction:column">
+                <div style="display:flex;justify-content:center"><div style="display:flex;height:34px;align-items:center;gap:6px;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="gamepad-2" size="16" stroke-width="2.4"></lucide-icon>Práctica · Tubitos</div></div>
+                <div style="margin-top:20px;display:flex;justify-content:center"><em-personaje sp="pinguino" size="112" face="joy" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje></div>
+                <div style="margin-top:8px;text-align:center">
+                  <div style="font-size:14px;font-weight:700;color:#6C7191">¡Qué orden!</div>
+                  <div style="margin-top:8px;font-family:Outfit,system-ui,sans-serif;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em">¡Nivel 14 listo!</div>
+                  <div style="margin-top:8px;display:flex;align-items:baseline;justify-content:center;gap:8px"><div style="font-family:Outfit,system-ui,sans-serif;font-size:96px;line-height:1;font-weight:800;letter-spacing:-.05em">18</div><div style="font-family:Outfit,system-ui,sans-serif;font-size:20px;font-weight:700;color:#6C7191">movimientos</div></div>
+                  <div style="margin-top:6px;font-size:14px;font-weight:700;color:#6C7191">El mínimo era 15</div>
+                </div>
+                <div style="margin:22px 20px 0;display:grid;grid-template-columns:repeat(3,1fr);border-radius:22px;background:#FFFFFF;padding:14px 4px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <div style="text-align:center"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800">1:12</div></div>
+                  <div style="text-align:center;border-left:1px solid #EDEFF8"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Deshacer</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800">0 de 3</div></div>
+                  <div style="text-align:center;border-left:1px solid #EDEFF8"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Récord</div><div style="margin-top:4px;font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800">Nivel 14</div></div>
+                </div>
+                <div style="margin-top:36px;padding:0 20px;display:flex;flex-direction:column;gap:10px">
+                  <div style="position:relative;display:flex;height:74px;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:22px;font-weight:800"><span style="position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span><span style="position:relative;display:flex;align-items:center;gap:10px">Siguiente nivel<lucide-icon name="chevron-right" size="22" stroke-width="2.8"></lucide-icon></span></div>
+                  <div style="display:flex;height:52px;align-items:center;justify-content:center;border-radius:999px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08);font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">Volver a Practicar</div>
+                  <div style="display:flex;height:40px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div>
+                  <p style="margin:0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Quedó en tus récords personales</p>
+                </div>
+              </div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La victoria queda en una columna de 430 px centrada, que es como se ve hoy cualquier resultado en pantallas grandes. Solo crecen un poco la mascota y el número.</p></sc-if>
+        </div>
+      </div>
+    </div>
+
+    <div id="1b" style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="#1b" style="display:inline-flex;height:36px;align-items:center;padding:0 14px;border-radius:999px;background:#23263A;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">1b</a>
+        <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:36px;font-weight:800;letter-spacing:-.02em">Fichas</h2>
+      </div>
+      <p style="margin:0;max-width:860px;font-size:15px;line-height:1.55;font-weight:500;color:#4B5070">Tubos como baldosas dentro de una bandeja blanca. Cada color lleva su textura. La barra de estado de Secuencia nombra el color que llevás y avisa. La barra de herramientas flota abajo como la navegación de la app. Con 6 tubos va una sola fila. La victoria es una hoja que sube sobre el tablero resuelto.</p>
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <sc-for list="{{ B }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ f.title }}</div>
+            <div data-screen-label="{{ f.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+              <div style="position:absolute;right:-70px;top:150px;width:200px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:absolute;left:-60px;bottom:60px;width:220px;aspect-ratio:10/7;opacity:.8;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.08)">{{ f.levelOf3 }}</div></div>
+                </div>
+                <div style="margin:14px 20px 0;display:flex;height:52px;align-items:center;gap:10px;border-radius:18px;padding:0 16px;color:#FFFFFF;background:{{ f.stBg }};box-shadow:0 10px 24px rgba(35,38,58,.2)">
+                  <sc-if value="{{ f.stSwatch }}" hint-placeholder-val="{{ false }}"><span style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ f.stSwatch }};box-shadow:0 0 0 2px rgba(255,255,255,.9)"></span></sc-if>
+                  <sc-if value="{{ f.stIcon }}" hint-placeholder-val="{{ false }}"><lucide-icon name="{{ f.stIcon }}" size="20" stroke-width="3"></lucide-icon></sc-if>
+                  <span style="flex:1;min-width:0;font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.stText }}</span>
+                  <span style="flex:none;font-size:13px;font-weight:700;color:rgba(255,255,255,.8);font-variant-numeric:tabular-nums">{{ f.moves }} mov. · {{ f.time }}</span>
+                </div>
+                <div style="margin:14px 20px 90px;flex:1;display:flex;align-items:center;justify-content:center;border-radius:28px;background:#FFFFFF;padding:14px 16px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <dc-import name="Tablero" b="{{ f.board }}" estilo="ficha" hint-size="318px,420px"></dc-import>
+                </div>
+                <div style="position:absolute;left:16px;right:16px;bottom:60px;height:60px;box-sizing:border-box;padding:6px;border-radius:999px;background:#FFFFFF;box-shadow:0 10px 30px rgba(35,38,58,.12);display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;gap:6px">
+                  <div style="display:flex;height:48px;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-size:15px;font-weight:800;opacity:{{ f.undoOpacity }}"><lucide-icon name="undo-2" size="20" stroke-width="2.6"></lucide-icon>Deshacer<span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#FFD6E7;color:#C94A7F;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">{{ f.undoTxt }}</span></div>
+                  <span style="height:28px;background:#EDEFF8"></span>
+                  <div style="display:flex;height:48px;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-size:15px;font-weight:800"><lucide-icon name="rotate-ccw" size="20" stroke-width="2.6"></lucide-icon>Reiniciar</div>
+                </div>
+              </div>
+              <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ f.note }}</p></sc-if>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ vB }}" as="v" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ v.title }}</div>
+            <div data-screen-label="{{ v.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+              <div style="position:absolute;right:-70px;top:150px;width:200px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;white-space:nowrap;box-shadow:0 6px 16px rgba(35,38,58,.08)">{{ v.levelHeader }}</div></div>
+                </div>
+                <div style="margin:14px 20px 0;display:flex;justify-content:center;border-radius:28px;background:#FFFFFF;padding:14px 16px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <dc-import name="Tablero" b="{{ v.board }}" estilo="ficha" hint-size="318px,294px"></dc-import>
+                </div>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;z-index:20;box-sizing:border-box;border-radius:28px 28px 0 0;background:#FFFFFF;padding:12px 20px 44px;box-shadow:0 -10px 30px rgba(35,38,58,.12)">
+                <div style="margin:0 auto 14px;height:5px;width:44px;border-radius:999px;background:#D9DDF3"></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <em-personaje sp="pinguino" size="58" face="joy" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje>
+                  <div>
+                    <div style="font-size:13px;font-weight:800;color:#C94A7F">¡Qué orden!</div>
+                    <h3 style="margin:2px 0 0;font-family:Outfit,system-ui,sans-serif;font-size:28px;line-height:1.05;font-weight:800;letter-spacing:-.02em">{{ v.headline }}</h3>
+                  </div>
+                </div>
+                <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                  <div style="border-radius:16px;background:#F1F2FA;padding:10px 12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Movim.</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:24px;line-height:1.1;font-weight:800">{{ v.moves }}</div><div style="font-size:11px;font-weight:600;color:#6C7191">{{ v.minTxt }}</div></div>
+                  <div style="border-radius:16px;background:#F1F2FA;padding:10px 12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:24px;line-height:1.1;font-weight:800">{{ v.time }}</div><div style="font-size:11px;font-weight:600;color:#6C7191">deshacer {{ v.undo }}</div></div>
+                  <div style="border-radius:16px;background:#FFD6E7;padding:10px 12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">{{ v.third }}</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:24px;line-height:1.1;font-weight:800">{{ v.thirdShort }}</div><div style="font-size:11px;font-weight:600;color:#C94A7F">{{ v.thirdNote }}</div></div>
+                </div>
+                <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:10px;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">Siguiente nivel<lucide-icon name="chevron-right" size="20" stroke-width="2.8"></lucide-icon></div>
+                  <div style="display:flex;height:52px;align-items:center;justify-content:center;border-radius:999px;background:#F1F2FA;color:#4B5070;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">{{ v.back }}</div>
+                  <sc-if value="{{ v.practice }}" hint-placeholder-val="{{ false }}"><div style="display:flex;height:36px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div></sc-if>
+                  <sc-if value="{{ v.daily }}" hint-placeholder-val="{{ true }}"><p style="margin:0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">{{ v.foot }}</p></sc-if>
+                </div>
+              </div>
+              <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ v.note }}</p></sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1b · 08 · Tablet · jugando</div>
+          <div data-screen-label="1b 08 Tablet jugando" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;right:-80px;top:180px;width:280px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:absolute;left:-70px;bottom:90px;width:300px;aspect-ratio:10/7;opacity:.85;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:48px 0 40px">
+              <div style="width:100%;max-width:680px;margin:0 auto;flex:1;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)">Nivel 3 de 3</div></div>
+                </div>
+                <div style="margin:14px 20px 0;display:flex;height:52px;align-items:center;gap:10px;border-radius:18px;padding:0 16px;color:#FFFFFF;background:#C94A7F;box-shadow:0 10px 24px rgba(35,38,58,.2)">
+                  <span style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ tB.swatch }};box-shadow:0 0 0 2px rgba(255,255,255,.9)"></span>
+                  <span style="flex:1;font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">Lima · ¿adónde?</span>
+                  <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">21 mov. · 1:12</span>
+                </div>
+                <div style="margin:14px 20px 112px;flex:1;display:flex;align-items:center;justify-content:center;border-radius:28px;background:#FFFFFF;padding:20px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <dc-import name="Tablero" b="{{ tB.board }}" estilo="ficha" hint-size="600px,642px"></dc-import>
+                </div>
+              </div>
+              <div style="position:absolute;left:50%;bottom:52px;transform:translateX(-50%);width:440px;height:60px;box-sizing:border-box;padding:6px;border-radius:999px;background:#FFFFFF;box-shadow:0 10px 30px rgba(35,38,58,.12);display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;gap:6px">
+                <div style="display:flex;height:48px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800"><lucide-icon name="undo-2" size="20" stroke-width="2.6"></lucide-icon>Deshacer<span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#FFD6E7;color:#C94A7F;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">1</span></div>
+                <span style="height:28px;background:#EDEFF8"></span>
+                <div style="display:flex;height:48px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800"><lucide-icon name="rotate-ccw" size="20" stroke-width="2.6"></lucide-icon>Reiniciar</div>
+              </div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La bandeja se centra hasta 680 px y las fichas crecen a 86 × 267 px. La barra flotante queda de 440 px, centrada abajo y al alcance de cualquier pulgar.</p></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1b · 09 · Tablet · victoria en la práctica</div>
+          <div data-screen-label="1b 09 Tablet victoria" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+            <div style="position:absolute;right:-80px;top:180px;width:280px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:48px 0 40px">
+              <div style="width:100%;max-width:680px;margin:0 auto;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:#FFFFFF;box-shadow:0 6px 16px rgba(35,38,58,.08)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:#FFFFFF;padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(35,38,58,.08)">Nivel 14</div></div>
+                </div>
+                <div style="margin:14px 20px 0;display:flex;justify-content:center;border-radius:28px;background:#FFFFFF;padding:20px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+                  <dc-import name="Tablero" b="{{ tvB }}" estilo="ficha" hint-size="600px,400px"></dc-import>
+                </div>
+              </div>
+            </div>
+            <div style="position:absolute;left:50%;top:584px;z-index:20;transform:translateX(-50%);width:520px;box-sizing:border-box;border-radius:28px;background:#FFFFFF;padding:24px;box-shadow:0 10px 30px rgba(35,38,58,.12)">
+              <div style="display:flex;align-items:center;gap:14px">
+                <em-personaje sp="pinguino" size="70" face="joy" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje>
+                <div>
+                  <div style="font-size:13px;font-weight:800;color:#C94A7F">¡Qué orden!</div>
+                  <h3 style="margin:2px 0 0;font-family:Outfit,system-ui,sans-serif;font-size:32px;line-height:1.05;font-weight:800;letter-spacing:-.02em">¡Nivel 14 listo!</h3>
+                </div>
+              </div>
+              <div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                <div style="border-radius:16px;background:#F1F2FA;padding:12px 14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Movim.</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:26px;line-height:1.1;font-weight:800">18</div><div style="font-size:11px;font-weight:600;color:#6C7191">mín. 15</div></div>
+                <div style="border-radius:16px;background:#F1F2FA;padding:12px 14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6C7191">Tiempo</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:26px;line-height:1.1;font-weight:800">1:12</div><div style="font-size:11px;font-weight:600;color:#6C7191">deshacer 0 de 3</div></div>
+                <div style="border-radius:16px;background:#FFD6E7;padding:12px 14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#C94A7F">Récord</div><div style="margin-top:2px;font-family:Outfit,system-ui,sans-serif;font-size:26px;line-height:1.1;font-weight:800">14</div><div style="font-size:11px;font-weight:600;color:#C94A7F">nivel nuevo</div></div>
+              </div>
+              <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:10px;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">Siguiente nivel<lucide-icon name="chevron-right" size="20" stroke-width="2.8"></lucide-icon></div>
+                <div style="display:flex;height:56px;align-items:center;justify-content:center;border-radius:999px;background:#F1F2FA;color:#4B5070;font-family:Outfit,system-ui,sans-serif;font-size:17px;font-weight:800">Volver a Practicar</div>
+              </div>
+              <div style="margin-top:6px;display:flex;height:40px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La hoja se convierte en una tarjeta centrada de 520 px. El tablero resuelto queda arriba, a la vista, y las dos acciones principales van lado a lado.</p></sc-if>
+        </div>
+      </div>
+    </div>
+
+    <div id="1c" style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="#1c" style="display:inline-flex;height:36px;align-items:center;padding:0 14px;border-radius:999px;background:#23263A;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">1c</a>
+        <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:36px;font-weight:800;letter-spacing:-.02em">Noche</h2>
+      </div>
+      <p style="margin:0;max-width:860px;font-size:15px;line-height:1.55;font-weight:500;color:#4B5070">La pantalla tinta que ya usa Reflejos mientras esperás, para que los colores brillen. Cada color lleva una forma geométrica. Arriba hay un titular grande con lo que tenés que hacer, como en el esqueleto de los juegos. Abajo, botones redondos a los costados. La victoria es el festejo azul de la corona, más corto.</p>
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <sc-for list="{{ C }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ f.title }}</div>
+            <div data-screen-label="{{ f.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#23263A;color:#FFFFFF">
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#FF6FA5">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:rgba(255,255,255,.12);padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">{{ f.levelTxt }}</div></div>
+                </div>
+                <div style="padding:16px 20px 0;text-align:center">
+                  <h3 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:40px;line-height:1;font-weight:800;letter-spacing:-.03em">{{ f.head }}</h3>
+                  <p style="margin:8px 0 0;font-size:15px;font-weight:600;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums">{{ f.sub }}</p>
+                </div>
+                <div style="padding:30px 20px 0"><dc-import name="Tablero" b="{{ f.board }}" estilo="noche" hint-size="350px,430px"></dc-import></div>
+                <div style="margin-top:auto;display:flex;justify-content:center;gap:8px;padding:0 20px">
+                  <sc-for list="{{ f.pills }}" as="p" hint-placeholder-count="3">
+                    <sc-if value="{{ p.done }}" hint-placeholder-val="{{ false }}"><div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">{{ p.text }}</div></sc-if>
+                    <sc-if value="{{ p.current }}" hint-placeholder-val="{{ true }}"><div style="display:flex;height:34px;box-sizing:border-box;align-items:center;border-radius:999px;padding:0 14px;border:2px solid rgba(255,255,255,.6);font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">{{ p.text }}</div></sc-if>
+                    <sc-if value="{{ p.pending }}" hint-placeholder-val="{{ false }}"><div style="height:34px;width:52px;box-sizing:border-box;border-radius:999px;border:2px dashed rgba(255,255,255,.25)"></div></sc-if>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 22px 0">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;opacity:{{ f.undoOpacity }}">
+                    <div style="position:relative;display:grid;place-items:center;width:64px;height:64px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="undo-2" size="26" stroke-width="2.4"></lucide-icon><span style="position:absolute;top:-2px;right:-2px;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#FF6FA5;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:13px;font-weight:800;box-shadow:0 0 0 3px #23263A">{{ f.undoTxt }}</span></div>
+                    <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7)">Deshacer</span>
+                  </div>
+                  <p style="margin:12px 0 0;max-width:170px;text-align:center;font-size:12px;line-height:1.45;font-weight:600;color:rgba(255,255,255,.6)">Solo sobre el mismo color o en un tubo vacío</p>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:64px">
+                    <div style="display:grid;place-items:center;width:64px;height:64px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="rotate-ccw" size="26" stroke-width="2.4"></lucide-icon></div>
+                    <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7)">Reiniciar</span>
+                  </div>
+                </div>
+              </div>
+              <dc-import name="Celu" oscuro="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ f.note }}</p></sc-if>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ vC }}" as="v" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+            <div style="font-size:13px;font-weight:800">{{ v.title }}</div>
+            <div data-screen-label="{{ v.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background-image:linear-gradient(180deg,#3B4FD8 0%,#4F6BFF 55%,#8FA6FF 100%);color:#FFFFFF">
+              <div style="position:absolute;inset:0;pointer-events:none">
+                <sc-for list="{{ confC }}" as="c" hint-placeholder-count="16"><span style="position:absolute;left:{{ c.l }};top:{{ c.t }}px;width:{{ c.w }}px;height:{{ c.h }}px;border-radius:2px;background:{{ c.c }};transform:{{ c.r }}"></span></sc-for>
+              </div>
+              <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding-top:66px">
+                <div style="display:flex;justify-content:center;padding:0 20px">
+                  <div style="display:flex;height:34px;align-items:center;gap:6px;border-radius:999px;background:rgba(255,255,255,.15);padding:0 14px;font-size:13px;font-weight:700"><lucide-icon name="test-tubes" size="14" stroke-width="2.6"></lucide-icon>{{ v.chipTxt }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;padding:20px 24px 0;text-align:center">
+                  <div style="filter:drop-shadow(0 18px 22px rgba(20,28,90,.35))"><em-personaje sp="pinguino" size="140" face="joy" prop="tubo" liquid="#2EC4B6" anim="float" c="{{ mascotC }}"></em-personaje></div>
+                  <p style="margin:14px 0 0;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.85">{{ v.eyebrow }}</p>
+                  <h3 style="margin:4px 0 0;font-family:Outfit,system-ui,sans-serif;font-size:40px;line-height:1.02;font-weight:800;letter-spacing:-.03em">¡Qué orden!</h3>
+                  <p style="margin:8px 0 0;font-size:14px;font-weight:700;opacity:.9">{{ v.movesTxt }}</p>
+                  <div style="margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px">
+                    <span style="border-radius:999px;background:rgba(255,255,255,.18);padding:6px 12px;font-size:12px;font-weight:800">{{ v.chipA }}</span>
+                    <span style="display:flex;align-items:center;gap:4px;border-radius:999px;background:#FFC53D;padding:6px 12px;font-size:12px;font-weight:800;color:#23263A"><lucide-icon name="sparkles" size="14" stroke-width="2.4"></lucide-icon>{{ v.chipB }}</span>
+                  </div>
+                </div>
+                <div style="position:relative;margin-top:auto;padding-top:110px">
+                  <div style="position:absolute;top:10px;left:-70px;width:250px;aspect-ratio:10/7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+                  <div style="position:absolute;top:0;right:-60px;width:230px;aspect-ratio:10/7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+                  <div style="position:relative;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:0 20px 44px;color:#23263A">
+                    <div style="position:relative;display:flex;height:66px;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800"><span style="position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span><span style="position:relative;display:flex;align-items:center;gap:10px">Siguiente nivel<lucide-icon name="chevron-right" size="20" stroke-width="2.8"></lucide-icon></span></div>
+                    <div style="display:flex;height:52px;align-items:center;justify-content:center;border-radius:999px;background:#E6EAFF;color:#4F6BFF;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">{{ v.back }}</div>
+                    <sc-if value="{{ v.practice }}" hint-placeholder-val="{{ false }}"><div style="display:flex;height:36px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div></sc-if>
+                    <p style="margin:0;padding-top:4px;text-align:center;font-size:12px;font-weight:600;color:#4B5070">{{ v.foot }}</p>
+                  </div>
+                </div>
+              </div>
+              <dc-import name="Celu" oscuro="{{ true }}" home-oscuro="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+            </div>
+            <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">{{ v.note }}</p></sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:48px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1c · 08 · Tablet · jugando</div>
+          <div data-screen-label="1c 08 Tablet jugando" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:#23263A;color:#FFFFFF">
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:48px 0 40px">
+              <div style="width:100%;max-width:760px;margin:0 auto;flex:1;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
+                  <div style="display:flex;gap:8px">
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="x" size="18" stroke-width="2.6"></lucide-icon></div>
+                    <div style="display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="volume-2" size="18" stroke-width="2.4"></lucide-icon></div>
+                  </div>
+                  <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#FF6FA5">Tubitos</div>
+                  <div style="display:flex;min-width:84px;justify-content:flex-end"><div style="display:flex;height:38px;align-items:center;border-radius:999px;background:rgba(255,255,255,.12);padding:0 14px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">Nivel 3</div></div>
+                </div>
+                <div style="padding:20px 20px 0;text-align:center">
+                  <h3 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:46px;line-height:1;font-weight:800;letter-spacing:-.03em">¿Adónde?</h3>
+                  <p style="margin:8px 0 0;font-size:15px;font-weight:600;color:rgba(255,255,255,.7)">Lima · 21 movimientos · 1:12</p>
+                </div>
+                <div style="padding-top:22px"><dc-import name="Tablero" b="{{ tC.board }}" estilo="noche" hint-size="700px,712px"></dc-import></div>
+              </div>
+            </div>
+            <div style="position:absolute;left:40px;right:40px;bottom:52px;z-index:12;display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+                <div style="position:relative;display:grid;place-items:center;width:76px;height:76px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="undo-2" size="30" stroke-width="2.4"></lucide-icon><span style="position:absolute;top:-2px;right:-2px;display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#FF6FA5;color:#FFFFFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800;box-shadow:0 0 0 3px #23263A">1</span></div>
+                <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7)">Deshacer</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:6px">
+                <div style="display:flex;gap:8px">
+                  <div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">14 mov.</div>
+                  <div style="display:flex;height:34px;align-items:center;border-radius:999px;padding:0 14px;background:#4F6BFF;font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">19 mov.</div>
+                  <div style="display:flex;height:34px;box-sizing:border-box;align-items:center;border-radius:999px;padding:0 14px;border:2px solid rgba(255,255,255,.6);font-family:Outfit,system-ui,sans-serif;font-size:14px;font-weight:800">Nivel 3</div>
+                </div>
+                <p style="margin:0;font-size:13px;font-weight:600;color:rgba(255,255,255,.6)">Solo sobre el mismo color o en un tubo vacío</p>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+                <div style="display:grid;place-items:center;width:76px;height:76px;border-radius:999px;background:rgba(255,255,255,.12)"><lucide-icon name="rotate-ccw" size="30" stroke-width="2.4"></lucide-icon></div>
+                <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7)">Reiniciar</span>
+              </div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" oscuro="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">La tablet se agarra con las dos manos: Deshacer queda abajo a la izquierda y Reiniciar abajo a la derecha, cada uno debajo de un pulgar. En el medio, los niveles y la regla. El tablero usa 760 px.</p></sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;width:820px;flex:none">
+          <div style="font-size:13px;font-weight:800">1c · 09 · Tablet · victoria en la práctica</div>
+          <div data-screen-label="1c 09 Tablet victoria" style="position:relative;width:820px;height:1180px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background-image:linear-gradient(180deg,#3B4FD8 0%,#4F6BFF 55%,#8FA6FF 100%);color:#FFFFFF">
+            <div style="position:absolute;inset:0;pointer-events:none">
+              <sc-for list="{{ confTC }}" as="c" hint-placeholder-count="20"><span style="position:absolute;left:{{ c.l }};top:{{ c.t }}px;width:{{ c.w }}px;height:{{ c.h }}px;border-radius:2px;background:{{ c.c }};transform:{{ c.r }}"></span></sc-for>
+            </div>
+            <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding-top:56px">
+              <div style="display:flex;justify-content:center"><div style="display:flex;height:34px;align-items:center;gap:6px;border-radius:999px;background:rgba(255,255,255,.15);padding:0 14px;font-size:13px;font-weight:700"><lucide-icon name="test-tubes" size="14" stroke-width="2.6"></lucide-icon>Práctica · Tubitos</div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;padding-top:40px;text-align:center">
+                <div style="filter:drop-shadow(0 18px 22px rgba(20,28,90,.35))"><em-personaje sp="pinguino" size="190" face="joy" prop="tubo" liquid="#2EC4B6" anim="float" c="{{ mascotC }}"></em-personaje></div>
+                <p style="margin:18px 0 0;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.85">Práctica · nivel 14</p>
+                <h3 style="margin:4px 0 0;font-family:Outfit,system-ui,sans-serif;font-size:52px;line-height:1.02;font-weight:800;letter-spacing:-.03em">¡Qué orden!</h3>
+                <p style="margin:10px 0 0;font-size:16px;font-weight:700;opacity:.9">18 movimientos · 1:12</p>
+                <div style="margin-top:14px;display:flex;gap:8px">
+                  <span style="border-radius:999px;background:rgba(255,255,255,.18);padding:7px 14px;font-size:13px;font-weight:800">A 3 del mínimo</span>
+                  <span style="display:flex;align-items:center;gap:4px;border-radius:999px;background:#FFC53D;padding:7px 14px;font-size:13px;font-weight:800;color:#23263A"><lucide-icon name="sparkles" size="14" stroke-width="2.4"></lucide-icon>Nuevo récord: nivel 14</span>
+                </div>
+              </div>
+              <div style="position:relative;margin-top:auto;padding-top:130px">
+                <div style="position:absolute;top:10px;left:-60px;width:360px;aspect-ratio:10/7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+                <div style="position:absolute;top:0;right:-50px;width:330px;aspect-ratio:10/7;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+                <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;background:#FFFFFF;padding:0 20px 44px;color:#23263A">
+                  <div style="width:440px;display:flex;flex-direction:column;gap:10px">
+                    <div style="position:relative;display:flex;height:66px;align-items:center;justify-content:center;overflow:hidden;border-radius:999px;background:#FF6FA5;color:#FFFFFF;box-shadow:0 16px 32px rgba(255,111,165,.35);font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800"><span style="position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)"></span><span style="position:relative;display:flex;align-items:center;gap:10px">Siguiente nivel<lucide-icon name="chevron-right" size="20" stroke-width="2.8"></lucide-icon></span></div>
+                    <div style="display:flex;height:52px;align-items:center;justify-content:center;border-radius:999px;background:#E6EAFF;color:#4F6BFF;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:800">Volver a Practicar</div>
+                    <div style="display:flex;height:36px;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:800;color:#4B5070"><lucide-icon name="rotate-ccw" size="17" stroke-width="2.6"></lucide-icon>Repetir nivel</div>
+                    <p style="margin:0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Quedó en tus récords personales</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <dc-import name="Celu" tablet="{{ true }}" oscuro="{{ true }}" home-oscuro="{{ true }}" style="position:absolute;inset:0;z-index:50" hint-size="820px,1180px"></dc-import>
+          </div>
+          <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;max-width:820px;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">El festejo ocupa toda la pantalla y los botones se centran en 440 px sobre la franja blanca con nubes, como en el festejo de la corona.</p></sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:860px">
+      <h2 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:36px;font-weight:800;letter-spacing:-.02em">Para las tres direcciones</h2>
+      <p style="margin:0;font-size:15px;line-height:1.55;font-weight:500;color:#4B5070">Al terminar el nivel 3 del reto no hay victoria de nivel: se pasa directo al resultado del reto de siempre, con una tarjeta de detalle propia de Tubitos. Abajo están los componentes que se reusan y los que hay que crear.</p>
+    </div>
+    <div style="display:flex;gap:48px;align-items:flex-start;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+        <div style="font-size:13px;font-weight:800">Resultado del reto · Tubitos</div>
+        <div data-screen-label="Resultado del reto Tubitos" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(35,38,58,.18),0 0 0 1px rgba(35,38,58,.12);background:linear-gradient(180deg,#C3DAF8 0%,#DAE1F6 42%,#E8EAF6 100%)">
+          <div style="position:absolute;left:-70px;top:120px;width:200px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+          <div style="position:absolute;right:-60px;top:260px;width:170px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+          <div style="position:absolute;left:-40px;bottom:120px;width:220px;aspect-ratio:10/7;opacity:.95;pointer-events:none"><span style="position:absolute;left:0;right:0;bottom:0;height:55%;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:22%;left:12%;width:50%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span><span style="position:absolute;bottom:28%;left:44%;width:38%;aspect-ratio:1;border-radius:999px;background:#FFFFFF"></span></div>
+          <div style="position:relative;z-index:10;display:flex;flex-direction:column;height:100%;box-sizing:border-box;padding:66px 0 44px">
+            <div style="display:flex;justify-content:center"><div style="display:flex;height:34px;align-items:center;gap:6px;border-radius:999px;background:#FFFFFF;padding:0 14px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(35,38,58,.08)"><span style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF6FA5"></span>Reto 2 de 3 · Tubitos</div></div>
+            <div style="margin-top:16px;display:flex;justify-content:center"><em-personaje sp="pinguino" size="84" face="joy" prop="tubo" liquid="#2EC4B6" c="{{ mascotC }}"></em-personaje></div>
+            <div style="margin-top:6px;text-align:center">
+              <div style="font-size:14px;font-weight:700;color:#6C7191">¡Qué orden!</div>
+              <div style="margin-top:8px;font-family:Outfit,system-ui,sans-serif;font-size:30px;line-height:1;font-weight:800;letter-spacing:-.03em">Resolviste los 3 niveles</div>
+              <div style="margin-top:6px;display:flex;align-items:baseline;justify-content:center;gap:6px"><div style="font-family:Outfit,system-ui,sans-serif;font-size:84px;line-height:1;font-weight:800;letter-spacing:-.05em">814</div><div style="font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:700;color:#6C7191">/ 1.000</div></div>
+              <div style="margin:12px 40px 0;height:10px;overflow:hidden;border-radius:999px;background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(35,38,58,.06)"><div style="height:100%;width:81.4%;border-radius:999px;background:linear-gradient(90deg,#FF8DB8,#FF6FA5)"></div></div>
+            </div>
+            <div style="margin:18px 20px 0;display:flex;flex-direction:column;gap:10px;border-radius:22px;background:#FFFFFF;padding:14px 16px;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+              <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:14px;font-weight:700">60 movimientos</span><span style="font-size:13px;font-weight:700;color:#6C7191">el mínimo era 50</span></div>
+              <div style="height:1px;background:#EDEFF8"></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                <div style="border-radius:12px;background:#FFD6E7;padding:8px 6px;text-align:center"><div style="font-size:11px;font-weight:700;color:#C94A7F">Nivel 1</div><div style="font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">14 mov.</div><div style="font-size:11px;font-weight:600;color:#6C7191">0:41 · +205</div></div>
+                <div style="border-radius:12px;background:#FFD6E7;padding:8px 6px;text-align:center"><div style="font-size:11px;font-weight:700;color:#C94A7F">Nivel 2</div><div style="font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">19 mov.</div><div style="font-size:11px;font-weight:600;color:#6C7191">0:58 · +268</div></div>
+                <div style="border-radius:12px;background:#FFD6E7;padding:8px 6px;text-align:center"><div style="font-size:11px;font-weight:700;color:#C94A7F">Nivel 3</div><div style="font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">27 mov.</div><div style="font-size:11px;font-weight:600;color:#6C7191">1:46 · +341</div></div>
+              </div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:#6C7191">movimientos, tiempo y puntos de cada nivel</div>
+            </div>
+            <div style="margin-top:auto;padding:14px 20px 0">
+              <div style="display:flex;height:56px;align-items:center;justify-content:center;gap:10px;border-radius:999px;background:#4F6BFF;color:#FFFFFF;box-shadow:0 12px 24px rgba(79,107,255,.35);font-family:Outfit,system-ui,sans-serif;font-size:18px;font-weight:800">Siguiente reto<lucide-icon name="chevron-right" size="20" stroke-width="2.8"></lucide-icon></div>
+              <p style="margin:8px 0 0;text-align:center;font-size:12px;font-weight:600;color:#4B5070">Diez Letras · 90 segundos</p>
+            </div>
+          </div>
+          <dc-import name="Celu" style="position:absolute;inset:0;z-index:50" hint-size="390px,844px"></dc-import>
+        </div>
+        <sc-if value="{{ notas }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070;text-wrap:pretty">Es GameResultView sin cambios, con la tarjeta de detalle de Tubitos. Propuesta de puntaje: 250, 350 y 400 por nivel. En cada uno, 70 % por movimientos (mínimo ÷ hechos) y 30 % por tiempo. Lo calcula el servidor.</p></sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:18px;width:820px;box-sizing:border-box;padding:28px;border-radius:22px;background:#FFFFFF;box-shadow:0 8px 20px rgba(35,38,58,.08)">
+        <h3 style="margin:0;font-family:Outfit,system-ui,sans-serif;font-size:26px;font-weight:800;letter-spacing:-.02em">Componentes</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#1FA093"><lucide-icon name="check" size="14" stroke-width="3"></lucide-icon>Se reusan del repo</div>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Screen</b> con nubes: el cielo, el fondo tinta de 1c y el festejo de 1c.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">GameHeader</b> con IconButton y SoundToggle, y <b style="color:#23263A">ScoreRow</b> en 1a.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Barra de estado de Secuencia</b> (tinta, éxito y peligro) en 1b, y <b style="color:#23263A">Toast</b> con useToast en 1a.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Indicador de rondas de Largada</b> (píldoras de 34 px) para los 3 niveles.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Button</b> en sus variantes game (start y lg), secondary, neutral y ghost, y el azul claro del festejo. También <b style="color:#23263A">Chip</b> y <b style="color:#23263A">Label</b>.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">GameResultView</b> con ProgressBar y AnimatedNumber. La hoja de 1b sale de <b style="color:#23263A">ExitDialog</b> y el festejo de 1c, de <b style="color:#23263A">CrownCelebration</b> con su confeti.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Personaje</b> (pingüino), los íconos de lucide y los tokens: colores, radios 28/22/16, sombras, Outfit y Plus Jakarta.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#C94A7F"><lucide-icon name="sparkles" size="14" stroke-width="2.6"></lucide-icon>Hay que crearlos</div>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">GameTheme «Tubitos»</b> en games.ts, con su <b style="color:#23263A">bg-hero-tubitos</b> (165°: #FF8DB8 → #FF6FA5 → #F25A93) y los tokens --color-tubitos en globals.css.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Tubo</b>, con sus estados: normal, elegido, destino, no entra, vertiendo y listo. Hay un estilo por dirección.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Tablero</b>, que reparte filas centradas: 6 tubos en 3 + 3 (1 × 6 en 1b), 8 en 4 + 4 y 10 en 5 + 5. Las capas miden 34, 33 y 31 px, y cada columna es una zona táctil entera.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Paleta de 8 líquidos</b> con su marca: ícono, textura o forma, según la dirección.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Botón Deshacer con contador</b>: 3 por nivel, no resta movimientos y con 0 queda apagado. Reiniciar devuelve los 3.</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Victoria de nivel</b>: entre los niveles del reto (sin repetir) y en la práctica (con Repetir nivel).</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;font-weight:500;color:#4B5070"><b style="color:#23263A">Prop «tubo»</b> en Personaje y la <b style="color:#23263A">tarjeta de detalle</b> de Tubitos en GameResultView.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;notas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;marcas&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Según la dirección&quot;,&quot;Íconos&quot;,&quot;Texturas&quot;,&quot;Formas&quot;,&quot;Sin marcas&quot;],&quot;default&quot;:&quot;Según la dirección&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;grises&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const LIQ = {
+  coral: { c: '#FF6B4A', ink: false, icon: 'star', pat: 'stripes', shape: 'circle', name: 'Coral' },
+  violeta: { c: '#8B6CFF', ink: false, icon: 'moon', pat: 'dots', shape: 'triangle', name: 'Violeta' },
+  turquesa: { c: '#2EC4B6', ink: false, icon: 'zap', pat: 'lines', shape: 'square', name: 'Turquesa' },
+  amarillo: { c: '#FFC53D', ink: true, icon: 'heart', pat: 'checks', shape: 'diamond', name: 'Amarillo' },
+  rosa: { c: '#FF6FA5', ink: false, icon: 'diamond', pat: 'waves', shape: 'ring', name: 'Rosa' },
+  azul: { c: '#4F6BFF', ink: false, icon: 'droplet', pat: 'vlines', shape: 'plus', name: 'Azul' },
+  lima: { c: '#9ED64A', ink: true, icon: 'leaf', pat: 'cross', shape: 'hexagon', name: 'Lima' },
+  cafe: { c: '#B9804A', ink: false, icon: 'spade', pat: 'rings', shape: 'bar', name: 'Café' },
+};
+const PAT = {
+  stripes: (o) => `repeating-linear-gradient(45deg, ${o} 0 3px, transparent 3px 9px)`,
+  dots: (o) => `radial-gradient(circle, ${o} 1.8px, transparent 2.3px) 0 0 / 9px 9px`,
+  lines: (o) => `repeating-linear-gradient(0deg, ${o} 0 2.5px, transparent 2.5px 8px)`,
+  checks: (o) => `conic-gradient(${o} 25%, transparent 0 50%, ${o} 0 75%, transparent 0) 0 0 / 12px 12px`,
+  waves: (o) => `radial-gradient(circle at 50% 100%, transparent 3px, ${o} 3.5px 5px, transparent 5.5px) 0 0 / 12px 8px`,
+  vlines: (o) => `repeating-linear-gradient(90deg, ${o} 0 3px, transparent 3px 9px)`,
+  cross: (o) => `repeating-linear-gradient(45deg, ${o} 0 2px, transparent 2px 8px), repeating-linear-gradient(-45deg, ${o} 0 2px, transparent 2px 8px)`,
+  rings: (o) => `radial-gradient(circle, transparent 1.8px, ${o} 2.3px 3.4px, transparent 3.9px) 0 0 / 11px 11px`,
+};
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function shapeStyle(kind, s, m) {
+  const b = { display: 'block', background: m };
+  if (kind === 'circle') return { ...b, width: s, height: s, borderRadius: '50%' };
+  if (kind === 'triangle') return { ...b, width: s + 2, height: s, clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' };
+  if (kind === 'square') return { ...b, width: s - 1, height: s - 1, borderRadius: 2 };
+  if (kind === 'diamond') return { ...b, width: s - 2, height: s - 2, borderRadius: 2, transform: 'rotate(45deg)' };
+  if (kind === 'ring') return { display: 'block', width: s, height: s, borderRadius: '50%', boxSizing: 'border-box', border: `${Math.max(2, Math.round(s / 5))}px solid ${m}` };
+  if (kind === 'plus') return { ...b, width: s, height: s, clipPath: 'polygon(34% 0,66% 0,66% 34%,100% 34%,100% 66%,66% 66%,66% 100%,34% 100%,34% 66%,0 66%,0 34%,34% 34%)' };
+  if (kind === 'hexagon') return { ...b, width: s + 1, height: s, clipPath: 'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)' };
+  return { ...b, width: s + 3, height: Math.max(4, Math.round(s * 0.42)), borderRadius: 99 };
+}
+function paint(key, mode, size) {
+  const L = LIQ[key];
+  const mark = L.ink ? 'rgba(35,38,58,.72)' : 'rgba(255,255,255,.92)';
+  const over = L.ink ? 'rgba(35,38,58,.15)' : 'rgba(255,255,255,.34)';
+  return {
+    color: L.c, mark,
+    bg: mode === 'pattern' ? `${PAT[L.pat](over)}, ${L.c}` : L.c,
+    showIcon: mode === 'icon', icon: L.icon, iconSize: size,
+    showShape: mode === 'shape', shape: shapeStyle(L.shape, Math.round(size * 0.78), mark),
+  };
+}
+function merge(units) {
+  const out = [];
+  for (const u of units) {
+    const last = out[out.length - 1];
+    if (last && last.k === u.k) last.a += u.a;
+    else out.push({ k: u.k, a: u.a });
+  }
+  return out;
+}
+function fichaBlocks(units, S, mode, selected) {
+  const n = units.length;
+  let start = n - 1;
+  while (start > 0 && units[start - 1].k === units[n - 1].k) start--;
+  return units.map((u, i) => {
+    const lift = selected && i >= start;
+    return { ...paint(u.k, mode, S.icon), h: Math.max(6, Math.round(u.a * S.lh) - 3), tf: lift ? 'translateY(-9px)' : 'none', sh: lift ? '0 8px 14px rgba(35,38,58,.18)' : 'none' };
+  });
+}
+const GLASS = {
+  phone: {
+    6: { W: 350, cols: [3, 3], w: 58, gap: 40, lh: 34, head: 18, rowGap: 44, top: 56, bot: 14, icon: 15 },
+    8: { W: 350, cols: [4, 4], w: 52, gap: 28, lh: 33, head: 16, rowGap: 48, top: 52, bot: 14, icon: 14 },
+    10: { W: 350, cols: [5, 5], w: 46, gap: 20, lh: 31, head: 14, rowGap: 48, top: 52, bot: 14, icon: 13 },
+  },
+  tablet: { 10: { W: 700, cols: [5, 5], w: 78, gap: 50, lh: 60, head: 24, rowGap: 78, top: 70, bot: 24, icon: 22 } },
+};
+const SPEC = {
+  probeta: GLASS,
+  noche: GLASS,
+  ficha: {
+    phone: {
+      6: { W: 318, cols: [6], w: 44, gap: 10, lh: 60, head: 20, rowGap: 0, top: 72, bot: 18, icon: 15 },
+      8: { W: 318, cols: [4, 4], w: 60, gap: 18, lh: 38, head: 16, rowGap: 30, top: 28, bot: 16, icon: 15 },
+      10: { W: 318, cols: [5, 5], w: 54, gap: 12, lh: 35, head: 14, rowGap: 30, top: 28, bot: 16, icon: 14 },
+      v6: { W: 318, cols: [3, 3], w: 54, gap: 26, lh: 26, head: 12, rowGap: 20, top: 18, bot: 10, icon: 12 },
+    },
+    tablet: {
+      10: { W: 600, cols: [5, 5], w: 86, gap: 26, lh: 60, head: 20, rowGap: 44, top: 40, bot: 24, icon: 20 },
+      v10: { W: 600, cols: [5, 5], w: 70, gap: 26, lh: 36, head: 14, rowGap: 30, top: 24, bot: 16, icon: 16 },
+    },
+  },
+};
+function buildBoard(est, dev, n, state, o) {
+  const S = SPEC[est][dev][n];
+  const glass = est !== 'ficha';
+  const mode = o.mode;
+  const tileH = glass ? 6 + 4 * S.lh + S.head : 10 + 4 * S.lh - 3 + S.head;
+  const inner = glass ? 4 * S.lh + S.head : tileH - 10;
+  const r = Math.round(S.w / 2);
+  const pos = [];
+  S.cols.forEach((cnt, row) => {
+    const rowW = cnt * S.w + (cnt - 1) * S.gap;
+    const x0 = (S.W - rowW) / 2;
+    const y = S.top + row * (tileH + S.rowGap);
+    for (let c = 0; c < cnt; c++) pos.push({ x: x0 + c * (S.w + S.gap), y, row, x0, rowW });
+  });
+  const H = S.top + S.cols.length * tileH + (S.cols.length - 1) * S.rowGap + S.bot;
+  const racks = [];
+  S.cols.forEach((cnt, row) => {
+    const p = pos.find((q) => q.row === row);
+    if (est === 'probeta') racks.push({ x: p.x0 - 16, y: p.y + tileH - 10, w: p.rowW + 32, h: 16, bg: 'rgba(255,255,255,.8)', shadow: '0 6px 16px rgba(35,38,58,.06)' });
+    if (est === 'noche') racks.push({ x: p.x0 - 16, y: p.y + tileH + 7, w: p.rowW + 32, h: 6, bg: 'rgba(255,255,255,.1)', shadow: 'none' });
+  });
+  const pour = o.pour;
+  const mc = pour ? state[pour.from][state[pour.from].length - 1] : null;
+  const tubes = [];
+  let moving = null;
+  let stream = null;
+  state.forEach((keys0, i) => {
+    const p = pos[i];
+    let units = keys0.map((k) => ({ k, a: 1 }));
+    if (pour && i === pour.to) units = units.concat([{ k: mc, a: pour.units * 0.5 }]);
+    const full = keys0.length === 4 && keys0.every((k) => k === keys0[0]);
+    const t = {
+      key: i, x: p.x, y: p.y, w: S.w, h: tileH, r, ringR: r + 7, transform: 'none',
+      upright: true, open: true, pour: false, sel: o.sel === i, target: (o.targets || []).includes(i), invalid: o.invalid === i,
+      done: false, layers: [], bands: [], clip: 'none', markLeft: '50%', counter: 0,
+    };
+    if (t.sel) t.transform = `translateY(-${glass ? 20 : 12}px)`;
+    if (t.invalid) t.transform = 'translateX(-5px) rotate(-3deg)';
+    if (full) {
+      t.done = true;
+      if (!glass) {
+        const pt = paint(keys0[0], mode, S.icon);
+        const L = LIQ[keys0[0]];
+        t.open = false;
+        t.doneBg = pt.bg;
+        t.doneMark = pt.mark;
+        t.doneChip = L.ink ? 'rgba(35,38,58,.12)' : 'rgba(255,255,255,.28)';
+        t.doneShadow = `0 10px 20px ${hexA(L.c, 0.32)}`;
+      }
+    }
+    t.layers = glass
+      ? merge(units).map((s, j, arr) => ({ ...paint(s.k, mode, S.icon), h: Math.round(s.a * S.lh), top: j === arr.length - 1 }))
+      : fichaBlocks(units, S, mode, t.sel);
+    if (pour && i === pour.from) {
+      const dst = pos[pour.to];
+      const theta = p.x < dst.x ? 95 : -95;
+      const rad = (theta * Math.PI) / 180;
+      const side = theta > 0 ? 1 : -1;
+      const lx = (side * S.w) / 2;
+      const dcx = dst.x + S.w / 2;
+      const lipY = dst.y - 12;
+      const cx = dcx - lx * Math.cos(rad);
+      const cy = lipY - lx * Math.sin(rad);
+      t.transform = `translate(${(cx - (p.x + S.w / 2)).toFixed(1)}px, ${(cy - p.y).toFixed(1)}px) rotate(${theta}deg)`;
+      t.upright = false;
+      t.pour = true;
+      const rem = merge(keys0.slice(0, keys0.length - pour.units).map((k) => ({ k, a: 1 })).concat([{ k: mc, a: pour.units * 0.5 }]));
+      const total = rem.reduce((s, x) => s + x.a, 0);
+      const f = total / 4;
+      const Ly = inner * Math.min(1, 0.3 + f * 0.8);
+      const unit = Ly / total;
+      let y = 0;
+      for (let j = rem.length - 1; j >= 0; j--) {
+        const h = rem[j].a * unit;
+        t.bands.push({ ...paint(rem[j].k, mode, S.icon), top: Math.round(y), h: Math.round(h) + 1 });
+        y += h;
+      }
+      const a = Math.round(Math.max(4, 36 - f * 36));
+      const b2 = Math.round(Math.min(92, 86 - f * 34));
+      const Lp = Math.round((Ly / inner) * 100);
+      t.clip = side > 0 ? `polygon(${a}% 0, 100% 0, 100% ${Lp}%, ${b2}% ${Lp}%)` : `polygon(0 0, ${100 - a}% 0, ${100 - b2}% ${Lp}%, 0 ${Lp}%)`;
+      t.markLeft = side > 0 ? '66%' : '34%';
+      t.counter = -theta;
+      const destAmt = state[pour.to].length + pour.units * 0.5;
+      const surf = glass ? dst.y + 6 + inner - destAmt * S.lh : dst.y + tileH - 5 - destAmt * S.lh;
+      stream = { x: dcx - 4, y: lipY, w: 8, h: Math.max(12, Math.round(surf - lipY)), color: LIQ[mc].c, halo: est === 'noche' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.45)' };
+      moving = t;
+      return;
+    }
+    tubes.push(t);
+  });
+  return { w: S.W, h: H, racks, tubes, moving, stream, filter: o.filter };
+}
+
+const S1 = [['violeta', 'coral', 'turquesa', 'turquesa'], ['amarillo', 'violeta', 'coral'], ['coral', 'amarillo', 'turquesa'], ['turquesa', 'violeta', 'amarillo', 'amarillo'], ['violeta', 'coral'], []];
+const S2 = [['rosa', 'azul', 'coral', 'amarillo'], ['violeta', 'violeta', 'violeta', 'violeta'], ['azul', 'turquesa', 'rosa'], ['amarillo', 'coral', 'turquesa', 'azul'], ['turquesa', 'rosa', 'amarillo'], ['coral', 'rosa'], ['turquesa', 'coral', 'amarillo', 'azul'], []];
+const S3 = [['lima', 'cafe', 'azul', 'rosa'], ['coral', 'coral', 'coral', 'coral'], ['cafe', 'violeta', 'lima'], ['rosa', 'turquesa', 'cafe', 'azul'], ['amarillo', 'amarillo', 'amarillo', 'amarillo'], ['azul', 'lima', 'violeta', 'turquesa'], ['turquesa', 'rosa', 'violeta'], ['violeta', 'azul', 'rosa'], ['cafe', 'turquesa', 'lima'], []];
+const four = (k) => [k, k, k, k];
+const SOLVED6 = [four('coral'), four('violeta'), four('turquesa'), four('amarillo'), [], []];
+const SOLVED10 = ['coral', 'violeta', 'turquesa', 'amarillo', 'rosa', 'azul', 'lima', 'cafe'].map(four).concat([[], []]);
+
+const BASE = [
+  { n: '01', name: 'Elegís un tubo', st: S1, nT: 6, o: { sel: 0, targets: [2, 5] }, level: 1, moves: 5, time: '0:24', undo: 3 },
+  { n: '02', name: 'No entra', st: S1, nT: 6, o: { sel: 0, invalid: 4 }, level: 1, moves: 5, time: '0:27', undo: 3 },
+  { n: '03', name: 'Vertiendo', st: S1, nT: 6, o: { pour: { from: 0, to: 2, units: 1 } }, level: 1, moves: 6, time: '0:29', undo: 3 },
+  { n: '04', name: 'Tubo listo · 8 tubos', st: S2, nT: 8, o: {}, level: 2, moves: 11, time: '0:38', undo: 2 },
+  { n: '05', name: '10 tubos · sin deshacer', st: S3, nT: 10, o: {}, level: 3, moves: 21, time: '1:12', undo: 0 },
+];
+const NOTE = {
+  A: [
+    'Al tocarlo, el tubo sube 20 px con el anillo rosa y una vibración corta. Los destinos posibles se marcan solos con la flecha: el vacío y el que termina en turquesa con lugar. Si tocás el mismo tubo, baja.',
+    'Si el tubo que tocás no puede recibir, tiembla tres veces (240 ms), se marca en rojo y sale el toast. El elegido sigue levantado, así probás con otro sin empezar de nuevo.',
+    'El tubo vuela en arco hasta arriba del destino (220 ms), se inclina 95° y vierte (300 ms por capa). El líquido de adentro queda horizontal, el chorro es del color que pasa y el destino sube a la par. Mientras tanto no se puede tocar.',
+    'El tubo que queda de un solo color se tapa con un corcho que cae con rebote, sale el check verde y suena un «plop». Ya no se puede elegir. Con 8 tubos van dos filas de 4.',
+    'Con 10 tubos van dos filas de 5 y capas de 31 px, pero cada columna sigue siendo una zona táctil de 66 × 190 px. Sin deshacer disponibles, el botón queda apagado con su 0.',
+  ],
+  B: [
+    'La ficha sube y el bloque de arriba se separa del resto, así se ve qué se mueve. Los destinos posibles tienen borde punteado rosa, como los retos por jugar del inicio. La barra nombra el color y muestra su textura.',
+    'La barra se pone roja y dice qué color hace falta. La ficha que tocaste tiembla con borde rojo. Al 1,2 s la barra vuelve a «Turquesa · ¿adónde?».',
+    'Con 6 tubos va una sola fila, así la ficha vuela por arriba sin tapar a nadie. El bloque cae como un chorro y entra capa por capa.',
+    'La ficha completa se pinta entera de su color y su textura, con el check, como la baldosa de un reto jugado en el inicio. Con 8 tubos van dos filas de 4.',
+    'La barra de herramientas flota abajo, al alcance del pulgar, como la navegación de la app. Deshacer muestra cuántos quedan y con 0 se apaga.',
+  ],
+  C: [
+    'El fondo tinta hace brillar los colores. El tubo elegido sube con un halo blanco y los destinos posibles muestran la flecha rosa. Arriba, en grande, lo que tenés que hacer.',
+    'El tubo que no puede recibir tiembla con un halo rojo y el titular cambia por 1,2 s. La vibración es doble y corta.',
+    'Mismo vuelo y vertido que en 1a. El chorro se ve mejor sobre el fondo oscuro.',
+    'Corcho blanco, check verde y un destello. Las formas (círculo, triángulo, cuadrado…) se leen aunque no distingas los colores.',
+    'Deshacer y Reiniciar son botones redondos de 64 px en las dos esquinas de abajo, con los niveles arriba. Se llega con el pulgar de cualquiera de las dos manos.',
+  ],
+};
+const VBASE = [
+  { daily: true, practice: false, chipTxt: 'Reto 2 de 3 · Tubitos', levelHeader: 'Nivel 1 de 3', eyebrow: 'Nivel 1 de 3 resuelto', headline: '¡Nivel 1 listo!', moves: '14', movesTxt: '14 movimientos · 0:41', sub: 'El mínimo era 12', minTxt: 'mín. 12', time: '0:41', undo: '1 de 3', third: 'Puntos', thirdVal: '+205', thirdShort: '+205', thirdNote: 'de 250', chipA: 'A 2 del mínimo', chipB: '+205 puntos', foot: 'El reloj vuelve a correr cuando tocás', back: 'Volver al inicio' },
+  { daily: false, practice: true, chipTxt: 'Práctica · Tubitos', levelHeader: 'Nivel 14', eyebrow: 'Práctica · nivel 14', headline: '¡Nivel 14 listo!', moves: '18', movesTxt: '18 movimientos · 1:12', sub: 'El mínimo era 15', minTxt: 'mín. 15', time: '1:12', undo: '0 de 3', third: 'Récord', thirdVal: 'Nivel 14', thirdShort: '14', thirdNote: 'nivel nuevo', chipA: 'A 3 del mínimo', chipB: 'Nuevo récord: nivel 14', foot: 'Quedó en tus récords personales', back: 'Volver a Practicar' },
+];
+const VNOTE = {
+  A: ['Al cerrar el nivel cae un poco de confeti (1,5 s) y los movimientos cuentan de 0 a 14. El reloj queda frenado hasta que tocás Siguiente nivel. Volver al inicio abre el aviso de salir: cuenta como jugado.', 'En la práctica se suma Repetir nivel como acción chica, y Volver lleva a Practicar. El récord es el nivel más alto que resolviste.'],
+  B: ['El tablero resuelto queda arriba y las fichas saltan en ola, de a una. La hoja sube desde abajo con el resumen y los puntos del nivel.', 'Misma hoja en la práctica: el tercer dato es el récord y abajo aparece Repetir nivel.'],
+  C: ['El festejo azul de la corona, pero corto: confeti, el pingüino salta y la franja blanca lleva los botones. Es la más celebratoria de las tres.', 'En la práctica, el chip dorado avisa el récord nuevo.'],
+};
+const COLORS = ['#FFC53D', '#FF6B4A', '#2EC4B6', '#8B6CFF', '#FFFFFF', '#FF7AA2'];
+const conf = (n, top, span) => Array.from({ length: n }, (_, i) => {
+  const w = 7 + (i % 3) * 3;
+  return { l: `${(i * 37 + 11) % 100}%`, t: top + ((i * 53) % span), w, h: Math.round(w * 0.6), c: COLORS[i % 6], r: `rotate(${(i * 47) % 180}deg)` };
+});
+
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const notas = p.notas ?? true;
+    const marcas = p.marcas ?? 'Según la dirección';
+    const filter = p.grises ? 'grayscale(1)' : 'none';
+    const forced = { 'Íconos': 'icon', 'Texturas': 'pattern', 'Formas': 'shape', 'Sin marcas': 'none' }[marcas];
+    const modeFor = (est) => forced || { probeta: 'icon', ficha: 'pattern', noche: 'shape' }[est];
+    const pills = (level) => [0, 1, 2].map((i) => (i + 1 < level
+      ? { done: true, current: false, pending: false, text: `${[14, 19][i]} mov.` }
+      : i + 1 === level ? { done: false, current: true, pending: false, text: `Nivel ${i + 1}` } : { done: false, current: false, pending: true, text: '' }));
+    const frames = (est, letter, extra) => BASE.map((b0, i) => {
+      const b = { ...b0, ...extra[i] };
+      return {
+        ...b, note: NOTE[letter[1] === 'a' ? 'A' : letter[1] === 'b' ? 'B' : 'C'][i],
+        label: `${letter} ${b.n} ${b.name}`, title: `${letter} · ${b.n} · ${b.name}`,
+        board: buildBoard(est, 'phone', b.nT, b.st, { ...b.o, mode: modeFor(est), filter }),
+        levelTxt: `Nivel ${b.level}`, levelOf3: `Nivel ${b.level} de 3`, pills: pills(b.level),
+        undoTxt: String(b.undo), undoOpacity: b.undo === 0 ? 0.45 : 1,
+      };
+    });
+    const none = { instr: '', toastDanger: '', toastSuccess: '' };
+    const A = frames('probeta', '1a', [
+      { ...none, instr: 'Turquesa · elegí dónde pasarlo' },
+      { ...none, toastDanger: 'Ahí no · solo sobre el mismo color' },
+      { ...none },
+      { ...none, toastSuccess: '¡Tubo listo! · faltan 5' },
+      { ...none, instr: 'Tocá un tubo para levantarlo' },
+    ]);
+    const sw = paint('turquesa', modeFor('ficha'), 16).bg;
+    const B = frames('ficha', '1b', [
+      { stBg: '#C94A7F', stText: 'Turquesa · ¿adónde?', stSwatch: sw, stIcon: '' },
+      { stBg: '#E2504C', stText: 'Solo sobre turquesa', stSwatch: '', stIcon: 'x' },
+      { stBg: '#C94A7F', stText: 'Pasando turquesa…', stSwatch: sw, stIcon: '', moves: 6, time: '0:29', o: { pour: { from: 0, to: 5, units: 2 } } },
+      { stBg: '#1FA093', stText: '¡Listo! · faltan 5', stSwatch: '', stIcon: 'check' },
+      { stBg: '#23263A', stText: 'Elegí un tubo', stSwatch: '', stIcon: '' },
+    ]);
+    const C = frames('noche', '1c', [
+      { head: '¿Adónde?', sub: 'Turquesa · 5 movimientos · 0:24' },
+      { head: '¡Ahí no!', sub: 'Turquesa va sobre turquesa o en uno vacío' },
+      { head: 'Pasando…', sub: 'Turquesa · 6 movimientos · 0:29' },
+      { head: '¡Tubo listo!', sub: 'Faltan 5 · 11 movimientos · 0:38' },
+      { head: 'Elegí un tubo', sub: '21 movimientos · 1:12' },
+    ]);
+    const vic = (letter, key, extra) => VBASE.map((v, i) => ({
+      ...v, ...(extra || {}), note: VNOTE[key][i],
+      label: `${letter} ${i ? '07 Victoria en la práctica' : '06 Victoria en el reto'}`,
+      title: `${letter} · ${i ? '07 · Victoria en la práctica' : '06 · Victoria en el reto'}`,
+    }));
+    const solved6 = buildBoard('ficha', 'phone', 'v6', SOLVED6, { mode: modeFor('ficha'), filter });
+    const tab = (est) => buildBoard(est, 'tablet', 10, S3, { sel: 2, targets: [8, 9], mode: modeFor(est), filter });
+    const legend = Object.keys(LIQ).map((k) => ({ name: LIQ[k].name, ic: paint(k, 'icon', 16), pt: paint(k, 'pattern', 16), sh: paint(k, 'shape', 16) }));
+    return {
+      notas, filter, legend,
+      mascotC: JSON.stringify({ main: '#FF6FA5', light: '#FFD6E7', dark: '#C94A7F' }),
+      A, B, C,
+      vA: vic('1a', 'A'), vB: vic('1b', 'B', { board: solved6 }), vC: vic('1c', 'C'),
+      tA: { board: tab('probeta') },
+      tB: { board: tab('ficha'), swatch: paint('lima', modeFor('ficha'), 16).bg },
+      tC: { board: tab('noche') },
+      tvB: buildBoard('ficha', 'tablet', 'v10', SOLVED10, { mode: modeFor('ficha'), filter }),
+      confA: conf(10, 72, 230), confC: conf(16, 70, 240), confTA: conf(14, 70, 380), confTC: conf(20, 60, 560),
+    };
+  }
+}
+</script>
+</body>
+</html>

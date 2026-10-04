@@ -20,7 +20,7 @@ import type { LargadaGridResponse } from "@/lib/largada-types";
 import { lastGroupId, rememberGroup } from "@/lib/last-group";
 import type { SongKey } from "@/lib/music";
 import { unlockSound, useMusic } from "@/lib/sound";
-import { loadDay, practiceRecords, saveAttempt, savePracticeResult, updateAttempt } from "@/lib/storage";
+import { loadDay, nextPracticeLevel, practiceRecords, saveAttempt, savePracticeResult, updateAttempt } from "@/lib/storage";
 import { useRequest } from "@/lib/use-request";
 import { ExitDialog } from "./chrome";
 import { FiveQuestionsPlay } from "./FiveQuestionsPlay";
@@ -28,6 +28,7 @@ import { GameIntro } from "./GameIntro";
 import { ReflexesPlay } from "./ReflexesPlay";
 import { SequencePlay } from "./SequencePlay";
 import { SevenLettersPlay } from "./SevenLettersPlay";
+import { WaterSortPlay } from "./WaterSortPlay";
 
 type Props =
   | { mode: "daily"; slug: GameSlug; slot: number; position: number; date: string }
@@ -44,12 +45,19 @@ function emptyLog(game: GameId): unknown {
     case "reflexes":
       return { rounds: [] };
     case "sequence":
+    case "water-sort":
       return { levels: [] };
   }
 }
 
 /** Each game's song, from its intro to its last move. */
-const SONG_FOR: Record<GameId, SongKey> = { "seven-letters": "letras", "five-questions": "preguntas", reflexes: "largada", sequence: "secuencia" };
+const SONG_FOR: Record<GameId, SongKey> = {
+  "seven-letters": "letras",
+  "five-questions": "preguntas",
+  reflexes: "largada",
+  sequence: "secuencia",
+  "water-sort": "tubitos",
+};
 
 /** Largada's grid, or a race against the clock if it takes too long. */
 function loadGrid(groupId: string | null): Promise<LargadaGridResponse> {
@@ -150,7 +158,9 @@ function Runner(props: Props) {
     setStarting(true);
     setError(null);
     try {
-      const response = props.mode === "daily" ? await api.startDaily(props.slot) : await api.startPractice(props.slug);
+      // Practice Tubitos goes on from the level after the record.
+      const response =
+        props.mode === "daily" ? await api.startDaily(props.slot) : await api.startPractice(props.slug, base.id === "water-sort" ? nextPracticeLevel() : undefined);
       startedAt.current = Date.now();
       if (props.mode === "daily") {
         saveAttempt(response.date, { slot: props.slot, game: game.id, status: "started", token: response.token, startedAt: startedAt.current });
@@ -247,6 +257,16 @@ function Runner(props: Props) {
       {view.game === "reflexes" && view.version === "largada" && <LargadaPlay view={view} field={racing ?? raceField(null, me, { mode: botMode, seed: start.token })} article={account?.article ?? "el"} {...common} />}
       {view.game === "reflexes" && view.version !== "largada" && <ReflexesPlay view={view} {...common} />}
       {view.game === "sequence" && <SequencePlay view={view} token={start.token} record={practiceRecords().sequence?.best ?? null} {...common} />}
+      {view.game === "water-sort" && (
+        <WaterSortPlay
+          view={view}
+          token={start.token}
+          practice={!daily}
+          position={daily ? props.position : undefined}
+          record={practiceRecords()["water-sort"]?.best ?? null}
+          {...common}
+        />
+      )}
       <ExitDialog open={exitOpen} practice={!daily} onStay={() => setExitOpen(false)} onLeave={leave} />
     </div>
   );

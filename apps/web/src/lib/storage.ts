@@ -204,6 +204,26 @@ export function savePracticeResult(date: string, result: ChallengeResult): { pre
   return { previous, isRecord };
 }
 
+/**
+ * Tubitos in practice: a level solved. The record is the highest level
+ * solved (the run goes on from the next one), and it counts as a game of
+ * today's practice.
+ */
+export function savePracticeLevel(date: string, level: number): { previous: number | null; isRecord: boolean } {
+  const records = practiceRecords();
+  const previous = records["water-sort"]?.best ?? null;
+  const isRecord = previous === null || level > previous;
+  if (isRecord) records["water-sort"] = { score: level, best: level, playedAt: Date.now() };
+  write(PRACTICE_KEY, records);
+  write(PRACTICE_COUNT_PREFIX + date, practiceCount(date) + 1);
+  return { previous, isRecord };
+}
+
+/** Where a practice Tubitos run goes on: the level after the record. */
+export function nextPracticeLevel(): number {
+  return (practiceRecords()["water-sort"]?.best ?? 0) + 1;
+}
+
 export function lastPracticeResult(game: GameId): { result: ChallengeResult; previous: PracticeRecord | null; isRecord: boolean } | null {
   return read(LAST_PRACTICE_PREFIX + game, () => window.sessionStorage);
 }

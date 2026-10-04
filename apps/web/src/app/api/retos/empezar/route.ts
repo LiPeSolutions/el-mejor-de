@@ -9,7 +9,12 @@ import { currentUser } from "@/server/session";
 
 const body = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("daily"), slot: z.number().int().min(0).max(2) }),
-  z.object({ mode: z.literal("practice"), game: z.enum(["letras", "preguntas", "reflejos", "secuencia"]) }),
+  z.object({
+    mode: z.literal("practice"),
+    game: z.enum(["letras", "preguntas", "reflejos", "secuencia", "tubitos"]),
+    /** Tubitos: the level the run goes on from. */
+    level: z.number().int().min(1).max(9_999).optional(),
+  }),
 ]);
 
 export function POST(request: Request) {
@@ -23,7 +28,7 @@ export function POST(request: Request) {
     const started =
       input.mode === "daily"
         ? startAttempt({ mode: "daily", slot: input.slot }, { device, account })
-        : startAttempt({ mode: "practice", game: gameBySlug(input.game)!.id }, { device });
+        : startAttempt({ mode: "practice", game: gameBySlug(input.game)!.id, level: input.level }, { device });
     // One attempt per daily challenge: fails with 409 if this player already took it.
     await recordStart(started.claims, Date.now(), placeId);
     return {

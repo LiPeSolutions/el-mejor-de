@@ -70,10 +70,10 @@ export function GameIntro({ game, practice, position, closeHref, starting, error
         </div>
       </div>
 
-      <p className="px-6 pt-[18px] text-base leading-[1.45] font-semibold">{game.howTo}</p>
+      <p className="px-6 pt-[18px] text-base leading-[1.45] font-semibold">{practice && game.practice ? game.practice.howTo : game.howTo}</p>
 
       <div className="grid grid-cols-2 gap-2.5 px-5 pt-4">
-        {game.facts.map(({ Icon, value, label }) => (
+        {(practice && game.practice ? game.practice.facts : game.facts).map(({ Icon, value, label }) => (
           <div key={value} className="flex items-center gap-2.5 rounded-row bg-white px-3.5 py-3 shadow-sm">
             <Icon className="size-5 shrink-0 text-(--game-dark)" strokeWidth={2.2} />
             <div>

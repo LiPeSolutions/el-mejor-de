@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 4 de octubre de 2026 (batallas en vivo; la vibración de la señal de Largada se mantiene; música en loop).
+> Última actualización: 4 de octubre de 2026 (Tubitos, el quinto juego, y la rotación de 5 juegos; batallas en vivo; la vibración de la señal de Largada se mantiene; música en loop).
 
 ## 1. La idea
 
@@ -25,12 +25,13 @@ Lo que la hace distinta:
 | Alcance | **Argentina primero.** Todo se prepara para sumar otros países después. |
 | Público | **Todo público.** Implica cuidados extra de seguridad (ver §9). |
 | Tipos de juego | Palabras, trivia, habilidad y reflejos, lógica y memoria. **Truco** en la etapa 2. |
-| Reto diario | **Varios retos cortos por día** (3), iguales para todos, **1 intento** cada uno. Se suman en un puntaje del día. |
+| Reto diario | **Varios retos cortos por día** (3), iguales para todos, **1 intento** cada uno. Se suman en un puntaje del día. Con 5 juegos, **cada día se juegan 3 y descansan 2**: cada juego sale 3 de cada 5 días y ninguno descansa dos días seguidos (desde el 5/10/2026; 4/10/2026). |
 | Juego libre | **Práctica sin límite + récords personales.** No cuenta para las coronas. |
 | Corona | **Semanal y en vivo.** Durante la semana la corona la tiene quien va primero, y si alguien lo pasa en puntos, se la saca. El domingo a la medianoche queda definitiva: el #1 de cada lugar y de cada grupo es "El Mejor de…" esa semana. Cuenta la suma de los **5 mejores días**, **sin mínimo de días**; si empatan, la conserva quien llegó primero a ese puntaje (3/10/2026). Hay corona de **barrio o localidad, de provincia y de país**, cada una con su nombre ("¡Sos El Mejor de Caballito!", "…de Argentina"), y por ahora **se entregan solas** (3/10/2026). |
 | El / La Mejor | Cada jugador elige **al crear la cuenta** si la corona dice "El Mejor de…" o "La Mejor de…", y lo puede **cambiar en el perfil**. Nunca se adivina por el nombre. La marca sigue siendo "El Mejor de". |
 | Puntajes | **Los del plan** (§7), no los del diseño. Diez Letras pasó a **puntos fijos por largo** (3/10/2026). |
 | Largada | Reemplaza a **Reflejos**: una largada de autos contra los tiempos de hoy de tu grupo, con 3 largadas y el puntaje según tu promedio. La espera es **distinta para cada jugador**, cada auto tiene **el color del personaje** y se corre contra **el último grupo que abriste**, que se puede cambiar (3/10/2026; construida, en el reto del día desde el 4/10; ver §7). |
+| Tubitos | **Quinto juego, de lógica** (4/10/2026): pasar los colores de un tubo a otro hasta que cada tubo tenga uno solo. La responsable del producto lo diseñó con Claude Design (dirección "Probeta"). En el reto del día son **3 niveles seguidos** (6, 8 y 10 tubos) y entra en la rotación **desde el lunes 5/10/2026**; en la práctica, **niveles sin fin**. **Reiniciar vuelve los movimientos a 0** (el reloj sigue) y **deshacer no los descuenta** (3 por nivel). Tiene **música propia** (ver §7). |
 | Sonido | **Efectos y cortinas cortas hechos con código** (sin archivos ni licencias): al tocar, acertar, equivocarse, en los últimos segundos y en Largada; una melodía de 1 a 3 segundos al cerrar el día, al batir un récord y al ganar la corona. **Música en loop** (4/10/2026): una para el menú ("Plaza", con aire de cumbia) y una por juego, cada una con su carácter ("Carrera" en Largada es la más rápida; "Memoria" en Secuencia, la más tranquila); va más baja que los efectos y se apaga aparte en el perfil. Arranca **prendido**, respeta el modo silencio del iPhone, no corta la música del celu y se apaga con el parlante de los juegos o en el perfil. En Secuencia cada color tiene su nota, en la práctica y en el reto (3/10/2026). |
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
@@ -48,7 +49,7 @@ Lo que la hace distinta:
 ### Un día cualquiera
 
 1. Te llega un link por WhatsApp: *"Hoy hice 2.640. ¿Me ganás?"*.
-2. Entrás y jugás los **3 retos del día** sin registrarte (de 3 a 5 minutos en total).
+2. Entrás y jugás los **3 retos del día** sin registrarte (de 3 a 6 minutos en total).
 3. Ves tu puntaje y en qué puesto quedarías en tu localidad: *"Hoy estarías #4 en Chivilcoy. Creá tu cuenta para entrar al ranking."*
 4. Creás la cuenta (apodo, contraseña y personaje), elegís tu localidad y la verificás con el GPS. Lo que jugaste ese día pasa a tu cuenta.
 5. Compartís tu resultado, armás el grupo "El Mejor de los primos" y mandás el link.
@@ -57,7 +58,7 @@ Lo que la hace distinta:
 
 ### Retos diarios
 
-- Todos los días hay **3 retos**, cada uno de un minijuego distinto. Las categorías van rotando.
+- Todos los días hay **3 retos**, cada uno de un minijuego distinto. Las categorías van rotando: con 5 juegos, cada uno sale 3 de cada 5 días y ninguno descansa dos días seguidos (desde el 5/10/2026).
 - El reto es **igual para todos** en todo el país: mismo juego, misma dificultad y, en general, el mismo contenido.
 - **Un solo intento** por reto. Si lo empezás y cerrás la app, cuenta como jugado.
 - Cada reto da **de 0 a 1.000 puntos**, así todas las categorías pesan igual. El puntaje del día es la suma: hasta **3.000**.
@@ -144,9 +145,9 @@ Si la corona se puede trucar, deja de valer. Por eso hay varias capas:
 
 ## 7. Minijuegos
 
-Cada minijuego dura entre **60 y 90 segundos** y se juega cómodo con una mano en el celu. Los nombres son provisorios.
+Cada minijuego dura entre **60 y 90 segundos** (Tubitos, unos 3 minutos) y se juega cómodo con una mano en el celu. Los nombres son provisorios.
 
-### Primera versión: uno por categoría
+### Los juegos
 
 | Categoría | Juego | Cómo se juega |
 |---|---|---|
@@ -154,6 +155,7 @@ Cada minijuego dura entre **60 y 90 segundos** y se juega cómodo con una mano e
 | Trivia | **Cinco Preguntas** | 5 preguntas de 15 segundos cada una: Argentina, fútbol, geografía, historia y cultura general. Responder rápido suma más. |
 | Habilidad | **Largada** (hasta el 3/10/2026, Reflejos) | Cuando se apaguen las cinco luces del semáforo, tocá. Son 3 largadas contra los tiempos de hoy de tu grupo, y cuenta tu promedio. Si te adelantás, perdés esa largada. |
 | Memoria | **Secuencia** | Repetí secuencias de colores cada vez más largas (tipo Simón dice). Cuanto más lejos llegás, más puntos. |
+| Lógica | **Tubitos** (desde el 5/10/2026) | Pasá los colores de un tubo a otro hasta que cada tubo tenga uno solo. Son 3 niveles seguidos, de 6, 8 y 10 tubos: con menos movimientos y menos tiempo, más puntos. |
 
 ### Cómo se puntúa *(decidido; a calibrar con la beta)*
 
@@ -165,8 +167,9 @@ Cada reto da de 0 a 1.000 puntos:
 | Cinco Preguntas | Hasta 200 por pregunta: 200 si acertás en 2 segundos o menos, 10 menos por cada segundo extra y nunca menos de 100 si acertás. |
 | Largada | Sale del promedio de las 3 largadas: 1.000 con 200 ms o menos, 2 menos por cada milisegundo más y 0 con 700 ms. Adelantarse cuenta como 450 ms y no tocar, como 700. Rige desde el reto del 4/10/2026; antes era Reflejos: hasta 200 por ronda, completos con 170 ms o menos y nada con 550 ms o más. |
 | Secuencia | Llegar al nivel 12 (14 colores seguidos) vale 1.000; cada nivel menos resta proporcionalmente. |
+| Tubitos | Cada nivel vale 250, 350 y 400. En cada uno, el 70 % sale de los movimientos (el mínimo dividido los que hiciste, hasta 1) y el 30 %, del tiempo: completo con 25, 40 y 60 segundos y nada con 100, 150 y 220. Un nivel sin resolver vale 0. |
 
-Para que nadie se pase las respuestas, en Cinco Preguntas todos ven las mismas preguntas, pero cada uno ve las opciones en otro orden. En Largada y Secuencia cada jugador tiene su propia versión, de la misma dificultad.
+Para que nadie se pase las respuestas, en Cinco Preguntas todos ven las mismas preguntas, pero cada uno ve las opciones en otro orden. En Largada y Secuencia cada jugador tiene su propia versión, de la misma dificultad. En Tubitos todos tienen el mismo tablero con los colores y el orden de los tubos cambiados: el mismo mínimo de movimientos, pero la solución de uno no sirve para copiarla en otro.
 
 ### Largada *(reemplaza a Reflejos; decidida y construida el 3/10/2026)*
 
@@ -185,6 +188,20 @@ La responsable del producto la diseñó con Claude Design. El diseño completo, 
 - **Desde cuándo:** en el reto del día desde el **4/10/2026** (el primer día con reto de reflejos es el lunes 5/10). Los días anteriores siguen con Reflejos, para que un reto no cambie después de empezado. La práctica ya es Largada, y su récord arranca de cero porque el de antes era de otro juego.
 - **Resultado:** el puntaje, la **foto de llegada** de tu mejor largada, el **podio del grupo** con la Largada de hoy y, si esa largada te dio la corona de la semana del grupo, la franja dorada. "Contale al grupo" comparte la foto y el texto por WhatsApp.
 - **Para una segunda vuelta:** la tarjeta "Pato todavía no largó · Desafiá a Pato" (opción 1c del diseño).
+
+### Tubitos *(decidido y construido el 4/10/2026)*
+
+La responsable del producto lo diseñó con Claude Design (dirección "Probeta"). El diseño, con las pantallas y la explicación, está en [`docs/diseno/handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md).
+
+- **Cómo se juega:** tocás un tubo para levantarlo y otro para pasarle lo de arriba. Solo se puede pasar sobre el mismo color o a un tubo vacío, y pasa todo lo que entra. El nivel termina cuando cada tubo tiene un solo color. Cada color lleva su ícono, así el juego se entiende sin distinguir colores.
+- **Reto del día:** 3 niveles seguidos (6, 8 y 10 tubos, con 4, 6 y 8 colores) y un solo intento. Entre nivel y nivel, la victoria del nivel con el reloj frenado. El servidor entrega cada nivel recién cuando resolviste el anterior.
+- **Reiniciar y deshacer** (decidido el 4/10/2026): reiniciar vuelve el tablero al principio y los movimientos a 0, pero el reloj sigue. Hay 3 deshacer por nivel y no descuentan movimientos.
+- **Puntaje:** ver la tabla de arriba. El mínimo de cada nivel lo calcula el servidor al armarlo, con la solución más corta. A calibrar con la beta.
+- **Tiempo:** el de cada nivel lo mide el celu, pero el servidor también lo cronometra (desde que entrega el nivel hasta que se entera de que lo resolviste) y nunca cuenta mucho menos que eso.
+- **Práctica:** niveles sin fin (del 1 al 4 con 6 tubos, del 5 al 9 con 8 y desde el 10 con 10). El récord es el nivel más alto resuelto, y cada vez seguís desde el que viene.
+- **Desde cuándo:** en la práctica, desde que se publicó; en el reto del día, desde el lunes 5/10/2026 (decidido: al día siguiente de publicarlo), con la rotación de 5 juegos.
+- **Música:** "Laboratorio", tranquila y burbujeante (decidido el 4/10/2026), y dos sonidos nuevos: el gluglú del vertido y el "plop" del corcho.
+- **Para una segunda vuelta:** el grupo en el juego y en la victoria, y Tubitos en las batallas en vivo.
 
 ### Ideas para después
 
@@ -295,7 +312,7 @@ Cada etapa termina con algo que se puede jugar y probar.
 
 - Lista de amigos y ranking entre amigos.
 - Desafíos 1 vs 1.
-- Batallas en vivo de Diez Letras y Secuencia (las de Largada y Cinco Preguntas ya están).
+- Batallas en vivo de Diez Letras y Secuencia (las de Largada y Cinco Preguntas ya están), y quizás de Tubitos.
 - Notificaciones: "salió el reto de hoy", "te pasaron en el ranking", "¡ganaste la corona!", "Pato armó una batalla".
 - Más minijuegos.
 
@@ -326,3 +343,4 @@ Para las próximas charlas:
 10. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
 11. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?
 12. **Diccionario de Diez Letras:** hoy acepta palabras poco conocidas y conjugaciones, como "ADRAN" o "AES". ¿Valen solo las palabras conocidas? Habría que filtrar el diccionario por frecuencia de uso.
+13. **Tubitos:** ¿se suma a las batallas en vivo? ¿La pantalla ancha de tablet (hasta 760 px) se usa también en los otros juegos? Por ahora es solo de Tubitos.

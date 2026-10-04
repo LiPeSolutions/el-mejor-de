@@ -19,6 +19,6 @@ export default async function PlayPage(props: PageProps<"/jugar/[juego]">) {
   if (!game) notFound();
   const today = todayInfo();
   const slot = today.lineup.indexOf(game.id);
-  if (slot === -1) return <RestingGame slug={game.slug} />;
+  if (slot === -1) return <RestingGame slug={game.slug} date={today.date} />;
   return <ChallengeRunner mode="daily" slug={game.slug} slot={slot} position={slot + 1} date={today.date} />;
 }

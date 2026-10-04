@@ -40,7 +40,7 @@ El handoff original está en [`handoff/`](handoff/README.md). Al implementarlo, 
 | Perfil (27) | Coronas, podios, palmarés y récords | Racha, días jugados, mejor día y semana; palmarés con las coronas de grupos y lugares; récords de práctica; "Tu lugar" (Chivilcoy · verificado) con "Cambiar", "Verificar" o "Elegir"; "Vincular con Google · Muy pronto" y "Salir de la cuenta". Editar personaje reusa la pantalla 18 | Todavía no guardamos los podios de cada día |
 | Antes de empezar un reto | No lo contempla | Si el celu conoce una cuenta pero no entraste: "No entraste como Tincho: este reto no va a quedar en tu cuenta · Entrar" | Para no perder un reto por jugarlo sin cuenta |
 | Diez Letras · jugando (04) | Aviso arriba por cada palabra (válida, inválida, repetida) y lista "Encontradas" | La palabra aparece al instante en "Tus palabras" (la última, primera), en gris con puntitos mientras se verifica, y las letras quedan libres para seguir. Después muestra sus puntos o un círculo rojo si no vale. Avisos arriba solo para "muy corta", "ya la mandaste" y la de 10 letras | Decisión de producto (3/10/2026): con mala conexión no hay que esperar la verificación para seguir jugando |
-| Juego que descansa | No está diseñado | Pantalla "Hoy {juego} descansa", con botón para practicarlo | Cada día se juegan 3 de los 4 juegos |
+| Juego que descansa | No está diseñado | Pantalla "Hoy {juego} descansa", con botón para practicarlo. Un juego que todavía no entró al reto del día dice cuándo llega ("Tubitos se estrena mañana") | Cada día se juegan 3 de los 4 juegos (de los 5 desde el 5/10/2026) |
 | Pantallas bajas | Diseñado a 390 × 844 | En pantallas de menos de 800 px de alto (el navegador del celu) el personaje del inicio se achica y la racha y la semana quedan debajo del botón principal | Que "Jugar" siempre se vea sin bajar |
 | Etiqueta del resultado de práctica | "Práctica · Siete Letras · no cuenta para la corona" | "Práctica · Diez Letras" | No entraba en una línea en celulares angostos |
 | Ícono de la app | No está diseñado | El logo: corona dorada sobre azul | Para instalarla en la pantalla de inicio |
@@ -70,3 +70,22 @@ El diseño de Largada está en [`handoff-largada/`](handoff-largada/LARGADA.md).
 | Compartir (06) | La foto en PNG y el texto | La polaroid (con las letras de la app) y "Largada de hoy: 920 · 1º de Los del Chivi 🏁 ¿Me ganás?", con el link de la app. Si el celu no comparte archivos, abre WhatsApp con el texto | — |
 | Práctica | La misma pantalla, sin sumar | Igual, con "Otra vez" y "Volver". El récord de práctica de Reflejos arranca de cero con Largada | El récord de antes era de otro juego |
 | Pantalla 06 en celulares angostos | 390 px de ancho | La polaroid se achica hasta el 43 % del ancho, y el 1.000 va más chico, para que entre al lado | Que no se encime |
+
+## Tubitos
+
+El diseño de Tubitos está en [`handoff-tubitos/`](handoff-tubitos/TUBITOS.md) (dirección 1a, "Probeta"). Al implementarlo, estas cosas cambian respecto de esa guía:
+
+| Tema | En el diseño | Lo que se implementa | Por qué |
+|---|---|---|---|
+| Rotación del reto (§13) | Pregunta abierta | **3 por día y descansan 2**, desde el lunes 5/10/2026: cada juego sale 3 de cada 5 días y ninguno descansa dos días seguidos. Ese lunes tocan Diez Letras, Largada y Tubitos. Los días anteriores no cambian | Decisión de producto (4/10/2026) |
+| Reiniciar y deshacer (§13) | Pregunta abierta: reiniciar vuelve a 0 movimientos y deshacer no los descuenta | Como en el diseño | Decisión de producto (4/10/2026) |
+| Deshacer (§4) | Se apaga con 0 | También se apaga cuando no hay nada para deshacer: al empezar el nivel y después de reiniciar. Reiniciar se ve siempre; con 0 movimientos no hace nada | Que no parezca que hace algo |
+| Tiempo de cada nivel | El reloj del celu | El del celu (hasta el pase que lo resuelve), pero el servidor también lo mide, desde que entrega el nivel hasta que se entera de que se resolvió, y nunca cuenta mucho menos que eso (2 s de margen) | Juego limpio: el reloj del celu se puede trucar |
+| Pantallas bajas (§9) | Capas 4 px más bajas | Igual, y si todavía no entra (celus con menos de 700 px visibles) las capas bajan hasta 22 px, con el aire y la separación de las filas | Que se vea todo sin bajar |
+| Tablet (§5.1) | Medidas con 10 tubos | Con 6 y 8 tubos se mantienen las capas de 60 px y los tubos son más anchos (92 y 84 px). La versión ancha es para tablets paradas (768 px de ancho y 1.000 de alto o más); acostada se ve como en el celu | El diseño solo dibuja la tablet con 10 tubos, y la horizontal no es de esta versión |
+| Antes de empezar en la práctica (00) | GameIntro sin cambios | En la práctica, el texto y los datos hablan de los niveles sin fin y del récord ("Sin fin · de 6 a 10 tubos", "Récord · tu nivel más alto") en vez de los 3 niveles y los 1.000 puntos | Los 3 niveles y el puntaje son del reto del día |
+| Práctica (§2) | Niveles sin fin | Cada vez que entrás seguís desde el nivel que viene después de tu récord. Cada nivel es un tablero nuevo; "Repetir nivel" vuelve a ese mismo | Que el récord tenga sentido sin rejugar todos los niveles |
+| Mínimo de movimientos (§11.1) | Solver con tope de nodos | La solución más corta, con A*; se comprobó contra una búsqueda completa y tarda milisegundos. Los tableros demasiado fáciles (un mínimo de menos de 10, 16 y 22 movimientos) se descartan | Que los niveles del día sean parejos |
+| Baldosa en Práctica | No está dibujada con 5 juegos | Con 5 juegos, la de Tubitos ocupa toda la fila | Que no quede un hueco |
+| Música | No está en el diseño | Una canción propia, "Laboratorio": tranquila y burbujeante, a 92 por minuto, como cada juego tiene la suya | Decisión de producto (4/10/2026) |
+| Batallas en vivo | No están en esta versión | Tubitos todavía no está en las batallas | Queda para más adelante (PLAN §13) |
