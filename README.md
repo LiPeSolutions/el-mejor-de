@@ -27,6 +27,7 @@
 - [Bitácora](docs/BITACORA.md): qué se hizo, dónde está cada cosa y qué sigue. Es lo primero para retomar.
 - [Plan del proyecto](docs/PLAN.md): la idea, las reglas del juego, qué entra en cada etapa y las preguntas abiertas.
 - [Arquitectura técnica](docs/ARQUITECTURA.md): cómo se va a construir (tecnologías, datos, anti-trampa y costos).
+- [Batallas en vivo por dentro](docs/BATALLAS.md): cómo están hechas y el paso a paso para sumar un juego.
 - [Brief de diseño](docs/diseno/BRIEF-DISENO.md): qué pantallas diseñar y cómo, con los [prompts para Claude Design](docs/diseno/PROMPTS-CLAUDE-DESIGN.md).
 
 ## Para desarrollar
@@ -48,3 +49,4 @@ pnpm build      # build de producción
 | `packages/content` | Diccionario de Diez Letras y preguntas de Cinco Preguntas ([revisar preguntas](docs/contenido/preguntas.md)). |
 | `packages/db` | Consultas a la base de datos, con pruebas sobre Postgres en memoria. |
 | `supabase` | Migraciones de la base de datos y la carga de lugares de Georef. |
+| `scripts/qa` | Pruebas en el navegador con celus simulados y una base local ([cómo se corren](scripts/qa/README.md)). |

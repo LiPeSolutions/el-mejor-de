@@ -36,6 +36,8 @@ el-mejor-de/
 ├── supabase/
 │   ├── migrations/     # Migraciones SQL (formato de la CLI de Supabase)
 │   └── scripts/        # Cargas de datos, como los lugares de Georef
+├── scripts/
+│   └── qa/             # Pruebas en el navegador (Playwright) y la base local, a mano
 └── docs/
 ```
 
@@ -200,7 +202,7 @@ Efectos y cortinas cortas hechos con Web Audio, sin archivos (decisiones en [PLA
 
 ### Batallas en vivo
 
-Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su celu (decisiones en [PLAN §8](PLAN.md#batallas-en-vivo-decidido-el-4102026)). El código está en:
+Una sala de 2 a 10 jugadores que juegan el mismo juego a la vez, cada uno en su celu (decisiones en [PLAN §8](PLAN.md#batallas-en-vivo-decidido-el-4102026)). El detalle, las trampas que ya pisamos y el paso a paso para sumar un juego están en [BATALLAS.md](BATALLAS.md). El código está en:
 
 - `packages/games/src/battles.ts`: las reglas y los tiempos, como funciones puras.
 - `apps/web/src/server/battles.ts` y `battle-content.ts`: quién puede hacer qué y qué se juega.
@@ -267,7 +269,7 @@ Con la app en segundo plano deja de preguntar; al volver, pregunta enseguida. No
   - Las reglas, en `packages/games/src/battles.test.ts`.
   - Las consultas, sobre PGlite.
   - Una batalla entera con tres jugadores, en `apps/web/src/server/battles.test.ts`.
-  - En el navegador, con tres celus simulados a la vez.
+  - En el navegador, con tres celus simulados a la vez ([`scripts/qa`](../scripts/qa/README.md)).
 
 ### Contrato de cada juego
 

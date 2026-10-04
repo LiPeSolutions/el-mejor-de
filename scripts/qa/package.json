@@ -1,0 +1,10 @@
+{
+  "name": "el-mejor-de-qa",
+  "private": true,
+  "description": "Pruebas en el navegador y base local. No es parte del workspace de pnpm: ver README.md.",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
+    "esbuild": "^0.28.2"
+  }
+}

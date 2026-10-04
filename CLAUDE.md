@@ -3,7 +3,7 @@
 Web app (PWA, sin descarga) de minijuegos y retos diarios con rankings y coronas por lugar
 (localidad → provincia → país → mundo). Lanzamiento en Argentina, apta para todo público.
 
-- **Antes de proponer o construir algo, leé** `docs/BITACORA.md` (estado actual y pendientes), `docs/PLAN.md` (producto y reglas) y `docs/ARQUITECTURA.md` (técnica).
+- **Antes de proponer o construir algo, leé** `docs/BITACORA.md` (estado actual y pendientes), `docs/PLAN.md` (producto y reglas) y `docs/ARQUITECTURA.md` (técnica). Para las batallas en vivo, también `docs/BATALLAS.md`.
 - **Bitácora:** al cerrar cada tanda de trabajo, sumá una entrada arriba en `docs/BITACORA.md` (qué se hizo, decisiones y pendientes) y actualizá su "Estado actual". Nunca escribas secretos ahí.
 - **Roles:** la persona responsable del producto no es técnica. Decide producto, diseño y negocio; Claude se encarga del desarrollo. Las decisiones de producto se consultan; las técnicas se explican en lenguaje simple.
 - **Decisiones nuevas:** reflejalas en `docs/PLAN.md` (tabla de decisiones y preguntas abiertas) o en `docs/ARQUITECTURA.md`.

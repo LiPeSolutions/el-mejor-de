@@ -5,15 +5,18 @@
 
 ## Cómo retomar
 
-1. Leé esta bitácora, después [PLAN.md](PLAN.md) y [ARQUITECTURA.md](ARQUITECTURA.md).
+1. Leé esta bitácora, después [PLAN.md](PLAN.md) y [ARQUITECTURA.md](ARQUITECTURA.md). Para las batallas en vivo, [BATALLAS.md](BATALLAS.md): cómo están hechas y el paso a paso para sumar un juego.
 2. Comandos desde la raíz: `pnpm install`, `pnpm dev`, `pnpm check` (lint + tipos + pruebas) y `pnpm build`.
 3. Rama de trabajo: `claude/adoring-bardeen-19q4va`. Es la única del repositorio y Vercel la usa como producción: **cada push se publica solo**.
-4. **Probar con base en local** (cuentas y "un solo intento"): sin `DATABASE_URL` la app anda, pero no guarda nada y las cuentas responden 503.
-   - Levantá un Postgres en memoria con un script de Node fuera del repo. Usa `@electric-sql/pglite` y `@electric-sql/pglite-socket`: crea los roles `anon` y `authenticated`, aplica en orden `supabase/migrations/*.sql` y escucha en `127.0.0.1:5433`.
+4. **Probar con base en local** (cuentas, grupos, batallas y "un solo intento"): sin `DATABASE_URL` la app anda, pero no guarda nada y las cuentas responden 503.
+   - Levantá la base con `node scripts/qa/local-db.mjs`. La primera vez, antes, `npm install --prefix scripts/qa`.
+     - Es un Postgres en memoria (PGlite) con todas las migraciones, en `127.0.0.1:5433`.
+     - Trae una muestra de los lugares (`supabase/scripts/places-sample.sql`): el país, las provincias, los barrios de la Ciudad y los pueblos alrededor de Chivilcoy. En Supabase, en cambio, se cargan todos con `import-places.sql`, que corre adentro de la base.
    - Después, `DATABASE_URL=postgres://app_server@127.0.0.1:5433/postgres DATABASE_POOL_MAX=1 pnpm dev`, y abrir **`localhost`** (no `127.0.0.1`: Next.js bloquea ahí sus scripts de desarrollo).
-   - Si las pruebas crean muchas cuentas, el límite de cuentas por conexión salta: en esa base local se borra `game.auth_events`.
-   - Esa base no trae los lugares (en Supabase se cargan con `import-places.sql`, que corre adentro de la base). Para probar Tu lugar y los rankings, cargá después de las migraciones `supabase/scripts/places-sample.sql`: el país, las provincias, los barrios de la Ciudad y los pueblos alrededor de Chivilcoy.
-5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`). El GPS se simula con `geolocation: { latitude, longitude, accuracy }` y `permissions: ["geolocation"]` en el contexto; sin el permiso, el navegador lo niega.
+   - Si las pruebas crean muchas cuentas, el límite de cuentas por conexión salta. Borrá `game.auth_events` en esa base, o reiniciala.
+5. **Revisar pantallas:** con Playwright, en celulares simulados de 390 × 844 y 360 × 740 (`isMobile`, `hasTouch` y `locale: "es-AR"`).
+   - Las batallas (con tres celus a la vez) y Tubitos tienen pruebas listas en [`scripts/qa`](../scripts/qa/README.md). Juegan solas y sacan capturas.
+   - El GPS se simula con `geolocation: { latitude, longitude, accuracy }` y `permissions: ["geolocation"]` en el contexto; sin el permiso, el navegador lo niega.
 
 ## Estado actual (4/10/2026)
 
@@ -47,7 +50,7 @@
   - No cuentan para rankings ni coronas.
 - **Pruebas:** 392 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** las batallas de Diez Letras y Secuencia (y quizás de Tubitos), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** las batallas de Diez Letras y Secuencia (y quizás de Tubitos; el plan de cada una, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -60,9 +63,35 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Base de datos | Supabase, organización **el mejor de** (plan Free), proyecto `qosoxpsjltmghadfkzph` en São Paulo. Data API apagada. Tablas en el esquema `game` (en el Table Editor, cambiar "schema public" por "game"). La app entra con el rol `app_server` por el pooler `aws-0-sa-east-1`. |
 | Diseño | Claude Design en [`docs/diseno/handoff`](diseno/handoff/README.md); Largada y Tubitos, en [`handoff-largada`](diseno/handoff-largada/LARGADA.md) y [`handoff-tubitos`](diseno/handoff-tubitos/TUBITOS.md). Lo que se cambió al implementarlo, en [CAMBIOS-AL-DISENO.md](diseno/CAMBIOS-AL-DISENO.md). |
 | Contenido | Diccionario de Diez Letras (365.648 palabras de 3 a 10 letras, y las palabras escondidas elegidas a mano) y 106 preguntas en `packages/content`. Las preguntas, para revisar, en [preguntas.md](contenido/preguntas.md). |
+| Pruebas en el navegador | [`scripts/qa`](../scripts/qa/README.md): la base local y las pruebas con celus simulados (batallas con tres celus, Tubitos). Se corren a mano, fuera de `pnpm check`. |
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Las batallas, documentadas para seguir
+
+- **Pedido de la responsable del producto:** documentar lo que hicimos y cómo están hechas las batallas en vivo. La idea es poder resumir la conversación y después sumar los otros tres juegos a las batallas.
+- **Qué se hizo:**
+  - **[BATALLAS.md](BATALLAS.md):** la guía de las batallas por dentro. Explica:
+    - la idea: una partida es una cuenta sobre el tiempo, sin un programa corriendo; incluye la línea de tiempo de cada juego;
+    - el reloj sincronizado, cada cuánto pregunta el celu, la música y la pantalla prendida;
+    - las tablas, el mapa del código y una partida de punta a punta;
+    - el juego limpio, las pruebas y las trampas que ya pisamos;
+    - qué partes del código dan por hecho que hay dos juegos;
+    - el paso a paso para sumar uno;
+    - un plan para Diez Letras, Secuencia y Tubitos, con las preguntas que hay que consultar antes.
+  - **[`scripts/qa`](../scripts/qa/README.md):** las pruebas en el navegador de las batallas y de Tubitos, más la base local, ahora guardadas en el repo. Antes estaban afuera. Se corren a mano.
+  - Enlaces a la guía desde esta bitácora, la arquitectura, el README y las instrucciones del proyecto (`CLAUDE.md`).
+- **Probado** con los scripts ya guardados, contra la app en local:
+  - la batalla de grupo con 3 celus (Cinco Preguntas, Largada, los podios y la pestaña del grupo): 8 de 8;
+  - los casos raros (sala suelta, llegar tarde, revancha, irse y que pase el mando): 8 de 8;
+  - la práctica de Tubitos: 15 de 15;
+  - el reto de Tubitos responde "SKIP" hasta el lunes 5/10, cuando entra.
+- **Visto al documentar:**
+  - En el podio de una batalla de grupo, "Batallas ganadas" muestra también a invitados que no son del grupo, y a quien no está en la sala como "Alguien".
+  - La pestaña del grupo sí muestra solo a los miembros.
+  - Quedó anotado en [BATALLAS §14](BATALLAS.md#14-ideas-para-después).
+- **Pendiente:** las batallas de Diez Letras y Secuencia, y decidir si entra Tubitos ([BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
 
 ### 4/10/2026 — Tubitos, el quinto juego
 
@@ -362,7 +391,7 @@ En orden sugerido.
 1. **Probar una batalla en vivo** (responsable del producto), con alguien al lado o por WhatsApp:
    - Desde el grupo, "Batalla en vivo · Armar", o desde Práctica, "Batalla con amigos".
    - Una de Cinco Preguntas y una de Largada. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende y si la música suena junta.
-   - Después siguen las de Diez Letras y Secuencia (Secuencia por rondas, donde el que se equivoca queda afuera).
+   - Después siguen las de Diez Letras y Secuencia (Secuencia por rondas, donde el que se equivoca queda afuera). El plan está en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan), con dos o tres preguntas para la responsable del producto antes de construir cada una.
 2. **Probar en el celu** (responsable del producto):
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
@@ -377,6 +406,7 @@ En orden sugerido.
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
 7. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
+   - Si Tubitos entra a las batallas en vivo, y cómo: las opciones están en [BATALLAS §13](BATALLAS.md#tubitos-water-sort-primero-decidir).
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
@@ -392,6 +422,7 @@ Para no tropezar dos veces:
 
 - **iPhone y los campos de texto:** con letra de menos de 16 px, Safari hace zoom al tocar el campo. Los campos de búsqueda van en 16 px.
 - **JSON y listas a la base:** van como texto y se convierten en SQL (`$1::text::jsonb`). Si no, postgres.js guarda el texto como un string de JSON. PGlite, la base de las pruebas, no lo muestra: solo aparece con la base de verdad (pasó con las batallas).
+- **Batallas:** hoy varias partes del código dan por hecho que hay dos juegos, con un `if` y un `else`, y no avisan si falta un tercero. Antes de sumar uno, leé [BATALLAS §9 y §11](BATALLAS.md#9-lo-que-hoy-da-por-hecho-que-hay-dos-juegos).
 - **País de la conexión:** Vercel lo manda en el encabezado `x-vercel-ip-country`. En local no viene, y entonces no se controla.
 - **Red de la sesión en la nube:**
   - No llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar).
