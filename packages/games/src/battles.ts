@@ -1,5 +1,6 @@
 import { FIVE_QUESTIONS_RULES, answerSeconds, fiveQuestionsPoints } from './games/five-questions';
 import { LARGADA_RULES, largadaScore } from './games/largada';
+import { TEN_LETTERS_RULES, sevenLettersWordPoints } from './games/seven-letters';
 import type { GameId } from './types';
 
 /*
@@ -11,7 +12,7 @@ import type { GameId } from './types';
  */
 
 /** The games a battle can be of today; the rest arrive later. */
-export const BATTLE_GAMES = ['reflexes', 'five-questions'] as const satisfies readonly GameId[];
+export const BATTLE_GAMES = ['reflexes', 'five-questions', 'seven-letters'] as const satisfies readonly GameId[];
 export type BattleGame = (typeof BATTLE_GAMES)[number];
 
 export const isBattleGame = (game: string): game is BattleGame => (BATTLE_GAMES as readonly string[]).includes(game);
@@ -43,6 +44,18 @@ export const BATTLE_RULES = {
     raceShowMs: 4_800,
     /** A reaction can't reach the server before it happened, give or take this much clock. */
     clockToleranceMs: 300,
+  },
+  letters: {
+    durationMs: TEN_LETTERS_RULES.durationMs,
+    /** A word sent at the last moment still arrives. */
+    graceMs: TEN_LETTERS_RULES.lateGraceMs,
+    /** "¡Tiempo!" on every phone, before the podium. */
+    timeUpMs: 2_500,
+    /** The letters reach a phone this early, so they show right when the countdown ends. */
+    earlyMs: 400,
+    maxWords: TEN_LETTERS_RULES.maxSubmissions,
+    /** Finding more than this share of a big set is suspicious, as in the daily challenge. */
+    suspiciousShare: TEN_LETTERS_RULES.suspiciousFoundShare,
   },
   /** A room nobody opened for this long closes. */
   idleMs: 20 * 60_000,
@@ -225,6 +238,41 @@ export function largadaStart(move: LargadaMove | undefined): { outcome: LargadaO
   return { outcome: 'hit', reactionMs, countedMs: reactionMs };
 }
 
+/* ───────────── Diez Letras ───────────── */
+
+/** A word the server accepted: valid, new for this player and in time. */
+export interface LettersWord {
+  userId: string;
+  word: string;
+  /** When the server got it. */
+  at: number;
+}
+
+export interface LettersRoundFlow {
+  index: number;
+  opensAt: number;
+  /** When it closed; while open, the latest it can (the 90 seconds and the grace). */
+  closesAt: number;
+  closed: boolean;
+  /** When the podium comes; null while open. */
+  nextAt: number | null;
+}
+
+/** The same letters for everyone, in the same 90 seconds: one round, which closes early only if everyone left. */
+export function lettersFlow(input: { startsAt: number; roster: readonly RosterEntry[]; now: number }): MatchFlow<LettersRoundFlow> {
+  const { durationMs, graceMs, timeUpMs } = BATTLE_RULES.letters;
+  const opensAt = input.startsAt;
+  if (input.now < opensAt) return { rounds: [], endsAt: null };
+  const deadline = opensAt + durationMs + graceMs;
+  const closedAt = closingTime(opensAt, deadline, input.roster, new Map(), input.now);
+  if (closedAt === null) return { rounds: [{ index: 0, opensAt, closesAt: deadline, closed: false, nextAt: null }], endsAt: null };
+  const nextAt = closedAt + timeUpMs;
+  return { rounds: [{ index: 0, opensAt, closesAt: closedAt, closed: true, nextAt }], endsAt: nextAt };
+}
+
+/** A word's points, the game's own: the longer the more, and the one with all ten letters has its prize. */
+export const lettersPoints = (word: string): number => sevenLettersWordPoints(word, TEN_LETTERS_RULES);
+
 /* ───────────── The table ───────────── */
 
 export interface BattleStanding {
@@ -237,6 +285,8 @@ export interface BattleStanding {
   /** Largada: the average with the penalties, and the best start. */
   averageMs?: number | null;
   bestMs?: number | null;
+  /** Diez Letras: words found. */
+  words?: number;
 }
 
 function withPlaces<T>(rows: readonly T[], compare: (a: T, b: T) => number): (T & { place: number })[] {
@@ -273,6 +323,28 @@ export function largadaStandings(roster: readonly RosterEntry[], moves: readonly
   });
   const big = Number.MAX_SAFE_INTEGER;
   return withPlaces(rows, (a, b) => (a.averageMs ?? big) - (b.averageMs ?? big) || (a.bestMs ?? big) - (b.bestMs ?? big));
+}
+
+/**
+ * By points, without the daily challenge's 1.000 cap, so whoever finds more
+ * always gets ahead; a tie goes to whoever got there first.
+ */
+export function lettersStandings(roster: readonly RosterEntry[], words: readonly LettersWord[]): BattleStanding[] {
+  const rows = roster.map(({ userId }) => {
+    const found = words.filter((one) => one.userId === userId);
+    return {
+      userId,
+      score: found.reduce((sum, one) => sum + lettersPoints(one.word), 0),
+      words: found.length,
+      reachedAt: found.reduce((last, one) => Math.max(last, one.at), Number.NEGATIVE_INFINITY),
+    };
+  });
+  return withPlaces(rows, (a, b) => b.score - a.score || (a.words > 0 && b.words > 0 ? a.reachedAt - b.reachedAt : 0)).map((row) => ({
+    userId: row.userId,
+    place: row.place,
+    score: row.score,
+    words: row.words,
+  }));
 }
 
 /** Who won: first place with points, once two or more played. A tie at the top gives it to each of them. */

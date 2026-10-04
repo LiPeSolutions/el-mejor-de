@@ -5,10 +5,14 @@ import {
   largadaFlow,
   largadaStandings,
   largadaStart,
+  lettersFlow,
+  lettersPoints,
+  lettersStandings,
   triviaAnswer,
   triviaFlow,
   triviaStandings,
   type LargadaMove,
+  type LettersWord,
   type RosterEntry,
   type TriviaMove,
 } from './battles';
@@ -167,5 +171,58 @@ describe('a Largada battle', () => {
 
   it('has no winner when only one played', () => {
     expect(battleWinners(largadaStandings(roster('a'), [start('a', 0, 0, 200)], 1))).toEqual([]);
+  });
+});
+
+describe('a Diez Letras battle', () => {
+  const { durationMs, graceMs, timeUpMs } = BATTLE_RULES.letters;
+  const word = (userId: string, text: string, at: number): LettersWord => ({ userId, word: text, at });
+
+  it('opens when the countdown ends and plays the whole 90 seconds', () => {
+    expect(lettersFlow({ startsAt: T0, roster: roster('a', 'b'), now: T0 - 1 })).toEqual({ rounds: [], endsAt: null });
+    const playing = lettersFlow({ startsAt: T0, roster: roster('a', 'b'), now: T0 + 60_000 });
+    expect(playing).toEqual({ rounds: [{ index: 0, opensAt: T0, closesAt: T0 + durationMs + graceMs, closed: false, nextAt: null }], endsAt: null });
+    const done = lettersFlow({ startsAt: T0, roster: roster('a', 'b'), now: T0 + durationMs + graceMs });
+    expect(done.rounds[0]).toMatchObject({ closed: true, closesAt: T0 + durationMs + graceMs });
+    expect(done.endsAt).toBe(T0 + durationMs + graceMs + timeUpMs);
+  });
+
+  it('closes early only when everyone left', () => {
+    const left = [
+      { userId: 'a', leftAt: T0 + 10_000 },
+      { userId: 'b', leftAt: T0 + 20_000 },
+    ];
+    expect(lettersFlow({ startsAt: T0, roster: left, now: T0 + 15_000 }).rounds[0]?.closed).toBe(false);
+    expect(lettersFlow({ startsAt: T0, roster: left, now: T0 + 20_000 }).rounds[0]).toMatchObject({ closed: true, closesAt: T0 + 20_000, nextAt: T0 + 20_000 + timeUpMs });
+  });
+
+  it('scores each word like the game, with no cap', () => {
+    expect(['MAR', 'CAMA', 'SANTA', 'CAMINANTES'].map(lettersPoints)).toEqual([25, 50, 80, 220 + 300]);
+    // The server never accepts a word twice; here only the sum matters.
+    const plenty = Array.from({ length: 10 }, (_, i) => word('a', 'CAMINA', T0 + i));
+    expect(lettersStandings(roster('a'), plenty)[0]?.score).toBe(1_200);
+  });
+
+  it('ranks by points, and a tie goes to whoever got there first', () => {
+    const table = lettersStandings(roster('a', 'b', 'c', 'd'), [
+      word('a', 'CAMA', T0 + 5_000),
+      word('a', 'MAR', T0 + 9_000),
+      word('b', 'MAR', T0 + 2_000),
+      word('b', 'MESA', T0 + 7_000),
+      word('c', 'SANTA', T0 + 1_000),
+    ]);
+    expect(table.map((row) => [row.userId, row.place, row.score, row.words])).toEqual([
+      ['c', 1, 80, 1],
+      ['b', 2, 75, 2],
+      ['a', 3, 75, 2],
+      ['d', 4, 0, 0],
+    ]);
+    expect(battleWinners(table)).toEqual(['c']);
+  });
+
+  it('shares the place of those without words, and nobody wins with none', () => {
+    const table = lettersStandings(roster('a', 'b'), []);
+    expect(table.map((row) => row.place)).toEqual([1, 1]);
+    expect(battleWinners(table)).toEqual([]);
   });
 });

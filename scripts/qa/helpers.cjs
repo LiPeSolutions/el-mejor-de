@@ -113,4 +113,31 @@ function waterSortEngine() {
   return require(outfile);
 }
 
-module.exports = { BASE, OUT, launch, wait, check, phone, signup, shot, suffix, finish, fail, waterSortEngine };
+/** Diez Letras' valid words for a set of letters, from the real dictionary (bundled on each run, like Tubitos' engine). */
+function lettersWordsFinder() {
+  const dir = path.join(__dirname, ".engine");
+  fs.mkdirSync(dir, { recursive: true });
+  const entry = path.join(dir, "letters-entry.ts");
+  const outfile = path.join(dir, "letters.cjs");
+  fs.writeFileSync(
+    entry,
+    [
+      `export { getSevenLettersDictionary } from ${JSON.stringify(path.join(ROOT, "packages/content/src/words/index.ts"))};`,
+      `export { sevenLettersWords } from ${JSON.stringify(path.join(ROOT, "packages/games/src/games/seven-letters.ts"))};`,
+    ].join("\n"),
+  );
+  require("esbuild").buildSync({
+    entryPoints: [entry],
+    bundle: true,
+    platform: "node",
+    format: "cjs",
+    outfile,
+    logLevel: "warning",
+    alias: { "@repo/games": path.join(ROOT, "packages/games/src/index.ts") },
+  });
+  const { getSevenLettersDictionary, sevenLettersWords } = require(outfile);
+  const dictionary = getSevenLettersDictionary();
+  return (letters) => sevenLettersWords(dictionary, letters);
+}
+
+module.exports = { BASE, OUT, launch, wait, check, phone, signup, shot, suffix, finish, fail, waterSortEngine, lettersWordsFinder };

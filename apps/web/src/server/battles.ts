@@ -19,11 +19,13 @@ import {
   leaveBattle,
   markShown,
   matchMoves,
+  matchWords,
   openGroupBattle,
   playerOpenBattles,
   recordAnswer,
   recordCodeFailure,
   recordStart,
+  recordWord,
   resetUsedQuestions,
   setBattleGame,
   setBattleLobby,
@@ -34,17 +36,23 @@ import {
   type BattleMatch,
   type BattleMove,
   type BattlePlayer,
+  type BattleWord,
   type Queryable,
   type User,
 } from "@repo/db";
 import {
   BATTLE_RULES,
   LARGADA_RULES,
+  TEN_LETTERS_RULES,
   battleWinners,
   isBattleGame,
   largadaFlow,
   largadaStandings,
   largadaStart,
+  lettersFlow,
+  lettersPoints,
+  lettersStandings,
+  normalizeWord,
   triviaAnswer,
   triviaFlow,
   triviaStandings,
@@ -52,12 +60,14 @@ import {
   type BattleStanding,
   type LargadaMove,
   type LargadaRoundFlow,
+  type LettersRoundFlow,
+  type LettersWord,
   type MatchFlow,
   type RosterEntry,
   type TriviaMove,
   type TriviaRoundFlow,
 } from "@repo/games";
-import { DEFAULT_AVATAR, INVITE_ALPHABET, inviteKey, parseAvatar, toGameDate, type GroupColor, type GroupEmblem } from "@repo/shared";
+import { DEFAULT_AVATAR, INVITE_ALPHABET, inviteKey, isPhraseBlocked, parseAvatar, toGameDate, type GroupColor, type GroupEmblem } from "@repo/shared";
 import type {
   BattleCreatedResponse,
   BattleGroupInfo,
@@ -65,23 +75,37 @@ import type {
   BattlePreview,
   BattleStage,
   BattleView,
+  BattleWordResponse,
   GroupBattlesResponse,
   LargadaMatchView,
+  LettersMatchView,
   LiveBattleView,
   MatchView,
   StandingView,
   TriviaMatchView,
   TriviaQuestionView,
 } from "@/lib/battle-types";
-import { categoryLabel, largadaDelays, pickQuestions, playerOptions, questionById, type BattleLargadaContent, type BattleTriviaContent } from "./battle-content";
+import {
+  categoryLabel,
+  largadaDelays,
+  lettersWords,
+  pickLetters,
+  pickQuestions,
+  playerOptions,
+  questionById,
+  type BattleLargadaContent,
+  type BattleLettersContent,
+  type BattleTriviaContent,
+} from "./battle-content";
 import { HttpError } from "./http";
 
 /*
  * Live battles (docs/PLAN.md §8): who can do what in a room, and what each
  * phone sees. Nothing runs between requests: each one works out where the
- * match is from its start and the moves (triviaFlow / largadaFlow in
- * @repo/games), writes the result once it ended and answers with the
- * server's clock, which the phones sync to.
+ * match is from its start and the moves (triviaFlow, largadaFlow and
+ * lettersFlow in @repo/games), writes the result once it ended and answers
+ * with the server's clock, which the phones sync to. Every choice by game
+ * is a switch over BattleGame, so a new game can't be forgotten in one.
  */
 
 export interface BattleContext {
@@ -122,11 +146,34 @@ function newCode(): string {
 
 const avatarOf = (value: unknown) => parseAvatar(value) ?? DEFAULT_AVATAR;
 
+/** For a switch over the games: TypeScript says which one is missing. */
+function unknownGame(game: never): never {
+  throw new Error(`unknown battle game ${String(game)}`);
+}
+
+/** The match's game. The database only takes battle games; this tells TypeScript. */
+function gameOf(match: BattleMatch): BattleGame {
+  if (!isBattleGame(match.game)) throw new Error(`match ${match.id} has the game ${match.game}`);
+  return match.game;
+}
+
+/** What the players did in a match: one move per round, or the words of Diez Letras. */
+interface Plays {
+  moves: readonly BattleMove[];
+  words: readonly BattleWord[];
+}
+
+async function playsOf(db: Queryable, match: BattleMatch | null): Promise<Plays> {
+  if (!match) return { moves: [], words: [] };
+  if (match.game === "seven-letters") return { moves: [], words: await matchWords(db, match.id) };
+  return { moves: await matchMoves(db, match.id), words: [] };
+}
+
 interface Loaded {
   battle: Battle;
   players: BattlePlayer[];
   match: BattleMatch | null;
-  moves: BattleMove[];
+  plays: Plays;
 }
 
 async function load(db: Queryable, battleId: string): Promise<Loaded> {
@@ -134,8 +181,7 @@ async function load(db: Queryable, battleId: string): Promise<Loaded> {
   if (!battle) throw new HttpError(404, "battle-not-found");
   const players = await battlePlayers(db, battleId);
   const match = await latestMatch(db, battleId);
-  const moves = match ? await matchMoves(db, match.id) : [];
-  return { battle, players, match, moves };
+  return { battle, players, match, plays: await playsOf(db, match) };
 }
 
 const present = (players: readonly BattlePlayer[]) => players.filter((player) => player.leftAt === null);
@@ -153,24 +199,49 @@ const largadaMoves = (moves: readonly BattleMove[]): LargadaMove[] =>
     move.playedAt === null ? [] : [{ userId: move.userId, round: move.round, at: move.playedAt, reactionMs: move.reactionMs, falseStart: move.falseStart ?? false }],
   );
 
-type Flow = { game: "five-questions"; flow: MatchFlow<TriviaRoundFlow> } | { game: "reflexes"; flow: MatchFlow<LargadaRoundFlow> };
+const lettersPlayed = (words: readonly BattleWord[]): LettersWord[] => words.map((one) => ({ userId: one.userId, word: one.word, at: one.playedAt }));
 
-function flowOf(match: BattleMatch, moves: readonly BattleMove[], now: number): Flow {
+type Flow =
+  | { game: "five-questions"; flow: MatchFlow<TriviaRoundFlow> }
+  | { game: "reflexes"; flow: MatchFlow<LargadaRoundFlow> }
+  | { game: "seven-letters"; flow: MatchFlow<LettersRoundFlow> };
+
+function flowOf(match: BattleMatch, plays: Plays, now: number): Flow {
   const roster = rosterOf(match);
-  if (match.game === "five-questions") return { game: "five-questions", flow: triviaFlow({ startsAt: match.startsAt, roster, moves: triviaMoves(moves), now }) };
-  const { delaysMs } = match.content as BattleLargadaContent;
-  return { game: "reflexes", flow: largadaFlow({ startsAt: match.startsAt, delaysMs, roster, moves: largadaMoves(moves), now }) };
+  const game = gameOf(match);
+  switch (game) {
+    case "five-questions":
+      return { game, flow: triviaFlow({ startsAt: match.startsAt, roster, moves: triviaMoves(plays.moves), now }) };
+    case "reflexes": {
+      const { delaysMs } = match.content as BattleLargadaContent;
+      return { game, flow: largadaFlow({ startsAt: match.startsAt, delaysMs, roster, moves: largadaMoves(plays.moves), now }) };
+    }
+    case "seven-letters":
+      return { game, flow: lettersFlow({ startsAt: match.startsAt, roster, now }) };
+    default:
+      return unknownGame(game);
+  }
 }
 
-function standingsOf(match: BattleMatch, moves: readonly BattleMove[], closed: number): BattleStanding[] {
+/** The table once every round was played. */
+function finalStandings(match: BattleMatch, plays: Plays): BattleStanding[] {
   const roster = rosterOf(match);
-  return match.game === "five-questions" ? triviaStandings(roster, triviaMoves(moves), closed) : largadaStandings(roster, largadaMoves(moves), closed);
+  const game = gameOf(match);
+  switch (game) {
+    case "five-questions":
+      return triviaStandings(roster, triviaMoves(plays.moves), BATTLE_RULES.trivia.questions);
+    case "reflexes":
+      return largadaStandings(roster, largadaMoves(plays.moves), BATTLE_RULES.largada.starts);
+    case "seven-letters":
+      return lettersStandings(roster, lettersPlayed(plays.words));
+    default:
+      return unknownGame(game);
+  }
 }
 
 /** Writes how the match ended (once, whoever asks first) and returns it ended. */
-async function settle(db: Queryable, match: BattleMatch, moves: readonly BattleMove[], endedAt: number): Promise<BattleMatch> {
-  const rounds = match.game === "five-questions" ? BATTLE_RULES.trivia.questions : BATTLE_RULES.largada.starts;
-  const results = standingsOf(match, moves, rounds);
+async function settle(db: Queryable, match: BattleMatch, plays: Plays, endedAt: number): Promise<BattleMatch> {
+  const results = finalStandings(match, plays);
   const winners = battleWinners(results);
   await endMatch(db, { matchId: match.id, endedAt, results, winners });
   return { ...match, endedAt, results, winners };
@@ -178,11 +249,11 @@ async function settle(db: Queryable, match: BattleMatch, moves: readonly BattleM
 
 /** The match as it is now: written down once it ended. */
 async function current(db: Queryable, loaded: Loaded, now: number): Promise<{ match: BattleMatch | null; flow: Flow | null }> {
-  const { match, moves } = loaded;
+  const { match, plays } = loaded;
   if (!match) return { match: null, flow: null };
-  const flow = flowOf(match, moves, now);
+  const flow = flowOf(match, plays, now);
   if (match.endedAt === null && flow.flow.endsAt !== null && now >= flow.flow.endsAt) {
-    return { match: await settle(db, match, moves, flow.flow.endsAt), flow };
+    return { match: await settle(db, match, plays, flow.flow.endsAt), flow };
   }
   return { match, flow };
 }
@@ -370,14 +441,23 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
   const game = loaded.battle.game;
   if (!isBattleGame(game)) throw new HttpError(409, "game-not-available");
 
-  let content: BattleTriviaContent | BattleLargadaContent;
-  if (game === "five-questions") {
-    const picked = pickQuestions(toGameDate(new Date(ctx.now)), loaded.battle.usedQuestions);
-    if (picked.reset) await resetUsedQuestions(db, battleId);
-    await addUsedQuestions(db, battleId, picked.ids);
-    content = { questionIds: picked.ids };
-  } else {
-    content = { delaysMs: largadaDelays() };
+  let content: BattleTriviaContent | BattleLargadaContent | BattleLettersContent;
+  switch (game) {
+    case "five-questions": {
+      const picked = pickQuestions(toGameDate(new Date(ctx.now)), loaded.battle.usedQuestions);
+      if (picked.reset) await resetUsedQuestions(db, battleId);
+      await addUsedQuestions(db, battleId, picked.ids);
+      content = { questionIds: picked.ids };
+      break;
+    }
+    case "reflexes":
+      content = { delaysMs: largadaDelays() };
+      break;
+    case "seven-letters":
+      content = pickLetters(toGameDate(new Date(ctx.now)));
+      break;
+    default:
+      return unknownGame(game);
   }
   const created = await createMatch(db, {
     battleId,
@@ -395,7 +475,15 @@ export async function startMatch(db: Queryable, user: User, battleId: string, ct
 /* ───────────── What each phone sees ───────────── */
 
 function standingViews(rows: readonly BattleStanding[]): StandingView[] {
-  return rows.map((row) => ({ userId: row.userId, place: row.place, score: row.score, correct: row.correct, averageMs: row.averageMs, bestMs: row.bestMs }));
+  return rows.map((row) => ({
+    userId: row.userId,
+    place: row.place,
+    score: row.score,
+    correct: row.correct,
+    averageMs: row.averageMs,
+    bestMs: row.bestMs,
+    words: row.words,
+  }));
 }
 
 function triviaView(match: BattleMatch, moves: readonly BattleMove[], flow: MatchFlow<TriviaRoundFlow>, userId: string): TriviaMatchView {
@@ -474,8 +562,54 @@ function largadaView(match: BattleMatch, moves: readonly BattleMove[], flow: Mat
   };
 }
 
-function matchView(match: BattleMatch, moves: readonly BattleMove[], flow: Flow, userId: string): MatchView {
-  return flow.game === "five-questions" ? triviaView(match, moves, flow.flow, userId) : largadaView(match, moves, flow.flow);
+/**
+ * Diez Letras: the letters (from a moment before it opens), my words and
+ * everyone's points; nobody sees the others' words until the time is up.
+ */
+function lettersView(match: BattleMatch, words: readonly BattleWord[], flow: MatchFlow<LettersRoundFlow>, userId: string, now: number): LettersMatchView {
+  const roster = rosterOf(match);
+  const found = lettersPlayed(words);
+  const round = flow.rounds[0] ?? null;
+  const { letters } = match.content as BattleLettersContent;
+  const byLength = (a: { word: string }, b: { word: string }) => b.word.length - a.word.length || a.word.localeCompare(b.word, "es");
+  const finders = new Map<string, number>();
+  for (const one of found) finders.set(one.word, (finders.get(one.word) ?? 0) + 1);
+  return {
+    game: "seven-letters",
+    id: match.id,
+    startsAt: match.startsAt,
+    endsAt: flow.endsAt,
+    players: match.players,
+    durationMs: BATTLE_RULES.letters.durationMs,
+    minWordLength: TEN_LETTERS_RULES.minWordLength,
+    letters: now >= match.startsAt - BATTLE_RULES.letters.earlyMs ? letters : null,
+    round,
+    mine: found.filter((one) => one.userId === userId).map((one) => ({ word: one.word, points: lettersPoints(one.word) })),
+    // At the end, everyone's words, with the rude ones of the others hidden (a word can't be a message).
+    found: round?.closed
+      ? roster.map(({ userId: id }) => ({
+          userId: id,
+          words: found
+            .filter((one) => one.userId === id)
+            .sort(byLength)
+            .map((one) => ({ word: id === userId || !isPhraseBlocked(one.word) ? one.word : null, points: lettersPoints(one.word), onlyOne: finders.get(one.word) === 1 })),
+        }))
+      : null,
+    standings: standingViews(lettersStandings(roster, found)),
+  };
+}
+
+function matchView(match: BattleMatch, plays: Plays, flow: Flow, userId: string, now: number): MatchView {
+  switch (flow.game) {
+    case "five-questions":
+      return triviaView(match, plays.moves, flow.flow, userId);
+    case "reflexes":
+      return largadaView(match, plays.moves, flow.flow);
+    case "seven-letters":
+      return lettersView(match, plays.words, flow.flow, userId, now);
+    default:
+      return unknownGame(flow);
+  }
 }
 
 function playerViews(loaded: Loaded, match: BattleMatch | null, stage: BattleStage, userId: string, now: number): BattlePlayerView[] {
@@ -503,7 +637,7 @@ export async function battleState(db: Queryable, user: User, battleId: string, c
   await touchBattlePlayer(db, battleId, user.id, ctx.now, SEEN_EVERY_MS);
   const { match, flow } = await current(db, loaded, ctx.now);
   const stage = stageOf(loaded.battle, match);
-  const shown = match && flow && stage !== "lobby" ? matchView(match, loaded.moves, flow, user.id) : null;
+  const shown = match && flow && stage !== "lobby" ? matchView(match, loaded.plays, flow, user.id, ctx.now) : null;
   const wins = stage === "podium" && loaded.battle.groupId ? await groupBattleWins(db, loaded.battle.groupId) : null;
   return {
     id: loaded.battle.id,
@@ -543,8 +677,8 @@ export async function battleQuestion(db: Queryable, user: User, battleId: string
   requireOpen(loaded.battle);
   requirePlayer(loaded, user);
   const match = requireInMatch(loaded.match, user.id, "five-questions");
-  const flowNow = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.moves), now: ctx.now });
-  const soon = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.moves), now: ctx.now + BATTLE_RULES.trivia.earlyMs });
+  const flowNow = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.plays.moves), now: ctx.now });
+  const soon = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.plays.moves), now: ctx.now + BATTLE_RULES.trivia.earlyMs });
   const open = flowNow.rounds.find((one) => one.index === round && !one.closed) ?? soon.rounds.find((one) => one.index === round && !one.closed && one.opensAt > ctx.now);
   if (!open) throw new HttpError(409, flowNow.rounds.some((one) => one.index === round) ? "round-closed" : "too-early");
   await markShown(db, { matchId: match.id, userId: user.id, round, at: Math.max(ctx.now, open.opensAt) });
@@ -566,7 +700,7 @@ export async function battleAnswer(db: Queryable, user: User, battleId: string, 
   requireOpen(loaded.battle);
   requirePlayer(loaded, user);
   const match = requireInMatch(loaded.match, user.id, "five-questions");
-  const flow = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.moves), now: ctx.now });
+  const flow = triviaFlow({ startsAt: match.startsAt, roster: rosterOf(match), moves: triviaMoves(loaded.plays.moves), now: ctx.now });
   const open = flow.rounds.find((one) => one.index === round && !one.closed);
   if (!open || ctx.now > open.opensAt + BATTLE_RULES.trivia.answerMs + BATTLE_RULES.trivia.graceMs) throw new HttpError(409, "round-closed");
   const { questionIds } = match.content as BattleTriviaContent;
@@ -594,7 +728,7 @@ export async function battleStart(
   requirePlayer(loaded, user);
   const match = requireInMatch(loaded.match, user.id, "reflexes");
   const { delaysMs } = match.content as BattleLargadaContent;
-  const flow = largadaFlow({ startsAt: match.startsAt, delaysMs, roster: rosterOf(match), moves: largadaMoves(loaded.moves), now: ctx.now });
+  const flow = largadaFlow({ startsAt: match.startsAt, delaysMs, roster: rosterOf(match), moves: largadaMoves(loaded.plays.moves), now: ctx.now });
   const round = flow.rounds.find((one) => one.index === input.round && one.closedAt === null);
   if (!round || ctx.now < round.lightsAt || ctx.now > round.deadline) throw new HttpError(409, "round-closed");
   let { reactionMs, falseStart } = input;
@@ -611,6 +745,39 @@ export async function battleStart(
   return { ok: true };
 }
 
+/**
+ * A word of Diez Letras, checked against the match's letters. It counts if
+ * it's valid, new for this player and in time; the others only see the
+ * points until the time is up.
+ */
+export async function battleWord(db: Queryable, user: User, battleId: string, raw: string, ctx: BattleContext): Promise<BattleWordResponse> {
+  const loaded = await load(db, battleId);
+  requireOpen(loaded.battle);
+  requirePlayer(loaded, user);
+  const match = requireInMatch(loaded.match, user.id, "seven-letters");
+  const round = lettersFlow({ startsAt: match.startsAt, roster: rosterOf(match), now: ctx.now }).rounds[0];
+  if (!round) throw new HttpError(409, "too-early");
+  if (round.closed) throw new HttpError(409, "round-closed");
+
+  const word = normalizeWord(raw) ?? "";
+  if (word.length < TEN_LETTERS_RULES.minWordLength) return { word, status: "too-short", points: 0 };
+  const valid = lettersWords((match.content as BattleLettersContent).letters);
+  if (!valid.has(word)) return { word, status: "invalid", points: 0 };
+  // A repeat already counted: it says how much, for a phone whose first try lost its answer.
+  const repeat: BattleWordResponse = { word, status: "duplicate", points: lettersPoints(word) };
+  const mine = loaded.plays.words.filter((one) => one.userId === user.id);
+  if (mine.some((one) => one.word === word)) return repeat;
+  if (mine.length >= BATTLE_RULES.letters.maxWords) throw new HttpError(429, "too-many-words");
+  if (!(await recordWord(db, { matchId: match.id, userId: user.id, word, at: ctx.now }))) return repeat;
+
+  // Almost every word of a big set in 90 seconds, as in the daily challenge: noted once, when it happens.
+  const share = BATTLE_RULES.letters.suspiciousShare;
+  if (valid.size >= 20 && mine.length + 1 > valid.size * share && mine.length <= valid.size * share) {
+    console.warn(JSON.stringify({ event: "suspicious-battle-words", battle: battleId, user: user.id, found: mine.length + 1, of: valid.size }));
+  }
+  return { word, status: "valid", points: lettersPoints(word) };
+}
+
 /* ───────────── A group's battles ───────────── */
 
 /** The group's live room (for the card) and its tally: battles won by each member, and the last ones. */
@@ -620,9 +787,9 @@ export async function groupBattles(db: Queryable, user: User, groupId: string, c
 
   // Matches everyone left before the podium are written down here.
   for (const stale of await unendedGroupMatches(db, groupId, ctx.now - SETTLE_AFTER_MS)) {
-    const moves = await matchMoves(db, stale.id);
-    const flow = flowOf(stale, moves, ctx.now);
-    await settle(db, stale, moves, flow.flow.endsAt ?? ctx.now);
+    const plays = await playsOf(db, stale);
+    const flow = flowOf(stale, plays, ctx.now);
+    await settle(db, stale, plays, flow.flow.endsAt ?? ctx.now);
   }
 
   const [open, members, wins, recent] = await Promise.all([

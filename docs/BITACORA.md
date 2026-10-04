@@ -46,11 +46,13 @@
 - **Sonido:** efectos en los juegos y en los resultados, y cortinas cortas al cerrar el día, al batir un récord y al ganar la corona, hechos con código. Arranca prendido, respeta el modo silencio y se apaga con el parlante de los juegos o en el perfil.
 - **Música:** un loop para el menú y uno por juego (el de Tubitos, "Laboratorio"), más bajo que los efectos. Se apaga aparte en el perfil.
 - **Batallas en vivo:** de 2 a 10 amigos juegan a la vez, cada uno en su celu, desde un grupo (con el aviso "Pato armó una de Largada · Sumarme") o con un link.
-  - Por ahora, Largada y Cinco Preguntas, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
+  - Se juegan Largada, Cinco Preguntas y **Diez Letras**, a la par, con podio, revancha u otro juego, y la pestaña "Batallas" del grupo con quién ganó más.
+  - En Diez Letras, en el podio se ven las palabras de todos.
   - No cuentan para rankings ni coronas.
-- **Pruebas:** 392 automáticas, todas pasan.
+  - Secuencia y Tubitos ya tienen el formato decidido y se están construyendo.
+- **Pruebas:** 404 automáticas, todas pasan.
 - **Control rápido:** https://el-mejor-de-web.vercel.app/api/estado tiene que responder `"database":"connected"`.
-- **Falta:** las batallas de Diez Letras y Secuencia (y quizás de Tubitos; el plan de cada una, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
+- **Falta:** las batallas de Secuencia y Tubitos (decididas; el plan de cada una, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)), vincular con Google, y la tarjeta "Desafiá a Pato" de Largada (ver [Pendientes](#pendientes-y-próximos-pasos)).
 
 ## Dónde está cada cosa
 
@@ -67,6 +69,31 @@ Sin secretos: las claves viven solo en Vercel y Supabase.
 | Dominio | `game.lipesolutions.com`, en el proyecto de Vercel. El DNS de lipesolutions.com está en **Namecheap**, con el registro CNAME `game` → `cname.vercel-dns.com`. |
 
 ## Cronología
+
+### 4/10/2026 — Batallas: Diez Letras a la par
+
+- **Pedido:** sumar Diez Letras, Secuencia y Tubitos a las batallas en vivo, preguntando antes lo que hiciera falta.
+- **Lo que decidió la responsable del producto** (PLAN §8):
+  - **Tubitos:** como el reto, con los mismos 3 tableros para todos.
+  - **Secuencia:** si los últimos se equivocan en la misma ronda, desempate: la juegan otra vez solo ellos.
+  - **Diez Letras:** en el podio se ven las palabras de todos, tocando a cada uno.
+  - Las pantallas no necesitan bocetos: se publica cada juego cuando está probado.
+- **Lo que propuso Claude, sin objeciones:**
+  - en Diez Letras, los mismos 90 segundos sin botón para terminar antes, y los puntos sin el tope de 1.000;
+  - en Secuencia, 3 segundos más 1 por color para repetir.
+- **Qué se hizo (Diez Letras):**
+  - Las mismas 10 letras para todos, nunca las del reto de hoy, que aparecen a la vez cuando termina la cuenta regresiva.
+  - Mientras se juega, cada uno ve sus palabras y una tira "En vivo" con los puntos de todos, nunca sus palabras.
+  - "¡Tiempo!" a los 90 segundos y, en el podio, las palabras de cada uno, con una estrella en las que encontró uno solo. Las groseras se ocultan para los demás.
+  - El teclado es el mismo del reto: se separó en una pieza común (`components/games/letters.tsx`).
+  - Una tabla nueva, `game.battle_words` (aplicada en Supabase; los avisos de seguridad quedaron en cero).
+  - Cada decisión por juego del servidor, del celu y de la sala pasó a un `switch` que TypeScript controla. Así, sumar Secuencia y Tubitos no puede olvidar ningún lugar.
+- **Probado:**
+  - 12 pruebas automáticas nuevas: las reglas, las consultas y una batalla entera en el servidor, incluida la palabra grosera oculta.
+  - En el navegador, con tres celus, `scripts/qa/battle-letters.cjs`: 12 de 12 en 390 × 844 y en 360 × 740.
+  - Las pruebas de antes siguen pasando: grupo 8 de 8 y casos raros 8 de 8.
+- **Corregido antes de publicar:** una palabra repetida por un reintento respondía 0 puntos, y el celu mostraba menos de lo que el servidor ya había contado.
+- **Pendiente:** Secuencia y Tubitos en las batallas.
 
 ### 4/10/2026 — Las batallas, documentadas para seguir
 
@@ -390,8 +417,8 @@ En orden sugerido.
 
 1. **Probar una batalla en vivo** (responsable del producto), con alguien al lado o por WhatsApp:
    - Desde el grupo, "Batalla en vivo · Armar", o desde Práctica, "Batalla con amigos".
-   - Una de Cinco Preguntas y una de Largada. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende y si la música suena junta.
-   - Después siguen las de Diez Letras y Secuencia (Secuencia por rondas, donde el que se equivoca queda afuera). El plan está en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan), con dos o tres preguntas para la responsable del producto antes de construir cada una.
+   - Una de Cinco Preguntas, una de Largada y una de Diez Letras. Ver si las luces se apagan a la vez en los dos celus, si la tabla se entiende, si la música suena junta y si en Diez Letras se entienden los puntos en vivo y las palabras del podio.
+   - Siguen Secuencia y Tubitos, ya decididas (el plan, en [BATALLAS §13](BATALLAS.md#13-plan-para-los-que-faltan)).
 2. **Probar en el celu** (responsable del producto):
    - **Grupos:** crear uno, mandar el link por WhatsApp a alguien y que se sume (también sin cuenta, creándola desde el link).
    - **Diez Letras:** ya está en la práctica, y mañana (4/10) sale el primer reto del día con 10 letras.
@@ -406,7 +433,6 @@ En orden sugerido.
    - La idea es usar "Sign in with Google" y verificar el token en el servidor.
    - Se suman también "cambiar contraseña" y "borrar cuenta".
 7. **Para decidir** (responsable del producto; están en [PLAN §13](PLAN.md#13-preguntas-abiertas)):
-   - Si Tubitos entra a las batallas en vivo, y cómo: las opciones están en [BATALLAS §13](BATALLAS.md#tubitos-water-sort-primero-decidir).
    - Revisar las 106 preguntas de trivia y la lista de palabras prohibidas en apodos y nombres de grupo.
    - Si en Diez Letras valen solo palabras conocidas (hoy valen ADRAN o AES).
    - Qué hacer con las contraseñas olvidadas sin Google.
@@ -422,7 +448,7 @@ Para no tropezar dos veces:
 
 - **iPhone y los campos de texto:** con letra de menos de 16 px, Safari hace zoom al tocar el campo. Los campos de búsqueda van en 16 px.
 - **JSON y listas a la base:** van como texto y se convierten en SQL (`$1::text::jsonb`). Si no, postgres.js guarda el texto como un string de JSON. PGlite, la base de las pruebas, no lo muestra: solo aparece con la base de verdad (pasó con las batallas).
-- **Batallas:** hoy varias partes del código dan por hecho que hay dos juegos, con un `if` y un `else`, y no avisan si falta un tercero. Antes de sumar uno, leé [BATALLAS §9 y §11](BATALLAS.md#9-lo-que-hoy-da-por-hecho-que-hay-dos-juegos).
+- **Batallas:** cada decisión por juego es un `switch` que TypeScript controla (desde Diez Letras): al sumar un juego a `BATTLE_GAMES`, marca cada lugar que falta. Antes de sumar uno, leé [BATALLAS §9 y §11](BATALLAS.md#9-dónde-se-decide-qué-hace-cada-juego).
 - **País de la conexión:** Vercel lo manda en el encabezado `x-vercel-ip-country`. En local no viene, y entonces no se controla.
 - **Red de la sesión en la nube:**
   - No llega a datos.gob.ar ni a `*.vercel.app`. Los datos de Georef se bajan desde la base (extensión `http`, que se apaga al terminar).

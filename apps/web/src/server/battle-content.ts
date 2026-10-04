@@ -1,16 +1,26 @@
 import "server-only";
 import { randomInt, randomUUID } from "node:crypto";
-import { TRIVIA_QUESTIONS } from "@repo/content";
-import { FIVE_QUESTIONS_RULES, LARGADA_RULES, createFiveQuestions, createRng, dailyLineup, type TriviaQuestion } from "@repo/games";
+import { TRIVIA_QUESTIONS, getSevenLettersDictionary } from "@repo/content";
+import {
+  FIVE_QUESTIONS_RULES,
+  LARGADA_RULES,
+  TEN_LETTERS_RULES,
+  createFiveQuestions,
+  createRng,
+  createSevenLetters,
+  dailyLineup,
+  sevenLettersWords,
+  type TriviaQuestion,
+} from "@repo/games";
 import { dailyRngs, deriveSeed } from "@repo/games/server";
 import { CATEGORY_LABELS } from "./challenges";
 import { challengeSecret } from "./secret";
 
 /*
  * What each battle match plays: the questions (the same ones for everyone,
- * in the same order) or the waits of the lights (the same for everyone, so
- * they go out at once on every phone). Decided when the match starts and
- * kept with it; the right answers never leave the server.
+ * in the same order), the waits of the lights (the same for everyone, so
+ * they go out at once on every phone) or the letters. Decided when the
+ * match starts and kept with it; the right answers never leave the server.
  */
 
 const QUESTIONS = new Map(TRIVIA_QUESTIONS.map((question) => [question.id, question]));
@@ -22,6 +32,11 @@ export interface BattleTriviaContent {
 
 export interface BattleLargadaContent {
   delaysMs: number[];
+}
+
+/** Only the letters: the valid words are worked out again from them (`lettersWords`). */
+export interface BattleLettersContent {
+  letters: string[];
 }
 
 let dailyCache: { date: string; ids: Set<string> } | null = null;
@@ -75,4 +90,46 @@ export const categoryLabel = (question: TriviaQuestion) => CATEGORY_LABELS[quest
 /** The wait after the fifth light of each start, the same for everyone. */
 export function largadaDelays(): number[] {
   return Array.from({ length: LARGADA_RULES.starts }, () => randomInt(LARGADA_RULES.minDelayMs, LARGADA_RULES.maxDelayMs + 1));
+}
+
+/* ───────────── Diez Letras ───────────── */
+
+let lettersEngine: ReturnType<typeof createSevenLetters> | undefined;
+const lettersGame = () => (lettersEngine ??= createSevenLetters(getSevenLettersDictionary(), TEN_LETTERS_RULES));
+const lettersKey = (letters: readonly string[]) => [...letters].sort().join("");
+
+let dailyLettersCache: { date: string; key: string | null } | null = null;
+
+/** Today's Diez Letras, if it's one of the day's challenges (its letters, sorted): a battle never spoils it. */
+function dailyLetters(date: string): string | null {
+  if (dailyLettersCache?.date === date) return dailyLettersCache.key;
+  const slot = dailyLineup(date).indexOf("seven-letters");
+  // The letters only depend on the day's shared seed, not on the player.
+  const key = slot === -1 ? null : lettersKey(lettersGame().generate(dailyRngs(challengeSecret(), date, slot, "battle")).content.letters);
+  dailyLettersCache = { date, key };
+  return key;
+}
+
+/** Ten letters with plenty of words, like the daily challenge's, and never today's. */
+export function pickLetters(date: string): BattleLettersContent {
+  const daily = dailyLetters(date);
+  for (let tries = 0; ; tries++) {
+    const seed = randomUUID();
+    const { content } = lettersGame().generate({ shared: createRng(`${seed}:letters`), player: createRng(`${seed}:player`) });
+    if (lettersKey(content.letters) !== daily || tries >= 5) return { letters: content.letters };
+  }
+}
+
+const wordsCache = new Map<string, ReadonlySet<string>>();
+
+/** Every valid word of a set of letters, from the dictionary: kept for the latest sets, since every word sent asks. */
+export function lettersWords(letters: readonly string[]): ReadonlySet<string> {
+  const key = lettersKey(letters);
+  let words = wordsCache.get(key);
+  if (!words) {
+    words = new Set(sevenLettersWords(getSevenLettersDictionary(), letters));
+    wordsCache.set(key, words);
+    if (wordsCache.size > 50) wordsCache.delete(wordsCache.keys().next().value as string);
+  }
+  return words;
 }

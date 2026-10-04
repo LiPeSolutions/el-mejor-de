@@ -1,6 +1,6 @@
 import type { Article, Avatar, GroupColor, GroupEmblem, PlaceLevel } from "@repo/shared";
 import type { AccountResponse, AvailabilityResponse } from "./account-types";
-import type { BattleCreatedResponse, BattlePreview, BattleView, GroupBattlesResponse, TriviaQuestionView } from "./battle-types";
+import type { BattleCreatedResponse, BattlePreview, BattleView, BattleWordResponse, GroupBattlesResponse, TriviaQuestionView } from "./battle-types";
 import type {
   AnswerResponse,
   FinishResponse,
@@ -148,5 +148,6 @@ export const battlesApi = {
   answer: (id: string, round: number, choice: number) => send<{ ok: true }>(battle(id, "/respuesta"), { round, choice }),
   largadaStart: (id: string, round: number, reactionMs: number | null, falseStart: boolean) =>
     send<{ ok: true }>(battle(id, "/largada"), { round, reactionMs, falseStart }),
+  word: (id: string, word: string) => send<BattleWordResponse>(battle(id, "/palabra"), { word }),
   group: (groupId: string) => send<GroupBattlesResponse>(`/api/grupos/${encodeURIComponent(groupId)}/batallas`),
 };

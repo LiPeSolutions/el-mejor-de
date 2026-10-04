@@ -9,16 +9,19 @@ import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { useAccount } from "@/lib/account";
 import { ApiError, battlesApi } from "@/lib/api";
-import type { BattleView, MatchView } from "@/lib/battle-types";
+import type { BattleView, MatchView, StandingView } from "@/lib/battle-types";
+import { formatNumber } from "@/lib/format";
 import { GAMES } from "@/lib/games";
 import type { SongKey } from "@/lib/music";
 import { playSoundLater, useMusic } from "@/lib/sound";
-import { useBattle, useServerTime, type BattleProblem } from "@/lib/use-battle";
+import { unknownGame, useBattle, useServerTime, type BattleProblem } from "@/lib/use-battle";
 import { BattleCountdown } from "./BattleCountdown";
+import { BattleLettersWords } from "./BattleLettersWords";
 import { BattleLobby, type LobbyPlayer } from "./BattleLobby";
 import { BattlePodium, type PodiumRow } from "./BattlePodium";
-import { homeOf, peopleOf } from "./faces";
+import { homeOf, peopleOf, type BattlePerson } from "./faces";
 import { LargadaLive } from "./LargadaLive";
+import { LettersLive } from "./LettersLive";
 import { TriviaLive } from "./TriviaLive";
 import { WaitingPill } from "./parts";
 
@@ -32,11 +35,11 @@ const SONG_FOR: Record<GameId, SongKey> = {
   "water-sort": "tubitos",
 };
 
-/** The games a room can choose: the two of the first batch, and the ones on their way. */
+/** The games a room can choose, and the ones on their way. */
 const CHOICES = [
   { game: GAMES.reflexes, soon: false },
   { game: GAMES["five-questions"], soon: false },
-  { game: GAMES["seven-letters"], soon: true },
+  { game: GAMES["seven-letters"], soon: false },
   { game: GAMES.sequence, soon: true },
 ];
 
@@ -237,11 +240,60 @@ function Playing({ view, match, now, refresh, onExit }: { view: BattleView; matc
     const seconds = time === 0 ? 3 : Math.max(1, Math.ceil((match.startsAt - time) / 1000));
     return <BattleCountdown game={GAMES[match.game]} seconds={seconds} faces={match.players.map(person)} />;
   }
-  return match.game === "five-questions" ? (
-    <TriviaLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />
-  ) : (
-    <LargadaLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />
-  );
+  switch (match.game) {
+    case "five-questions":
+      return <TriviaLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
+    case "reflexes":
+      return <LargadaLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
+    case "seven-letters":
+      return <LettersLive view={view} match={match} now={now} refresh={refresh} onExit={onExit} />;
+    default:
+      return unknownGame(match);
+  }
+}
+
+/** What each game shows next to a player in the tables: points, right answers, the average… */
+function scoreText(game: MatchView["game"], row: StandingView): string {
+  switch (game) {
+    case "five-questions":
+    case "seven-letters":
+      return formatNumber(row.score);
+    case "reflexes":
+      return row.averageMs ? `${row.averageMs} ms` : "—";
+    default:
+      return unknownGame(game);
+  }
+}
+
+const words = (n: number) => (n === 1 ? "1 palabra" : `${n} palabras`);
+
+/** The second line of each row on the podium. */
+function podiumDetail(match: MatchView, row: StandingView): string | undefined {
+  switch (match.game) {
+    case "five-questions":
+      return `${row.correct ?? 0} de 5`;
+    case "reflexes":
+      return row.averageMs ? `${row.averageMs} ms` : undefined;
+    case "seven-letters":
+      return words(row.words ?? 0);
+    default:
+      return unknownGame(match);
+  }
+}
+
+/** The headline under the winner: "Pato acertó 4 de 5". */
+function winnerText(match: MatchView, winner: StandingView, who: BattlePerson): string {
+  const me = who.isMe;
+  switch (match.game) {
+    case "five-questions":
+      return `${me ? "Acertaste" : `${who.name} acertó`} ${winner.correct ?? 0} de 5`;
+    case "reflexes":
+      return `${me ? "Largaste" : `${who.name} largó`} en ${winner.averageMs ?? "—"} ms de promedio`;
+    case "seven-letters":
+      return `${me ? "Encontraste" : `${who.name} encontró`} ${words(winner.words ?? 0)}`;
+    default:
+      return unknownGame(match);
+  }
 }
 
 /** Whoever came with the match running watches the table and plays the next one. */
@@ -260,7 +312,7 @@ function Watching({ view, match, onExit }: { view: BattleView; match: MatchView;
             <li key={row.userId} className="flex items-center gap-2.5 text-sm font-bold">
               <span className="w-5 font-display font-extrabold text-ink-500 tabular-nums">{row.place}</span>
               <span className="min-w-0 flex-1 truncate">{who.name}</span>
-              <span className="font-display font-extrabold tabular-nums">{match.game === "reflexes" ? (row.averageMs ? `${row.averageMs} ms` : "—") : row.score}</span>
+              <span className="font-display font-extrabold tabular-nums">{scoreText(match.game, row)}</span>
             </li>
           );
         })}
@@ -290,16 +342,11 @@ function Podium({ view, match, refresh, onLeave }: { view: BattleView; match: Ma
       score: row.score,
       isMe: who.isMe,
       place: row.place,
-      detail: match.game === "five-questions" ? `${row.correct ?? 0} de 5` : row.averageMs ? `${row.averageMs} ms` : undefined,
+      detail: podiumDetail(match, row),
     };
   });
   const winner = match.standings[0];
-  const winnerName = winner ? (winner.userId === view.meId ? "Vos" : person(winner.userId).name) : "";
-  const winnerDetail = !winner
-    ? ""
-    : match.game === "five-questions"
-      ? `${winnerName === "Vos" ? "Acertaste" : `${winnerName} acertó`} ${winner.correct ?? 0} de 5`
-      : `${winnerName === "Vos" ? "Largaste" : `${winnerName} largó`} en ${winner.averageMs ?? "—"} ms de promedio`;
+  const winnerDetail = winner ? winnerText(match, winner, person(winner.userId)) : "";
 
   // A fanfare for whoever won, the score counting for the rest.
   const sounded = useRef(false);
@@ -328,7 +375,13 @@ function Podium({ view, match, refresh, onLeave }: { view: BattleView; match: Ma
       onRematch={() => act(() => battlesApi.start(view.id))}
       onOtherGame={() => act(() => battlesApi.backToLobby(view.id))}
       onLeave={onLeave}
-    />
+    >
+      {match.game === "seven-letters" && match.found && (
+        <BattleLettersWords
+          rows={match.standings.map((row) => ({ face: person(row.userId), words: match.found?.find((one) => one.userId === row.userId)?.words ?? [] }))}
+        />
+      )}
+    </BattlePodium>
   );
 }
 

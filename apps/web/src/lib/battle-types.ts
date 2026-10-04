@@ -39,6 +39,8 @@ export interface StandingView {
   /** Largada: the average with the penalties, and the best start. */
   averageMs?: number | null;
   bestMs?: number | null;
+  /** Diez Letras: words found. */
+  words?: number;
 }
 
 /* ───────────── Cinco Preguntas ───────────── */
@@ -133,7 +135,56 @@ export interface LargadaMatchView {
   standings: StandingView[];
 }
 
-export type MatchView = TriviaMatchView | LargadaMatchView;
+/* ───────────── Diez Letras ───────────── */
+
+export interface LettersRoundView {
+  index: number;
+  opensAt: number;
+  /** When it closed; while open, the latest it can (the time and a little grace). */
+  closesAt: number;
+  closed: boolean;
+  /** When the podium comes. */
+  nextAt: number | null;
+}
+
+/** A word on the podium. `word` is null for a rude one someone else found: it shows hidden. */
+export interface LettersFoundWord {
+  word: string | null;
+  points: number;
+  /** Nobody else found it. */
+  onlyOne: boolean;
+}
+
+export interface LettersMatchView {
+  game: "seven-letters";
+  id: string;
+  startsAt: number;
+  endsAt: number | null;
+  players: string[];
+  /** The clock everyone sees; the server still takes words a moment after. */
+  durationMs: number;
+  minWordLength: number;
+  /** The same for everyone; null until a moment before it opens. */
+  letters: string[] | null;
+  /** The only round: null during the countdown. */
+  round: LettersRoundView | null;
+  /** My valid words, in the order I found them. */
+  mine: { word: string; points: number }[];
+  /** Everyone's words, longest first, once the time is up. */
+  found: { userId: string; words: LettersFoundWord[] }[] | null;
+  standings: StandingView[];
+}
+
+/** What the server says of a word sent in a battle. */
+export interface BattleWordResponse {
+  word: string;
+  /** "duplicate": this player had already found it, and it counted then. */
+  status: "valid" | "invalid" | "too-short" | "duplicate";
+  /** What the word is worth (0 if it doesn't count). */
+  points: number;
+}
+
+export type MatchView = TriviaMatchView | LargadaMatchView | LettersMatchView;
 
 /* ───────────── The room ───────────── */
 

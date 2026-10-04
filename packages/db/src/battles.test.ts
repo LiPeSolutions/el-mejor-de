@@ -17,10 +17,12 @@ import {
   leaveBattle,
   markShown,
   matchMoves,
+  matchWords,
   openGroupBattle,
   playerOpenBattles,
   recordAnswer,
   recordStart,
+  recordWord,
   setBattleGame,
   setBattleLobby,
   touchBattlePlayer,
@@ -36,7 +38,7 @@ beforeAll(async () => {
 });
 beforeEach(async () => {
   await db.query(
-    'truncate game.battle_moves, game.battle_matches, game.battle_players, game.battles, game.group_members, game.groups, game.sessions, game.auth_events, game.users cascade',
+    'truncate game.battle_words, game.battle_moves, game.battle_matches, game.battle_players, game.battles, game.group_members, game.groups, game.sessions, game.auth_events, game.users cascade',
   );
 });
 afterAll(async () => {
@@ -182,6 +184,23 @@ describe('battle matches', () => {
     expect((await matchMoves(db, id)).map((move) => [move.userId, move.reactionMs, move.falseStart])).toEqual([
       [pato.id, null, true],
       [juli.id, 231, false],
+    ]);
+  });
+
+  it('keeps each word once per player, and only well-formed ones', async () => {
+    const [pato, juli] = await Promise.all([player('Pato'), player('Juli')]);
+    const battle = await room(pato);
+    const match = await createMatch(db, { battleId: battle.id, groupId: null, game: 'seven-letters', players: [pato.id, juli.id], content: { letters: [...'CAMINANTES'] }, startedAt: T0, startsAt: T0 });
+    const id = match!.id;
+    expect(await recordWord(db, { matchId: id, userId: pato.id, word: 'CAMA', at: T0 + 4_000 })).toBe(true);
+    expect(await recordWord(db, { matchId: id, userId: pato.id, word: 'CAMA', at: T0 + 6_000 })).toBe(false);
+    expect(await recordWord(db, { matchId: id, userId: juli.id, word: 'CAMA', at: T0 + 5_000 })).toBe(true);
+    expect(await recordWord(db, { matchId: id, userId: juli.id, word: 'ÑANDÚ', at: T0 + 5_500 }).catch(() => 'refused')).toBe('refused');
+    expect(await recordWord(db, { matchId: id, userId: juli.id, word: 'AÑO', at: T0 + 7_000 })).toBe(true);
+    expect(await matchWords(db, id)).toEqual([
+      { userId: pato.id, word: 'CAMA', playedAt: T0 + 4_000 },
+      { userId: juli.id, word: 'CAMA', playedAt: T0 + 5_000 },
+      { userId: juli.id, word: 'AÑO', playedAt: T0 + 7_000 },
     ]);
   });
 

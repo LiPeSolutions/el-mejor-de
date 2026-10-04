@@ -8,6 +8,7 @@ import {
   createSevenLettersDictionary,
   sevenLettersScore,
   sevenLettersWordPoints,
+  sevenLettersWords,
 } from './seven-letters';
 
 const CAMINAR_WORDS = [
@@ -62,6 +63,11 @@ describe('generate', () => {
   it('fails clearly when no base word has enough words', () => {
     const poor = createSevenLetters(createSevenLettersDictionary(['brújula', 'mesa']), SEVEN_LETTERS_RULES);
     expect(() => poor.generate(rngs('x'))).toThrow('enough words');
+  });
+
+  it('finds the same words again from the letters alone', () => {
+    const { content, solution } = game.generate(rngs('again'));
+    expect(sevenLettersWords(dictionary, content.letters)).toEqual(solution.words);
   });
 });
 

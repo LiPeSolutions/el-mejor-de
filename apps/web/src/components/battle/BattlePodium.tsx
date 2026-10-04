@@ -3,6 +3,7 @@
 import type { GroupColor, GroupEmblem as EmblemId } from "@repo/shared";
 import { ChevronRight, Gamepad2, RotateCcw, Swords, X } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { GroupEmblem } from "@/components/groups/Emblem";
 import { Personaje } from "@/components/personaje/Personaje";
 import { avatarLook } from "@/components/personaje/avatar";
@@ -32,6 +33,8 @@ interface Props {
   host: boolean;
   hostName: string;
   history: GroupWins | null;
+  /** What the game adds under the table (Diez Letras: everyone's words). */
+  children?: ReactNode;
   /** Waiting for the server after a button. */
   busy?: boolean;
   onRematch: () => void;
@@ -40,7 +43,7 @@ interface Props {
 }
 
 /** The battle's podium (it doesn't count for rankings or crowns), with the rematch and the group's tally. */
-export function BattlePodium({ game, rows, winnerDetail, host, hostName, history, busy = false, onRematch, onOtherGame, onLeave }: Props) {
+export function BattlePodium({ game, rows, winnerDetail, host, hostName, history, children, busy = false, onRematch, onOtherGame, onLeave }: Props) {
   const winner = rows[0];
   const title = !winner ? "Terminó la batalla" : winner.isMe ? "¡Ganaste!" : `¡Ganó ${winner.name}!`;
   const tied = rows.filter((row) => row.place === 1).length > 1;
@@ -72,6 +75,8 @@ export function BattlePodium({ game, rows, winnerDetail, host, hostName, history
           ))}
         </ul>
       )}
+
+      {children}
 
       {history && (
         <Link href={`/grupos/${history.group.id}?vista=batallas`} className="mx-5 mt-3 flex items-center gap-3 rounded-card bg-white px-4 py-3 shadow-md">

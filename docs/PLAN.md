@@ -2,7 +2,7 @@
 
 > Documento vivo: lo vamos ajustando a medida que decidimos cosas.
 > Lo marcado como *(propuesta)* todavía no está confirmado.
-> Última actualización: 4 de octubre de 2026 (Tubitos, el quinto juego, y la rotación de 5 juegos; batallas en vivo; la vibración de la señal de Largada se mantiene; música en loop).
+> Última actualización: 4 de octubre de 2026 (Tubitos, el quinto juego, y la rotación de 5 juegos; batallas en vivo, con Diez Letras; cómo se juegan Secuencia y Tubitos en las batallas; la vibración de la señal de Largada se mantiene; música en loop).
 
 ## 1. La idea
 
@@ -36,7 +36,7 @@ Lo que la hace distinta:
 | Ubicación | Se elige al crear la cuenta, **con el GPS en un toque** (las localidades cercanas ya quedan verificadas) o a mano. Sin verificar se juega igual, pero no se entra al ranking del lugar; al verificar entra lo de esa semana. Para **ganar la corona** de un lugar hay que haber **verificado esa misma semana**; si no, pasa al siguiente que sí. La localidad se **cambia cuando quieras**, con el GPS confirmando la nueva. En la Ciudad de Buenos Aires se compite **por barrio** (3/10/2026). |
 | Cuentas | **Jugás sin registrarte**; para entrar en los rankings creás una cuenta con **apodo y contraseña**, sin email: más fácil y sirve para los chicos. Más adelante se va a poder **vincular con Google**, para entrar aunque te olvides la contraseña. |
 | Social | Grupos privados, lista de amigos, desafíos 1 vs 1 y compartir resultados. Los **grupos van antes que el lugar y el ranking** (3/10/2026): hasta 50 miembros, invitación por link o código y su propia corona en vivo (ver §8). |
-| Batallas en vivo | **Jugar al mismo tiempo**, cada uno en su celu (4/10/2026): se arma una sala **desde un grupo** (sus miembros ven el aviso) **o con un link** para cualquiera, con cuenta y **de 2 a 10 jugadores**. Quien la arma elige **un juego** y al final hay **revancha u otro juego** en la misma sala. Todo **a la par**: las mismas preguntas y las mismas luces para todos a la vez. **No cuentan para rankings ni coronas**; el grupo guarda **quién ganó cada batalla**. Primero Largada y Cinco Preguntas; Diez Letras y Secuencia, en la tanda siguiente (ver §8). |
+| Batallas en vivo | **Jugar al mismo tiempo**, cada uno en su celu (4/10/2026): se arma una sala **desde un grupo** (sus miembros ven el aviso) **o con un link** para cualquiera, con cuenta y **de 2 a 10 jugadores**. Quien la arma elige **un juego** y al final hay **revancha u otro juego** en la misma sala. Todo **a la par**: las mismas preguntas y las mismas luces para todos a la vez. **No cuentan para rankings ni coronas**; el grupo guarda **quién ganó cada batalla**. Primero Largada y Cinco Preguntas, después Diez Letras; Secuencia y Tubitos, en camino (ver §8). |
 | Truco | Online contra gente y mesas privadas. **Sin flor.** 1 vs 1, 2 vs 2 y 3 vs 3. |
 | Comunicación | **Solo frases, emojis y señas predefinidas** (sin chat libre). |
 | Monetización | **Más adelante.** Idea inicial: comprar vidas. |
@@ -201,7 +201,8 @@ La responsable del producto lo diseñó con Claude Design (dirección "Probeta")
 - **Práctica:** niveles sin fin (del 1 al 4 con 6 tubos, del 5 al 9 con 8 y desde el 10 con 10). El récord es el nivel más alto resuelto, y cada vez seguís desde el que viene.
 - **Desde cuándo:** en la práctica, desde que se publicó; en el reto del día, desde el lunes 5/10/2026 (decidido: al día siguiente de publicarlo), con la rotación de 5 juegos.
 - **Música:** "Laboratorio", tranquila y burbujeante (decidido el 4/10/2026), y dos sonidos nuevos: el gluglú del vertido y el "plop" del corcho.
-- **Para una segunda vuelta:** el grupo en el juego y en la victoria, y Tubitos en las batallas en vivo.
+- **Para una segunda vuelta:** el grupo en el juego y en la victoria.
+- **En las batallas en vivo** (decidido el 4/10/2026): como el reto, con los mismos 3 tableros para todos (ver §8).
 
 ### Ideas para después
 
@@ -219,7 +220,7 @@ La responsable del producto lo diseñó con Claude Design (dirección "Probeta")
 | Compartir resultados | Imagen y texto con emojis para WhatsApp o historias, con un link que se ve lindo al compartirlo. | MVP |
 | Lista de amigos | Agregar amigos, ver sus resultados y un ranking entre ustedes. | Etapa 1.5 |
 | Desafíos 1 vs 1 | Retar a alguien a un minijuego: los dos juegan el mismo reto y gana el mejor puntaje. Cada uno juega cuando puede, dentro de las 24 horas. | Etapa 1.5 |
-| Batallas en vivo | Una sala de 2 a 10 amigos que juegan el mismo juego a la vez, desde un grupo o con un link. | **Hecho** (4/10/2026): Largada y Cinco Preguntas |
+| Batallas en vivo | Una sala de 2 a 10 amigos que juegan el mismo juego a la vez, desde un grupo o con un link. | **Hecho** (4/10/2026): Largada, Cinco Preguntas y Diez Letras |
 
 Los grupos y el compartir van primero porque son los que más gente nueva traen.
 
@@ -242,7 +243,15 @@ La responsable del producto pidió poder jugar al mismo tiempo con los del grupo
 - **A la par:** una cuenta regresiva en todos los celus a la vez y después:
   - **Cinco Preguntas:** la misma pregunta para todos. Se ve quién ya respondió, pero no qué. La correcta aparece cuando respondieron todos o se terminó el tiempo, así nadie la puede cantar, y después de cada una se ve la tabla. Los puntos son los del juego.
   - **Largada:** las mismas luces para todos, que se apagan al mismo tiempo en cada celu. Cuando todos tocaron, la carrera corre a la vez en todos los celus. Son 3 largadas, y gana el mejor promedio, con las penalidades del juego.
-  - **Diez Letras y Secuencia** llegan en la tanda siguiente: las mismas letras en los mismos 90 segundos, y Secuencia por rondas, donde el que se equivoca queda afuera.
+  - **Diez Letras** (hecho el 4/10/2026): las mismas 10 letras para todos, en los mismos 90 segundos.
+    - Mientras se juega se ven los puntos de cada uno, nunca sus palabras.
+    - Los puntos son los del juego, sumados sin el tope de 1.000: el que más encuentra siempre gana. Un empate lo gana quien llegó primero a ese puntaje.
+    - No hay botón para terminar antes, como en el reto.
+    - En el podio se ven **las palabras de todos**, tocando a cada uno. Las que encontró uno solo llevan una estrella, y las groseras se ocultan para los demás.
+  - **Secuencia** (decidido el 4/10/2026): por rondas, con la misma secuencia para todos a la vez. El que se equivoca o no responde a tiempo queda afuera.
+    - Para repetirla hay 3 segundos más 1 por color (con 5 colores, 8 segundos); la ronda sigue apenas respondieron todos.
+    - **Desempate:** si se equivocan todos los que quedan en la misma ronda, la juegan otra vez solo ellos, hasta que quede uno.
+  - **Tubitos** (decidido el 4/10/2026): **como el reto**. Los mismos 3 tableros para todos (6, 8 y 10 tubos), uno detrás del otro, con los puntos del reto (movimientos y tiempo). Se ve quién ya lo resolvió, y cada tablero tiene un tiempo máximo, así nadie espera de más.
 - **El final:** el podio de la batalla y **revancha** (otras preguntas, otras largadas) u **otro juego**, sin salir de la sala.
 - **Si alguien se va** o se le corta internet, la partida sigue sin esa persona. Quien llega con una partida empezada juega la próxima. Si se va quien la armó, elige el que entró después.
 - **No cuentan para rankings ni coronas**, que siguen saliendo de los retos del día. En el grupo, la pestaña **Batallas** muestra cuántas ganó cada uno y las últimas que se jugaron. Un empate arriba cuenta como ganada para cada uno.
@@ -312,7 +321,7 @@ Cada etapa termina con algo que se puede jugar y probar.
 
 - Lista de amigos y ranking entre amigos.
 - Desafíos 1 vs 1.
-- Batallas en vivo de Diez Letras y Secuencia (las de Largada y Cinco Preguntas ya están), y quizás de Tubitos.
+- Batallas en vivo de Secuencia y Tubitos (las de Largada, Cinco Preguntas y Diez Letras ya están).
 - Notificaciones: "salió el reto de hoy", "te pasaron en el ranking", "¡ganaste la corona!", "Pato armó una batalla".
 - Más minijuegos.
 
@@ -343,4 +352,4 @@ Para las próximas charlas:
 10. **Palabras prohibidas en los apodos:** revisar la lista (`packages/shared/src/accounts.ts`).
 11. **Contraseñas olvidadas sin Google:** ¿las recuperamos a mano (por ejemplo, con un código que da el equipo) o la cuenta se pierde?
 12. **Diccionario de Diez Letras:** hoy acepta palabras poco conocidas y conjugaciones, como "ADRAN" o "AES". ¿Valen solo las palabras conocidas? Habría que filtrar el diccionario por frecuencia de uso.
-13. **Tubitos:** ¿se suma a las batallas en vivo? ¿La pantalla ancha de tablet (hasta 760 px) se usa también en los otros juegos? Por ahora es solo de Tubitos.
+13. **Tubitos:** ¿la pantalla ancha de tablet (hasta 760 px) se usa también en los otros juegos? Por ahora es solo de Tubitos. (Que entra a las batallas en vivo, como el reto, se decidió el 4/10/2026.)

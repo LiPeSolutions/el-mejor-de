@@ -155,6 +155,11 @@ function byLengthThenAlphabet(a: string, b: string): number {
   return b.length - a.length || (a < b ? -1 : a > b ? 1 : 0);
 }
 
+/** Every valid word of a set of letters, longest first: what `generate` keeps as the solution. */
+export function sevenLettersWords(dictionary: SevenLettersDictionary, letters: readonly string[]): string[] {
+  return spellableWords(dictionary, letters.join('')).sort(byLengthThenAlphabet);
+}
+
 function plausibilityFlags(
   rules: LetterGameRules,
   result: Pick<SevenLettersResult, 'accepted'>,

@@ -469,6 +469,37 @@ export async function recordStart(
   return rows.length > 0;
 }
 
+/* ───────────── Words (Diez Letras) ───────────── */
+
+export interface BattleWord {
+  userId: string;
+  /** Normalized and already checked by the server. */
+  word: string;
+  playedAt: number;
+}
+
+export async function matchWords(db: Queryable, matchId: string): Promise<BattleWord[]> {
+  const rows = await db.query<{ user_id: string; word: string; played_at: number }>(
+    `select user_id, word, ${ms('played_at', 'played_at')}
+     from game.battle_words where match_id = $1::uuid
+     order by played_at, user_id, word`,
+    [matchId],
+  );
+  return rows.map((row) => ({ userId: row.user_id, word: row.word, playedAt: row.played_at }));
+}
+
+/** A valid word, once per player. False if they had already found it. */
+export async function recordWord(db: Queryable, input: { matchId: string; userId: string; word: string; at: number }): Promise<boolean> {
+  const rows = await db.query(
+    `insert into game.battle_words (match_id, user_id, word, played_at)
+     values ($1::uuid, $2::uuid, $3, ${at('$4')})
+     on conflict (match_id, user_id, word) do nothing
+     returning 1`,
+    [input.matchId, input.userId, input.word, input.at],
+  );
+  return rows.length > 0;
+}
+
 /* ───────────── A group's history ───────────── */
 
 /** The group's current members, for its tally of battles. */

@@ -2,13 +2,14 @@ import { createUser, latestMatch, type User } from "@repo/db";
 import { testDatabase, type TestDatabase } from "@repo/db/testing";
 import { BATTLE_RULES } from "@repo/games";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { questionById, type BattleLargadaContent, type BattleTriviaContent } from "./battle-content";
+import { lettersWords, questionById, type BattleLargadaContent, type BattleLettersContent, type BattleTriviaContent } from "./battle-content";
 import {
   backToLobby,
   battleAnswer,
   battleQuestion,
   battleStart,
   battleState,
+  battleWord,
   chooseGame,
   groupBattles,
   joinFromGroup,
@@ -28,7 +29,7 @@ beforeAll(async () => {
 });
 beforeEach(async () => {
   await db.query(
-    "truncate game.battle_moves, game.battle_matches, game.battle_players, game.battles, game.group_code_failures, game.group_members, game.groups, game.users cascade",
+    "truncate game.battle_words, game.battle_moves, game.battle_matches, game.battle_players, game.battles, game.group_code_failures, game.group_members, game.groups, game.users cascade",
   );
 });
 afterAll(async () => {
@@ -379,5 +380,103 @@ describe("a battle of Largada", () => {
     expect(tally.live).toBeNull();
     expect(tally.recent).toHaveLength(1);
     expect(tally.recent[0]?.winners).toEqual([]);
+  });
+});
+
+describe("a battle of Diez Letras", () => {
+  const { durationMs, graceMs, timeUpMs } = BATTLE_RULES.letters;
+  async function letters(set?: string) {
+    const [pato, juli] = await Promise.all([player("Pato"), player("Juli")]);
+    const { battleId } = await room(pato, juli);
+    await chooseGame(db, pato, battleId, "seven-letters", ctx(T + 2_000));
+    await startMatch(db, pato, battleId, ctx(T + 3_000));
+    if (set) await db.query("update game.battle_matches set content = $2::text::jsonb where battle_id = $1::uuid", [battleId, JSON.stringify({ letters: [...set] })]);
+    const content = (await latestMatch(db, battleId))!.content as BattleLettersContent;
+    const valid = [...lettersWords(content.letters)];
+    return { pato, juli, battleId, startsAt: T + 3_000 + countdownMs, letters: content.letters, valid };
+  }
+
+  it("gives everyone the same ten letters right when the countdown ends", async () => {
+    const { pato, juli, battleId, startsAt, letters: set, valid } = await letters();
+    expect(set).toHaveLength(10);
+    expect(valid.length).toBeGreaterThanOrEqual(40);
+    const early = await battleState(db, juli, battleId, ctx(startsAt - 1_000));
+    if (early.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(early.match).toMatchObject({ letters: null, round: null, durationMs, minWordLength: 3, mine: [], found: null });
+    const soon = await battleState(db, pato, battleId, ctx(startsAt - 300));
+    if (soon.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(soon.match.letters).toEqual(set);
+    expect(await failure(battleWord(db, pato, battleId, valid[0]!, ctx(startsAt - 300)))).toMatchObject({ code: "too-early" });
+  });
+
+  it("checks each word, and shows the others only the points until the time is up", async () => {
+    const { pato, juli, battleId, startsAt, valid } = await letters();
+    const [long, short] = [valid[0]!, valid.at(-1)!];
+    expect(await battleWord(db, pato, battleId, long.toLowerCase(), ctx(startsAt + 5_000))).toMatchObject({ word: long, status: "valid" });
+    const first = await battleWord(db, pato, battleId, long, ctx(startsAt + 6_000));
+    expect(first).toEqual({ word: long, status: "duplicate", points: expect.any(Number) });
+    expect(first.points).toBeGreaterThan(0);
+    expect(await battleWord(db, pato, battleId, "ZZZQ", ctx(startsAt + 6_500))).toEqual({ word: "ZZZQ", status: "invalid", points: 0 });
+    expect(await battleWord(db, pato, battleId, "ab", ctx(startsAt + 7_000))).toEqual({ word: "AB", status: "too-short", points: 0 });
+    expect(await battleWord(db, juli, battleId, short, ctx(startsAt + 8_000))).toMatchObject({ status: "valid" });
+
+    const during = await battleState(db, juli, battleId, ctx(startsAt + 10_000));
+    if (during.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(during.match.mine.map((one) => one.word)).toEqual([short]);
+    expect(during.match.found).toBeNull();
+    expect(during.match.round).toMatchObject({ closed: false, closesAt: startsAt + durationMs + graceMs });
+    expect(during.match.standings.map((row) => [row.userId, row.place, row.words])).toEqual([
+      [pato.id, 1, 1],
+      [juli.id, 2, 1],
+    ]);
+    expect(JSON.stringify(during)).not.toContain(long);
+  });
+
+  it("plays the whole 90 seconds and ends with everyone's words", async () => {
+    const { pato, juli, battleId, startsAt, valid } = await letters();
+    await battleWord(db, pato, battleId, valid[3]!, ctx(startsAt + 2_000));
+    await battleWord(db, juli, battleId, valid[3]!, ctx(startsAt + 3_000));
+    await battleWord(db, juli, battleId, valid[4]!, ctx(startsAt + durationMs + graceMs - 100));
+    expect(await failure(battleWord(db, juli, battleId, valid[5]!, ctx(startsAt + durationMs + graceMs)))).toMatchObject({ code: "round-closed" });
+
+    const timeUp = await battleState(db, pato, battleId, ctx(startsAt + durationMs + graceMs + 500));
+    expect(timeUp.stage).toBe("match");
+    if (timeUp.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(timeUp.match.round).toMatchObject({ closed: true, nextAt: startsAt + durationMs + graceMs + timeUpMs });
+    expect(timeUp.match.found?.find((one) => one.userId === juli.id)?.words).toEqual([
+      ...[valid[3]!, valid[4]!]
+        .sort((a, b) => b.length - a.length || a.localeCompare(b, "es"))
+        .map((word) => ({ word, points: expect.any(Number), onlyOne: word === valid[4] })),
+    ]);
+
+    const podium = await battleState(db, pato, battleId, ctx(startsAt + durationMs + graceMs + timeUpMs));
+    expect(podium.stage).toBe("podium");
+    expect(podium.match?.standings.map((row) => [row.userId, row.place])).toEqual([
+      [juli.id, 1],
+      [pato.id, 2],
+    ]);
+    expect((await latestMatch(db, battleId))?.winners).toEqual([juli.id]);
+  });
+
+  it("hides on the podium a rude word someone else found", async () => {
+    const { pato, juli, battleId, startsAt, valid } = await letters("ADIVINANZA");
+    const fine = valid.find((word) => word.length > 4)!;
+    expect(await battleWord(db, juli, battleId, "nazi", ctx(startsAt + 4_000))).toMatchObject({ status: "valid" });
+    expect(await battleWord(db, juli, battleId, fine, ctx(startsAt + 5_000))).toMatchObject({ status: "valid" });
+    const end = startsAt + durationMs + graceMs + timeUpMs;
+    const theirs = await battleState(db, pato, battleId, ctx(end));
+    if (theirs.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(theirs.match.found?.find((one) => one.userId === juli.id)?.words.map((one) => one.word)).toEqual([fine, null]);
+    const mine = await battleState(db, juli, battleId, ctx(end + 100));
+    if (mine.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(mine.match.found?.find((one) => one.userId === juli.id)?.words.map((one) => one.word)).toEqual([fine, "NAZI"]);
+  });
+
+  it("ends early only when everyone left", async () => {
+    const { pato, juli, battleId, startsAt } = await letters();
+    await leaveRoom(db, juli, battleId, ctx(startsAt + 1_000));
+    const view = await battleState(db, pato, battleId, ctx(startsAt + 20_000));
+    if (view.match?.game !== "seven-letters") throw new Error("not letters");
+    expect(view.match.round?.closed).toBe(false);
   });
 });

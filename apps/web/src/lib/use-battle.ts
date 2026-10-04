@@ -40,22 +40,44 @@ export class BattleClock {
   }
 }
 
+/** For a switch over the games of a match: TypeScript says which one is missing. */
+export function unknownGame(match: never): never {
+  throw new Error(`unknown battle game ${(match as { game?: unknown }).game}`);
+}
+
+/** A Diez Letras phone asks for the letters this early, so they're there when the countdown ends. */
+const LETTERS_AHEAD_MS = 300;
+
 /** When to ask again: often while something is about to change, little in the room. */
 function nextAsk(view: BattleView, now: number): number {
   if (view.stage === "lobby" || view.stage === "podium") return 2_000;
   const match = view.match;
   if (!match) return 2_000;
+  // Right when the next thing comes (a question, the lights, the podium), and at least every 1,5 s.
+  const until = (at: number | null) => Math.min(1_500, Math.max(100, (at ?? now) - now + 80));
+  if (match.game === "seven-letters" && match.letters === null) return Math.min(1_000, Math.max(100, match.startsAt - LETTERS_AHEAD_MS - now));
   if (now < match.startsAt) return Math.min(1_000, Math.max(100, match.startsAt - now + 50));
-  if (match.game === "five-questions") {
-    const round = match.round;
-    if (!round) return 500;
-    if (!round.closed) return match.myChoice !== null ? 400 : 700;
-    return Math.min(1_500, Math.max(100, (round.nextAt ?? now) - now + 80));
+  switch (match.game) {
+    case "five-questions": {
+      const round = match.round;
+      if (!round) return 500;
+      if (!round.closed) return match.myChoice !== null ? 400 : 700;
+      return until(round.nextAt);
+    }
+    case "reflexes": {
+      const round = match.rounds.at(-1);
+      if (!round) return 500;
+      if (round.closedAt === null) return now < round.signalAt ? Math.min(1_500, Math.max(150, round.signalAt - now + 150)) : 300;
+      return until(round.nextAt);
+    }
+    case "seven-letters": {
+      // Everyone's points, every second.
+      const round = match.round;
+      return round?.closed ? until(round.nextAt) : 1_000;
+    }
+    default:
+      return unknownGame(match);
   }
-  const round = match.rounds.at(-1);
-  if (!round) return 500;
-  if (round.closedAt === null) return now < round.signalAt ? Math.min(1_500, Math.max(150, round.signalAt - now + 150)) : 300;
-  return Math.min(1_500, Math.max(100, (round.nextAt ?? now) - now + 80));
 }
 
 export type BattleProblem = "not-in-battle" | "closed" | "not-found" | "signed-out" | "network";
